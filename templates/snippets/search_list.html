@@ -1,0 +1,26 @@
+<table id = "letters_table" class="table table-condensed table-striped">
+    <thead>
+    <tr>
+        <th class="letters-table-heading col-xs-2">Date</th>
+        <th class="letters-table-heading col-xs-3">Writer</th>
+        <th class="letters-table-heading col-xs-4">Recipient</th>
+        <th class="letters-table-heading col-xs-3">Place</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for letter, highlight in search_results %}
+        <tr>
+            <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.list_date }}</a></td>
+            <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.writer }}</a></td>
+            <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.recipient }}</a></td>
+            <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.place }}</a></td>
+        </tr>
+        {% if highlight %}
+        <tr>
+            <td colspan="4" class="letter-highlight">{{ highlight|safe }}</td>
+        </tr>
+        {% endif %}
+
+    {% endfor %}
+    </tbody>
+</table>

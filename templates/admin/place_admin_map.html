@@ -1,0 +1,22 @@
+{% load staticfiles %}
+{% block extrastyle %}
+{% load i18n static %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.0.1/css/ol.css" type="text/css">
+<style type="text/css">
+  #{{ id }}_map { width: {{ map_width }}px; height: {{ map_height }}px; }
+  #{{ id }}_map .aligned label { float:inherit; }
+  #{{ id }}_admin_map { position: relative; vertical-align: top; float: {{ LANGUAGE_BIDI|yesno:"right,left" }}; }
+  {% if not display_wkt %}#{{ id }} { display: none; }{% endif %}
+</style>
+{% endblock %}
+
+<span id="{{ id }}_admin_map">
+<script type="text/javascript">
+//<![CDATA[
+{% block openlayers %}{% include "admin/place_admin_map.js" %}{% endblock %}
+//]]>
+</script>
+<div id="{{ id }}_map"{% if LANGUAGE_BIDI %} dir="ltr"{% endif %}></div>
+<textarea id="{{ id }}" class="vWKTField required" cols="150" rows="10" name="{{ name }}">{{ wkt }}</textarea>
+<script type="text/javascript">{% block init_function %}map_init();{% endblock %}</script>
+</span>

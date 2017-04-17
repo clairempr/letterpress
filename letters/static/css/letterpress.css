@@ -1,0 +1,84 @@
+/* for sticky footer */
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    font-size: 150%;
+    padding-top: 40px;
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+}
+
+blockquote {
+    font-size: 1em;
+}
+
+em {
+    background-color: #c4e3f3;
+}
+
+.body-content {
+    padding-top: 35px;
+}
+
+.dropdown-menu {
+    width: 300px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 45px;
+}
+
+.image-credit {
+    font-size: .9em;
+}
+
+.letter-highlight {
+    font-size: .9em;
+}
+
+.letterpress-display {
+    padding-top: 40px;
+    background-color: transparent !important;
+}
+
+.map-container {
+    padding: 5px;
+    border-style: groove;
+}
+
+.nav-label {
+    font-family: 'Amita', cursive;
+    font-size: 1.3em;
+}
+
+.page-label {
+    font-family: 'Amita', cursive;
+    font-size: 1.5em;
+    padding-top: 30px;
+}
+
+.popover-content {
+    line-height: 105%;
+}
+
+.vertical-bottom {
+    display: flex;
+    align-items: flex-end;
+}
+
+.vertical-center {
+    display: flex;
+    align-items: center;
+}
+
+
+
+
+

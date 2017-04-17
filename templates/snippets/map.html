@@ -1,0 +1,28 @@
+{% load staticfiles %}
+<div id="popup">
+</div>
+
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
+<link rel="stylesheet" href="https://openlayers.org/en/v4.0.1/css/ol.css" type="text/css">
+<script src="https://openlayers.org/en/v4.0.1/build/ol.js" type="text/javascript"></script>
+<script src={% static "js/map.js" %} type="text/javascript"></script>
+
+<script type="text/javascript">
+    var features = [];
+
+    {% for place in places %}
+
+        // Define markers as "features" of the vector layer:
+        var point = create_point({{ place.point.x }}, {{ place.point.y }});
+        var name = '<a href ="{% url 'place_by_id' place.id %}">{{ place }}</a>';
+
+        features.push(create_feature(point, name));
+
+    {% endfor %}
+
+    var marker_image = '{% static "images/pen_marker.png" %}';
+    var plain_marker_image = '{% static "images/plain_marker.png" %}';
+    var popups = true;
+
+    map_init(features, marker_image, plain_marker_image, popups);
+</script>
