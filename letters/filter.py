@@ -57,25 +57,11 @@ def get_filter_values_from_request(request):
 def get_start_date_from_request(request):
     start_date_value = request.POST.get('start_date') if request.POST.get('start_date') else '0001-01-01'
     return start_date_value
-    # If only year or only year and month entered, add low values to start and high values to end
-    if start_date_value.count('-') < 1:
-        start_date_value += '-00-00'
-    elif start_date_value.count('-') < 2:
-        start_date_value += '-00'
-
-    #return display_date_to_sort_date(start_date_value)
 
 
 def get_end_date_from_request(request):
     end_date_value = request.POST.get('end_date') if request.POST.get('end_date') else '9999-12-31'
     return end_date_value
-    # If only year or only year and month entered, add low values to start and high values to end
-    if end_date_value.count('-') < 1:
-        end_date_value += '-12-31'
-    elif end_date_value.count('-') < 2:
-        end_date_value += '-31'
-
-    # return display_date_to_sort_date(end_date_value)
 
 
 def display_date_to_sort_date(display_date):

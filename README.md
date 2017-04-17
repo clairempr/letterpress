@@ -1,6 +1,6 @@
 ## Letterpress ##
 ![Screenshot](screenshots/home.png) 
-*Claire Pritchard* 
+*Claire Pritchard*  
 *April 2017*   
 
 Letterpress is a Django web application for the management of transcriptions and images of letters and related documents. 
