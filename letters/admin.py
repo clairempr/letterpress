@@ -3,9 +3,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.gis import admin as gisAdmin
 from django_date_extensions.fields import ApproximateDate
 from .models import Correspondent, Place, Letter, DocumentImage, DocumentSource, Envelope, MiscDocument
-from letterpress import settings
 import calendar
-import os
 
 
 # get unique list of Correspondent ids associated with a DocumentSource id
@@ -56,6 +54,7 @@ class CorrespondentSourceFilter(SimpleListFilter):
 
 
 class CorrespondentAdmin(admin.ModelAdmin):
+    fields = ('id', 'last_name', 'married_name', 'first_names', 'suffix', 'description', 'images', 'image_preview',)
     ordering = ('last_name', 'first_names', 'suffix')
     readonly_fields = ('id', 'image_preview',)
     filter_horizontal = ('images',)
@@ -158,7 +157,7 @@ class DocumentImageAdmin(admin.ModelAdmin):
 
 
 class DocumentSourceAdmin(admin.ModelAdmin):
-    fields = ('id', 'name', 'description', 'url', 'image_preview',)
+    fields = ('id', 'name', 'description', 'url', 'images', 'image_preview',)
     ordering = ('name',)
     readonly_fields = ('id', 'image_preview',)
     filter_horizontal = ('images',)
