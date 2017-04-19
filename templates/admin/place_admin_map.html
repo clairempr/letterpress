@@ -11,6 +11,11 @@
 {% endblock %}
 
 <span id="{{ id }}_admin_map">
+
+<!-- Use ol3-geocoder to search for place names in the map -->
+<link href="https://unpkg.com/ol3-geocoder/build/ol3-geocoder.min.css" rel="stylesheet">
+<script src="https://unpkg.com/ol3-geocoder/build/ol3-geocoder.js"></script>
+
 <script type="text/javascript">
 //<![CDATA[
 {% block openlayers %}{% include "admin/place_admin_map.js" %}{% endblock %}
