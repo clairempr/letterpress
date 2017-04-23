@@ -10,6 +10,9 @@ elasticsearch.bat.lnk
 # repository-specific .gitignore files
 .gitignore-*
 
+# repository-specific .git directories
+.git-*
+
 *.sqlite3
 
 uwsgi*.ini

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_date_extensions',
+    'django.forms',
     'sslserver',
     'tinymce',
     'letters',
@@ -59,10 +60,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'letterpress.urls'
 
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        'DIRS': [os.path.join(BASE_DIR, 'templates'),
+                 'django/forms/templates']
         ,
         'APP_DIRS': False,
         'OPTIONS': {
@@ -117,15 +121,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
@@ -140,9 +139,6 @@ STATIC_URL = '/static/'
 # Configuration for django-tinymce
 # Don't bother with TINYMCE_JS_ROOT and TINYMCE_JS_URL
 # Just let it use the defaults and find everything in the django-tinymce install
-#TINYMCE_JS_URL = os.path.join(STATIC_URL, 'tiny_mce/tiny_mce.js')
-#TINYMCE_JS_ROOT = os.path.join(STATIC_ROOT, "tiny_mce")
-
 TINYMCE_DEFAULT_CONFIG = {
     'plugins': 'paste,searchreplace',
     'theme': 'simple',
