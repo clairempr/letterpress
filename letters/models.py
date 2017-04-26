@@ -124,7 +124,7 @@ class Place(models.Model):
 
 
 class Letter(models.Model):
-    date = ApproximateDateField(null=True)
+    date = ApproximateDateField(default='', blank=True)
     place = models.ForeignKey(Place)
     writer = models.ForeignKey(Correspondent, related_name='writer')
     recipient = models.ForeignKey(Correspondent, related_name='recipient')
@@ -297,7 +297,7 @@ class Letter(models.Model):
 class Envelope(models.Model):
     source = models.ForeignKey(DocumentSource)
     description = models.CharField(max_length=75, blank=True)
-    date = ApproximateDateField(null=True)
+    date = ApproximateDateField(default='', blank=True)
     writer = models.ForeignKey(Correspondent, related_name='envelope_writer')
     origin = models.ForeignKey(Place, related_name='origin')
     recipient = models.ForeignKey(Correspondent, related_name='envelope_recipient')
@@ -328,7 +328,7 @@ class Envelope(models.Model):
 class MiscDocument(models.Model):
     source = models.ForeignKey(DocumentSource)
     description = models.CharField(max_length=75)
-    date = ApproximateDateField(null=True)
+    date = ApproximateDateField(default='', blank=True)
     writer = models.ForeignKey(Correspondent, related_name='miscdoc_writer')
     place = models.ForeignKey(Place)
     contents = tinymce_models.HTMLField(null=True, blank=True)
