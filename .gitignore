@@ -17,7 +17,6 @@ elasticsearch.bat.lnk
 
 uwsgi*.ini
 
-old_requirements.png
 certificates/
 media/letter_images/*
 
