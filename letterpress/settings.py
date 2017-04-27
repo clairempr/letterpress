@@ -8,7 +8,7 @@ import os
 import letterpress.settings_secret as settings_secret
 
 # For my OS-specific settings
-WINDOWS = True
+WINDOWS = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

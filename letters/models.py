@@ -123,6 +123,37 @@ class Place(models.Model):
         return desc
 
 
+class Envelope(models.Model):
+    source = models.ForeignKey(DocumentSource)
+    description = models.CharField(max_length=75, blank=True)
+    date = ApproximateDateField(default='', blank=True)
+    writer = models.ForeignKey(Correspondent, related_name='envelope_writer')
+    origin = models.ForeignKey(Place, related_name='origin')
+    recipient = models.ForeignKey(Correspondent, related_name='envelope_recipient')
+    destination = models.ForeignKey(Place, related_name='destination')
+    contents = tinymce_models.HTMLField(null=True, blank=True)
+    notes = tinymce_models.HTMLField(blank=True)
+    images = models.ManyToManyField(DocumentImage, blank=True)
+
+    def __str__(self):
+        return self.get_display_string()
+
+    def to_string(self):
+        return self.get_display_string()
+
+    def get_display_string(self):
+        if self.description:
+            return self.description
+
+        return str.format('{writer} to {recipient}{date}',
+                          writer=self.writer,
+                          recipient=self.recipient,
+                          date=', ' + self.date if self.date else '')
+
+    def image_preview(self):
+        return get_image_preview(self)
+
+
 class Letter(models.Model):
     date = ApproximateDateField(default='', blank=True)
     place = models.ForeignKey(Place)
@@ -140,6 +171,7 @@ class Letter(models.Model):
     notes = tinymce_models.HTMLField(blank=True)
     language = models.CharField(max_length=2, default=DEFAULT_LANGUAGE, blank=True)
     images = models.ManyToManyField(DocumentImage, blank=True)
+    envelopes = models.ManyToManyField(Envelope, blank=True)
 
     def __str__(self):
         return str.format('Letter: {0}, {1} to {2}',
@@ -294,37 +326,6 @@ class Letter(models.Model):
         )
 
 
-class Envelope(models.Model):
-    source = models.ForeignKey(DocumentSource)
-    description = models.CharField(max_length=75, blank=True)
-    date = ApproximateDateField(default='', blank=True)
-    writer = models.ForeignKey(Correspondent, related_name='envelope_writer')
-    origin = models.ForeignKey(Place, related_name='origin')
-    recipient = models.ForeignKey(Correspondent, related_name='envelope_recipient')
-    destination = models.ForeignKey(Place, related_name='destination')
-    contents = tinymce_models.HTMLField(null=True, blank=True)
-    notes = tinymce_models.HTMLField(blank=True)
-    images = models.ManyToManyField(DocumentImage, blank=True)
-
-    def __str__(self):
-        return self.get_display_string()
-
-    def to_string(self):
-        return self.get_display_string()
-
-    def get_display_string(self):
-        if self.description:
-            return self.description
-
-        return str.format('{writer} to {recipient}{date}',
-                          writer=self.writer,
-                          recipient=self.recipient,
-                          date=', ' + self.date if self.date else '')
-
-    def image_preview(self):
-        return get_image_preview(self)
-
-
 class MiscDocument(models.Model):
     source = models.ForeignKey(DocumentSource)
     description = models.CharField(max_length=75)
@@ -334,6 +335,7 @@ class MiscDocument(models.Model):
     contents = tinymce_models.HTMLField(null=True, blank=True)
     notes = tinymce_models.HTMLField(blank=True)
     images = models.ManyToManyField(DocumentImage, blank=True)
+    envelopes = models.ManyToManyField(Envelope, blank=True)
 
     def __str__(self):
         return self.get_display_string()

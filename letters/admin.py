@@ -61,6 +61,14 @@ class CorrespondentAdmin(admin.ModelAdmin):
     list_filter = [CorrespondentSourceFilter,]
 
 
+class EnvelopeAdmin(admin.ModelAdmin):
+    fields = ('id', 'source', 'description', 'date', 'writer', 'origin', 'recipient',
+              'destination', 'contents', 'notes', 'images', 'image_preview')
+    ordering = ('date', 'description')
+    readonly_fields = ('id', 'image_preview',)
+    filter_horizontal = ('images',)
+
+
 class ImageSourceFilter(SimpleListFilter):
     title = 'document source'
     parameter_name = 'source'
@@ -132,9 +140,9 @@ class LetterAdmin(admin.ModelAdmin):
     list_filter = ('source', YearFilter, MonthFilter, 'writer', 'recipient', 'place')
     fields = ('id', 'date', 'place', 'writer', 'recipient', 'source',
               'heading', 'greeting', 'body', 'closing', 'signature', 'ps', 'language',
-              'complete_transcription', 'notes', 'images', 'image_preview')
+              'complete_transcription', 'notes', 'images', 'image_preview', 'envelopes')
     readonly_fields = ('id', 'image_preview',)
-    filter_horizontal = ('images',)
+    filter_horizontal = ('images', 'envelopes')
     actions = [delete_selected]
 
     def get_form(self, request, obj=None, **kwargs):
@@ -173,18 +181,13 @@ class PlaceAdmin(gisAdmin.OSMGeoAdmin):
     map_template = 'admin/place_admin_map.html'
 
 
-class EnvelopeAdmin(admin.ModelAdmin):
-    fields = ('id', 'source', 'description', 'date', 'writer', 'origin', 'recipient',
-              'destination', 'contents', 'notes', 'images', 'image_preview')
-    ordering = ('date', 'description')
-    readonly_fields = ('id', 'image_preview',)
-    filter_horizontal = ('images',)
-
-
 class MiscDocumentAdmin(admin.ModelAdmin):
+    fields = ('id', 'source', 'description', 'date', 'writer', 'place', 'contents', 'notes', 'images', 'image_preview',
+              'envelopes')
     ordering = ('date', 'description')
     readonly_fields = ('id', 'image_preview',)
-    filter_horizontal = ('images',)
+    filter_horizontal = ('images', 'envelopes',)
+
 
 admin.site.register(Correspondent, CorrespondentAdmin)
 admin.site.register(Place, PlaceAdmin)
