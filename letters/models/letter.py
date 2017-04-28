@@ -1,17 +1,13 @@
 from django.db import models
-from django_date_extensions.fields import ApproximateDateField
 from tinymce import models as tinymce_models
-from letters.models import Correspondent, DocumentImage, DocumentSource, Envelope, Place
-from letters.models.util import DEFAULT_LANGUAGE, get_image_preview, html_to_text
+from letters.models import Correspondent, Document, Envelope, Place
+from letters.models.util import html_to_text
 from letters import es_settings
 
 
-class Letter(models.Model):
-    date = ApproximateDateField(default='', blank=True)
+class Letter(Document):
     place = models.ForeignKey(Place)
-    writer = models.ForeignKey(Correspondent, related_name='writer')
     recipient = models.ForeignKey(Correspondent, related_name='recipient')
-    source = models.ForeignKey(DocumentSource)
     # letter content broken up into separate parts so it can be displayed more nicely
     heading = models.TextField(null=True, blank=True)
     greeting = models.TextField(null=True, blank=True)
@@ -20,21 +16,14 @@ class Letter(models.Model):
     signature = models.TextField(null=True, blank=True)
     ps = models.TextField(null=True, blank=True)
     complete_transcription = models.BooleanField(default=False)
-    notes = tinymce_models.HTMLField(blank=True)
-    language = models.CharField(max_length=2, default=DEFAULT_LANGUAGE, blank=True)
-    images = models.ManyToManyField(DocumentImage, blank=True)
     envelopes = models.ManyToManyField(Envelope, blank=True)
 
-    def __str__(self):
+    def get_display_string(self):
         return str.format('Letter: {0}, {1} to {2}',
                           self.list_date(), str(self.writer), str(self.recipient))
 
     def __lt__(self, other):
         return self.to_string() < other.to_string()
-
-    def to_string(self):
-        return str.format('Letter: {0}, {1} to {2}',
-                          self.list_date(), str(self.writer), str(self.recipient))
 
     # return formatted date with separators and unknown elements filled with '?'
     def list_date(self):
@@ -66,13 +55,9 @@ class Letter(models.Model):
 
     # what gets exported for each letter
     def export_text(self):
-
         return str.format('<{0}, {1} to {2}>\n{3}',
                           self.list_date(), self.writer.to_export_string(),
                           self.recipient.to_export_string(), self.contents())
-
-    def image_preview(self):
-        return get_image_preview(self)
 
     class Meta:
         # elasticsearch index stuff

@@ -149,7 +149,7 @@ class LetterAdmin(admin.ModelAdmin):
         form = super(LetterAdmin, self).get_form(request, obj, **kwargs)
         form.base_fields['heading'].widget.attrs['style'] = 'height: 5em;'
         form.base_fields['greeting'].widget.attrs['style'] = 'height: 3em;'
-        form.base_fields['body'].widget.attrs['style'] = 'height: 18em;width: 49em;'
+        #form.base_fields['body'].widget.attrs['style'] = 'height: 18em;width: 49em;'
         form.base_fields['closing'].widget.attrs['style'] = 'height: 3em;'
         form.base_fields['signature'].widget.attrs['style'] = 'height: 3em;'
         form.base_fields['ps'].widget.attrs['style'] = 'height: 3em;'

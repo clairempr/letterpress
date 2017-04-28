@@ -3,8 +3,6 @@ from django.utils.safestring import mark_safe
 from bs4 import BeautifulSoup
 
 options.DEFAULT_NAMES += 'es_index_name', 'es_type_name', 'es_mapping'
-DEFAULT_COUNTRY = 'US'
-DEFAULT_LANGUAGE = 'EN'
 
 
 def get_image_preview(obj):

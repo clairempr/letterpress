@@ -120,10 +120,12 @@ STATIC_URL = '/static/'
 
 # Configuration for django-tinymce
 # Don't bother with TINYMCE_JS_ROOT and TINYMCE_JS_URL
-# Just let it use the defaults and find everything in the django-tinymce install
+# Just let it use the defaults and find everything in static/tiny_mce
 TINYMCE_DEFAULT_CONFIG = {
     'plugins': 'paste,searchreplace',
     'theme': 'simple',
+    'width': '49em',
+    'height': '18em',
     'cleanup_on_startup': True,
     'custom_undo_redo_levels': 10,
     'valid_styles': {

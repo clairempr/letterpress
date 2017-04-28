@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.gis.db import models
-from letters.models.util import DEFAULT_COUNTRY
+
+DEFAULT_COUNTRY = 'US'
 
 
 class Place(models.Model):
