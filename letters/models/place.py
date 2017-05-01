@@ -19,3 +19,6 @@ class Place(models.Model):
         if self.country != DEFAULT_COUNTRY:
             desc += ', ' + self.country
         return desc
+
+    class Meta:
+        ordering = ['name','state']

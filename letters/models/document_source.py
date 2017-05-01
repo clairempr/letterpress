@@ -20,3 +20,6 @@ class DocumentSource(models.Model):
 
     def image_preview(self):
         return get_image_preview(self)
+
+    class Meta:
+        ordering = ['name']

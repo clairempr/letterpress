@@ -175,7 +175,7 @@ class PlaceAdmin(gisAdmin.OSMGeoAdmin):
     default_lon = -8635591.130572217
     default_lat = 4866434.335995871
     default_zoom = 5
-    ordering = ('country', 'state', 'name')
+    ordering = ('name', 'state', 'country',)
     list_filter = ['country', 'state']
     openlayers_url = 'https://openlayers.org/en/v4.0.1/build/ol.js'
     map_template = 'admin/place_admin_map.html'
