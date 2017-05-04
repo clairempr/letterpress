@@ -6,6 +6,14 @@ from .models import Correspondent, Place, Letter, DocumentImage, DocumentSource,
 import calendar
 
 
+# Override Django Admin's delete_selected action to use model's
+# delete method and update elasticsearch index
+# Unfortunately, we lose the confirmation dialogue
+def delete_selected(modeladmin, request, queryset):
+    for obj in queryset:
+        obj.delete()
+
+
 # get unique list of Correspondent ids associated with a DocumentSource id
 # through letters, envelopes, and misc. documents
 def get_correspondents_of_source(source):
@@ -24,13 +32,7 @@ def get_source_lookups():
     return [(source.id, source.name) for source in sources]
 
 
-# Override Django Admin's delete_selected action to use model's
-# delete method and update elasticsearch index
-# Unfortunately, we lose the confirmation dialogue
-def delete_selected(modeladmin, request, queryset):
-    for obj in queryset:
-        obj.delete()
-
+# Custom filters
 
 # Get all Correspondents associated with a particular DocumentSource
 class CorrespondentSourceFilter(SimpleListFilter):
@@ -51,22 +53,6 @@ class CorrespondentSourceFilter(SimpleListFilter):
             return queryset.filter(pk__in=corr_ids)
         else:
             return queryset
-
-
-class CorrespondentAdmin(admin.ModelAdmin):
-    fields = ('id', 'last_name', 'married_name', 'first_names', 'suffix', 'description', 'images', 'image_preview',)
-    ordering = ('last_name', 'first_names', 'suffix')
-    readonly_fields = ('id', 'image_preview',)
-    filter_horizontal = ('images',)
-    list_filter = [CorrespondentSourceFilter,]
-
-
-class EnvelopeAdmin(admin.ModelAdmin):
-    fields = ('id', 'source', 'description', 'date', 'writer', 'origin', 'recipient',
-              'destination', 'contents', 'notes', 'images', 'image_preview')
-    ordering = ('date', 'description')
-    readonly_fields = ('id', 'image_preview',)
-    filter_horizontal = ('images',)
 
 
 class ImageSourceFilter(SimpleListFilter):
@@ -99,24 +85,6 @@ class ImageSourceFilter(SimpleListFilter):
             return queryset
 
 
-class YearFilter(SimpleListFilter):
-    title = 'year'
-    parameter_name = 'year'
-
-    def lookups(self, request, model_admin):
-        years = set([letter.date.year for letter in model_admin.model.objects.all()])
-        return [(year, year) for year in years]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            year = int(self.value())
-            start_date = ApproximateDate(year=year, month=0, day=0)
-            end_date = ApproximateDate(year=year, month=12, day=31)
-            return queryset.filter(date__gte=start_date).filter(date__lte=end_date)
-        else:
-            return queryset
-
-
 class MonthFilter(SimpleListFilter):
     title = 'month'
     parameter_name = 'month'
@@ -134,14 +102,58 @@ class MonthFilter(SimpleListFilter):
             return queryset
 
 
-class LetterAdmin(admin.ModelAdmin):
+class YearFilter(SimpleListFilter):
+    title = 'year'
+    parameter_name = 'year'
+
+    def lookups(self, request, model_admin):
+        years = set([letter.date.year for letter in model_admin.model.objects.all()])
+        return [(year, year) for year in years]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            year = int(self.value())
+            start_date = ApproximateDate(year=year, month=0, day=0)
+            end_date = ApproximateDate(year=year, month=12, day=31)
+            return queryset.filter(date__gte=start_date).filter(date__lte=end_date)
+        else:
+            return queryset
+
+# Model admin classes
+
+# This subclass of Django ModelAdmin contains settings that are
+# needed in all my model admin classes
+class MyModelAdmin(admin.ModelAdmin):
+    # show Save and Delete buttons at the top of the page as well as at the bottom
+    save_on_top=True
+
+
+class CorrespondentAdmin(MyModelAdmin):
+    fields = ('id', 'last_name', 'married_name', 'first_names', 'suffix', 'aliases',
+              'description', 'images', 'image_preview',)
+    ordering = ('last_name', 'first_names', 'suffix')
+    readonly_fields = ('id', 'image_preview',)
+    filter_horizontal = ('images',)
+    list_filter = [CorrespondentSourceFilter,]
+
+
+class EnvelopeAdmin(MyModelAdmin):
+    fields = ('id', 'source', 'description', 'date', 'writer', 'origin', 'recipient',
+              'destination', 'contents', 'notes', 'images', 'image_preview')
+    ordering = ('date', 'description')
+    readonly_fields = ('id', 'image_preview',)
+    filter_horizontal = ('images',)
+
+
+class LetterAdmin(MyModelAdmin):
     ordering = ('date', 'writer__last_name', 'writer__first_names', 'writer__suffix')
     list_display = ('list_date', 'writer', 'recipient', 'place')
     list_filter = ('source', YearFilter, MonthFilter, 'writer', 'recipient', 'place')
-    fields = ('id', 'date', 'place', 'writer', 'recipient', 'source',
-              'heading', 'greeting', 'body', 'closing', 'signature', 'ps', 'language',
-              'complete_transcription', 'notes', 'images', 'image_preview', 'envelopes')
-    readonly_fields = ('id', 'image_preview',)
+    fields = ('id', 'date', 'place', 'writer', 'recipient', 'source', 'heading',
+              'greeting', 'body', 'closing', 'signature', 'ps', 'language',
+              'complete_transcription', 'notes', 'images', 'image_preview',
+              'envelopes', 'envelope_preview')
+    readonly_fields = ('id', 'image_preview', 'envelope_preview')
     filter_horizontal = ('images', 'envelopes')
     actions = [delete_selected]
 
@@ -156,7 +168,7 @@ class LetterAdmin(admin.ModelAdmin):
         return form
 
 
-class DocumentImageAdmin(admin.ModelAdmin):
+class DocumentImageAdmin(MyModelAdmin):
     ordering = ('description', 'type', 'image_file', )
     list_display = ('__str__', 'type', 'thumbnail',)
     list_filter = ('type', ImageSourceFilter)
@@ -164,14 +176,24 @@ class DocumentImageAdmin(admin.ModelAdmin):
     readonly_fields = ('image_tag',)
 
 
-class DocumentSourceAdmin(admin.ModelAdmin):
+class DocumentSourceAdmin(MyModelAdmin):
     fields = ('id', 'name', 'description', 'url', 'images', 'image_preview',)
     ordering = ('name',)
     readonly_fields = ('id', 'image_preview',)
     filter_horizontal = ('images',)
 
 
+class MiscDocumentAdmin(MyModelAdmin):
+    fields = ('id', 'source', 'description', 'date', 'writer', 'place', 'contents', 'notes', 'images', 'image_preview',
+              'envelopes')
+    ordering = ('date', 'description')
+    readonly_fields = ('id', 'image_preview',)
+    filter_horizontal = ('images', 'envelopes',)
+
+
 class PlaceAdmin(gisAdmin.OSMGeoAdmin):
+    # show Save and Delete buttons at the top of the page as well as at the bottom
+    save_on_top=True
     default_lon = -8635591.130572217
     default_lat = 4866434.335995871
     default_zoom = 5
@@ -179,14 +201,6 @@ class PlaceAdmin(gisAdmin.OSMGeoAdmin):
     list_filter = ['country', 'state']
     openlayers_url = 'https://openlayers.org/en/v4.0.1/build/ol.js'
     map_template = 'admin/place_admin_map.html'
-
-
-class MiscDocumentAdmin(admin.ModelAdmin):
-    fields = ('id', 'source', 'description', 'date', 'writer', 'place', 'contents', 'notes', 'images', 'image_preview',
-              'envelopes')
-    ordering = ('date', 'description')
-    readonly_fields = ('id', 'image_preview',)
-    filter_horizontal = ('images', 'envelopes',)
 
 
 admin.site.register(Correspondent, CorrespondentAdmin)

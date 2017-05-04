@@ -5,7 +5,9 @@
 # My stuff #
 ############
 
+# misc scripts
 elasticsearch.bat.lnk
+letterpress_to_github
 
 # repository-specific .gitignore files
 .gitignore-*

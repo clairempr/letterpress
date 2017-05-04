@@ -1,6 +1,7 @@
 from django.db import models
 from tinymce import models as tinymce_models
 from letters.models import Document, Envelope, Place
+from letters.models.util import get_envelope_preview
 
 
 class MiscDocument(Document):
@@ -11,6 +12,9 @@ class MiscDocument(Document):
 
     def get_display_string(self):
         return self.description
+
+    def envelope_preview(self):
+        return get_envelope_preview(self)
 
     class Meta:
         default_related_name = 'miscdoc'

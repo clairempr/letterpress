@@ -5,6 +5,10 @@ from bs4 import BeautifulSoup
 options.DEFAULT_NAMES += 'es_index_name', 'es_type_name', 'es_mapping'
 
 
+def get_envelope_preview(obj):
+    return mark_safe('&nbsp;'.join([envelope.image_preview() for envelope in obj.envelopes.all()]))
+
+
 def get_image_preview(obj):
     return mark_safe('&nbsp;'.join([image.image_tag() for image in obj.images.all()]))
 

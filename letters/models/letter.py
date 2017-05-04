@@ -1,7 +1,7 @@
 from django.db import models
 from tinymce import models as tinymce_models
 from letters.models import Correspondent, Document, Envelope, Place
-from letters.models.util import html_to_text
+from letters.models.util import get_envelope_preview, html_to_text
 from letters import es_settings
 
 
@@ -24,6 +24,9 @@ class Letter(Document):
 
     def __lt__(self, other):
         return self.to_string() < other.to_string()
+
+    def envelope_preview(self):
+        return get_envelope_preview(self)
 
     # return formatted date with separators and unknown elements filled with '?'
     def list_date(self):
