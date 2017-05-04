@@ -16,7 +16,7 @@ class Place(models.Model):
         desc = self.name
         if self.state:
             desc += ', ' + self.state
-        if self.country != DEFAULT_COUNTRY:
+        if self.country and (self.country != DEFAULT_COUNTRY):
             desc += ', ' + self.country
         return desc
 

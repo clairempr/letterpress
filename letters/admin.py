@@ -1,9 +1,8 @@
 from django.contrib import admin
-from django.contrib.admin import SimpleListFilter
 from django.contrib.gis import admin as gisAdmin
-from django_date_extensions.fields import ApproximateDate
 from .models import Correspondent, Place, Letter, DocumentImage, DocumentSource, Envelope, MiscDocument
-import calendar
+from letters.admin_filters import CorrespondentSourceFilter, ImageSourceFilter, MonthFilter, \
+    RecipientFilter, WriterFilter, YearFilter
 
 
 # Override Django Admin's delete_selected action to use model's
@@ -14,111 +13,6 @@ def delete_selected(modeladmin, request, queryset):
         obj.delete()
 
 
-# get unique list of Correspondent ids associated with a DocumentSource id
-# through letters, envelopes, and misc. documents
-def get_correspondents_of_source(source):
-    corr_ids = set(miscdoc.writer_id for miscdoc in MiscDocument.objects.filter(source_id=source))
-    for letter in Letter.objects.filter(source_id=source):
-        corr_ids.add(letter.writer_id)
-        corr_ids.add(letter.recipient_id)
-    for envelope in Envelope.objects.filter(source_id=source):
-        corr_ids.add(envelope.writer_id)
-        corr_ids.add(envelope.recipient_id)
-    return corr_ids
-
-
-def get_source_lookups():
-    sources = set([doc_source for doc_source in DocumentSource.objects.all()])
-    return [(source.id, source.name) for source in sources]
-
-
-# Custom filters
-
-# Get all Correspondents associated with a particular DocumentSource
-class CorrespondentSourceFilter(SimpleListFilter):
-    title = 'source'
-    parameter_name = 'source'
-
-    # Return list of all DocumentSources
-    def lookups(self, request, model_admin):
-        return get_source_lookups()
-
-    # Get all Correspondents associated with a particular DocumentSource
-    # by finding out which Correspondents were writers or recipients of
-    # Letters, Envelopes, and MiscDocuments with this DocumentSource
-    def queryset(self, request, queryset):
-        if self.value():
-            source = int(self.value())
-            corr_ids = get_correspondents_of_source(source)
-            return queryset.filter(pk__in=corr_ids)
-        else:
-            return queryset
-
-
-class ImageSourceFilter(SimpleListFilter):
-    title = 'document source'
-    parameter_name = 'source'
-
-    # Return list of all DocumentSources
-    def lookups(self, request, model_admin):
-        return get_source_lookups()
-
-    # Get all DocumentImages associated with a particular DocumentSource
-    # by finding out which DocumentImages were images of
-    # Letters, Envelopes, and MiscDocuments with this DocumentSource
-    def queryset(self, request, queryset):
-        if self.value():
-            source = int(self.value())
-            # Correspondents can have images, but they have no DocumentSource field,
-            # so correspondents associated with a DocumentSource have to be searched for
-            correspondent_ids = get_correspondents_of_source(source)
-            image_ids = set()
-            docs = [item for sublist in [MiscDocument.objects.filter(source_id=source),
-                                         Letter.objects.filter(source_id=source),
-                                         Envelope.objects.filter(source_id=source),
-                                         Correspondent.objects.filter(pk__in=correspondent_ids)] for item in sublist]
-            for doc in docs:
-                image_ids.update(doc.images.values_list('id', flat=True))
-
-            return queryset.filter(pk__in=set(image_ids))
-        else:
-            return queryset
-
-
-class MonthFilter(SimpleListFilter):
-    title = 'month'
-    parameter_name = 'month'
-
-    def lookups(self, request, model_admin):
-        months = set([letter.date.month for letter in model_admin.model.objects.all()])
-        return [(month, calendar.month_name[month]) for month in months]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            month = int(self.value())
-            letter_ids = [letter.id for letter in Letter.objects.all() if letter.date.month == month]
-            return queryset.filter(pk__in=letter_ids)
-        else:
-            return queryset
-
-
-class YearFilter(SimpleListFilter):
-    title = 'year'
-    parameter_name = 'year'
-
-    def lookups(self, request, model_admin):
-        years = set([letter.date.year for letter in model_admin.model.objects.all()])
-        return [(year, year) for year in years]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            year = int(self.value())
-            start_date = ApproximateDate(year=year, month=0, day=0)
-            end_date = ApproximateDate(year=year, month=12, day=31)
-            return queryset.filter(date__gte=start_date).filter(date__lte=end_date)
-        else:
-            return queryset
-
 # Model admin classes
 
 # This subclass of Django ModelAdmin contains settings that are
@@ -126,35 +20,49 @@ class YearFilter(SimpleListFilter):
 class MyModelAdmin(admin.ModelAdmin):
     # show Save and Delete buttons at the top of the page as well as at the bottom
     save_on_top=True
+    fields = ('id',)
+    readonly_fields = ('id',)
+
+
+# Contains settings that are needed in admin classes for all models
+# that inherit from Document
+class DocumentAdmin(MyModelAdmin):
+    fields = ('id', 'source', 'date',)
+    readonly_fields = ('id', 'image_preview',)
+    filter_horizontal = ('images',)
+    list_display = ('list_date',)
+    list_filter = ('source', WriterFilter, YearFilter, MonthFilter,)
+    ordering = ('date',)
 
 
 class CorrespondentAdmin(MyModelAdmin):
-    fields = ('id', 'last_name', 'married_name', 'first_names', 'suffix', 'aliases',
+    fields = MyModelAdmin.fields + ('last_name', 'married_name', 'first_names', 'suffix', 'aliases',
               'description', 'images', 'image_preview',)
     ordering = ('last_name', 'first_names', 'suffix')
-    readonly_fields = ('id', 'image_preview',)
+    readonly_fields = MyModelAdmin.readonly_fields + ('image_preview',)
     filter_horizontal = ('images',)
     list_filter = [CorrespondentSourceFilter,]
 
 
-class EnvelopeAdmin(MyModelAdmin):
-    fields = ('id', 'source', 'description', 'date', 'writer', 'origin', 'recipient',
-              'destination', 'contents', 'notes', 'images', 'image_preview')
-    ordering = ('date', 'description')
-    readonly_fields = ('id', 'image_preview',)
-    filter_horizontal = ('images',)
+class EnvelopeAdmin(DocumentAdmin):
+    fields = DocumentAdmin.fields + ('description', 'writer', 'origin', 'recipient',
+                                     'destination', 'contents', 'notes', 'images', 'image_preview',)
+    ordering = DocumentAdmin.ordering + ('description',)
+    list_display = DocumentAdmin.list_display + ('description',)
+    list_filter = DocumentAdmin.list_filter + (RecipientFilter, )
 
 
-class LetterAdmin(MyModelAdmin):
-    ordering = ('date', 'writer__last_name', 'writer__first_names', 'writer__suffix')
-    list_display = ('list_date', 'writer', 'recipient', 'place')
-    list_filter = ('source', YearFilter, MonthFilter, 'writer', 'recipient', 'place')
-    fields = ('id', 'date', 'place', 'writer', 'recipient', 'source', 'heading',
+class LetterAdmin(DocumentAdmin):
+    fields = DocumentAdmin.fields + ('place', 'writer', 'recipient', 'heading',
               'greeting', 'body', 'closing', 'signature', 'ps', 'language',
               'complete_transcription', 'notes', 'images', 'image_preview',
-              'envelopes', 'envelope_preview')
-    readonly_fields = ('id', 'image_preview', 'envelope_preview')
-    filter_horizontal = ('images', 'envelopes')
+             'envelopes', 'envelope_preview')
+    ordering = DocumentAdmin.ordering + ('writer__last_name', 'writer__first_names',
+                                         'writer__suffix')
+    list_display = DocumentAdmin.list_display + ('writer', 'recipient', 'place')
+    list_filter = DocumentAdmin.list_filter + ('place', RecipientFilter, )
+    readonly_fields = DocumentAdmin.readonly_fields + ('envelope_preview',)
+    filter_horizontal = DocumentAdmin.filter_horizontal + ('envelopes',)
     actions = [delete_selected]
 
     def get_form(self, request, obj=None, **kwargs):
@@ -183,12 +91,15 @@ class DocumentSourceAdmin(MyModelAdmin):
     filter_horizontal = ('images',)
 
 
-class MiscDocumentAdmin(MyModelAdmin):
-    fields = ('id', 'source', 'description', 'date', 'writer', 'place', 'contents', 'notes', 'images', 'image_preview',
-              'envelopes')
-    ordering = ('date', 'description')
-    readonly_fields = ('id', 'image_preview',)
-    filter_horizontal = ('images', 'envelopes',)
+class MiscDocumentAdmin(DocumentAdmin):
+    fields = DocumentAdmin.fields + ('description', 'writer', 'place', 'contents', 'notes', 'images',
+                                     'image_preview', 'envelopes', 'envelope_preview')
+
+    readonly_fields = DocumentAdmin.readonly_fields + ('envelope_preview',)
+    filter_horizontal = DocumentAdmin.filter_horizontal + ('envelopes',)
+    list_display = DocumentAdmin.list_display + ('description',)
+    list_filter = DocumentAdmin.list_filter + ('place',)
+    ordering = DocumentAdmin.ordering + ('description',)
 
 
 class PlaceAdmin(gisAdmin.OSMGeoAdmin):

@@ -27,6 +27,28 @@ class Document(models.Model):
     def image_preview(self):
         return get_image_preview(self)
 
+    # return formatted date with separators and unknown elements filled with '?'
+    def list_date(self):
+        if not self.date:
+            return '(Undated)'
+        my_year = '{:0>4}'.format(self.date.year) if self.date.year else '????'
+        my_month = '{:0>2}'.format(self.date.month) if self.date.month else '??'
+        my_day = '{:0>2}'.format(self.date.day) if self.date.day else '??'
+        return str.format('{0}-{1}-{2}', my_year, my_month, my_day)
+
+    # return date in the format yyyymmdd with zeroes in unknown elements
+    def sort_date(self):
+        return str.format('{:0>4}{:0>2}{:0>2}', self.date.year, self.date.month, self.date.day)
+
+    # return date in the format yyyy-MM-dd or yyyy-MM or yyyy for elasticsearch index
+    def index_date(self):
+        index_date = str.format('{:0>4}', self.date.year)
+        if self.date.month:
+            index_date += str.format('-{:0>2}', self.date.month)
+        if self.date.day:
+            index_date += str.format('-{:0>2}', self.date.day)
+        return index_date
+
     class Meta:
         abstract = True
 
