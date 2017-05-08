@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.db import models
-from letters.models.util import DocType, mark_safe
+from letters.models.util import DocType, get_choices, mark_safe
 
 
 class DocumentImage(models.Model):
     description = models.CharField(max_length=75, blank=True)
-    type = models.CharField(max_length=1, choices=((type.value, type.name.title()) for type in DocType))
+    type = models.CharField(max_length=1, choices=get_choices(DocType))
     image_file = models.ImageField(upload_to='letter_images')
 
     def __str__(self):

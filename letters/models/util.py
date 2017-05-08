@@ -1,7 +1,12 @@
+# Misc. enums and methods that are used with multiple models
 import django.db.models.options as options
 from django.utils.safestring import mark_safe
 from bs4 import BeautifulSoup
 from enum import Enum
+
+
+def get_choices(enum):
+    return ((choice.value, choice.name.title()) for choice in enum)
 
 
 class DocType(Enum):
@@ -9,6 +14,13 @@ class DocType(Enum):
     ENVELOPE = 'E'
     TRANSCRIPTION = 'T'
     OTHER = 'D'
+
+
+class Language(Enum):
+    ENGLISH = 'EN'
+    DUTCH = 'NL'
+    GERMAN = 'DE'
+
 
 options.DEFAULT_NAMES += 'es_index_name', 'es_type_name', 'es_mapping'
 
