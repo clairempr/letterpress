@@ -44,12 +44,19 @@ class CorrespondentAdmin(MyModelAdmin):
     list_filter = [CorrespondentSourceFilter,]
 
 
+class LetterInline(admin.TabularInline):
+    model = Letter.envelopes.through
+    raw_id_fields = ('letter',)
+    extra = 0
+
+
 class EnvelopeAdmin(DocumentAdmin):
     fields = DocumentAdmin.fields + ('description', 'writer', 'origin', 'recipient',
                                      'destination', 'contents', 'notes', 'images', 'image_preview',)
     ordering = DocumentAdmin.ordering + ('description',)
     list_display = DocumentAdmin.list_display + ('description',)
     list_filter = DocumentAdmin.list_filter + (RecipientFilter, )
+    inlines = [LetterInline]
 
 
 class LetterAdmin(DocumentAdmin):

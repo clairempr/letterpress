@@ -1,17 +1,11 @@
 from django.conf import settings
 from django.db import models
-from letters.models.util import mark_safe
+from letters.models.util import DocType, mark_safe
 
 
 class DocumentImage(models.Model):
-    IMAGE_TYPES = (
-        ('L', 'Letter'),
-        ('E', 'Envelope'),
-        ('T', 'Transcription'),
-        ('D', 'Other document'),
-    )
     description = models.CharField(max_length=75, blank=True)
-    type = models.CharField(max_length=1, choices=IMAGE_TYPES)
+    type = models.CharField(max_length=1, choices=((type.value, type.name.title()) for type in DocType))
     image_file = models.ImageField(upload_to='letter_images')
 
     def __str__(self):

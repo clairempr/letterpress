@@ -1,6 +1,14 @@
 import django.db.models.options as options
 from django.utils.safestring import mark_safe
 from bs4 import BeautifulSoup
+from enum import Enum
+
+
+class DocType(Enum):
+    LETTER = 'L'
+    ENVELOPE = 'E'
+    TRANSCRIPTION = 'T'
+    OTHER = 'D'
 
 options.DEFAULT_NAMES += 'es_index_name', 'es_type_name', 'es_mapping'
 
