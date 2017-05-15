@@ -2,8 +2,9 @@
     <thead>
     <tr>
         <th class="letters-table-heading col-xs-2">Month</th>
-        <th class="letters-table-heading col-xs-1">{{ word1|title }}</th>
-        <th class="letters-table-heading col-xs-1">{{ word2|title }}</th>
+        {% for word in words %}
+        <th class="letters-table-heading col-xs-1">{{ word|title }}</th>
+        {% endfor %}
         <th class="letters-table-heading col-xs-2">{% if show_proportion %}Proportion{% endif %}</th>
         <th class="letters-table-heading col-xs-2">Avg. words per letter</th>
         <th class="letters-table-heading col-xs-2">Total words</th>
@@ -11,11 +12,12 @@
     </tr>
     </thead>
     <tbody>
-    {% for month, word1_count, word2_count, proportion, average, total, num_letters in results %}
+    {% for month, freqs, proportion, average, total, num_letters in results %}
         <tr>
             <td>{{ month }}</td>
-            <td>{% if word1 %}{{ word1_count }}{% endif %}</td>
-            <td>{% if word2 %}{{ word2_count }}{% endif %}</td>
+            {% for freq in freqs %}
+                <td>{{ freq }}</td>
+            {% endfor %}
             <td>{% if show_proportion %}{% if proportion > 0 %}{{ proportion|floatformat:"-3" }}{% endif %}{% endif %}</td>
             <td>{{ average|floatformat:"0" }}</td>
             <td>{{ total|floatformat:"0" }}</td>

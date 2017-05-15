@@ -7,6 +7,7 @@ from letters.models import Letter, Place
 import json
 import random
 from letters import elasticsearch, filter
+from letters.charts import make_charts
 
 
 def home(request):
@@ -30,7 +31,7 @@ def letters_view(request):
 def stats_view(request):
     assert isinstance(request, HttpRequest)
     filter_values = filter.get_initial_filter_values()
-    return render(request, 'stats.html', {'title': 'Letter statsistics','nbar': 'stats_view',
+    return render(request, 'stats.html', {'title': 'Letter statistics', 'nbar': 'stats_view',
                                           'filter_values': filter_values, 'words': 'true'})
 
 
@@ -41,49 +42,58 @@ def get_stats(request):
         return
 
     filter_values = filter.get_filter_values_from_request(request)
-    word_counts = elasticsearch.get_word_counts_per_month(filter_values)
+    es_word_counts = elasticsearch.get_word_counts_per_month(filter_values)
     words = filter_values.words
-    word_freqs = elasticsearch.get_multiple_word_frequencies(filter_values)
+    es_word_freqs = elasticsearch.get_multiple_word_frequencies(filter_values)
 
-    word1 = words[0]
-    if len(words) > 1:
-        word2 = words[1]
+    if len(words) == 2:
+        show_proportion = 'true'
     else:
-        word2 = ''
+        show_proportion = ''
 
-    months = sorted(list(word_counts.keys()))
+    months = sorted(list(es_word_counts.keys()))
     results = []
+
+    proportions = []
+    chart_word_freqs = []
+    chart_totals = [es_word_counts[month]['total_words'] for month in months]
+    chart_averages = [es_word_counts[month]['avg_words'] for month in months]
+    chart_doc_counts = [es_word_counts[month]['doc_count'] for month in months]
+    show_charts = False
 
     for month in months:
         proportion = 0
         total = 0
-        words1 = 0
-        words2 = 0
+        freqs = []
 
-        if month in word_freqs:
-            words1 = word_freqs[month][word1]
-            total += words1
+        for word in words:
+            if month in es_word_freqs:
+                freq = es_word_freqs[month][word]
+                show_charts = True
+            else:
+                freq = 0
+            total += freq
+            freqs.append(freq)
 
-            if word2 in word_freqs[month]:
-                words2 = word_freqs[month][word2]
-                total += words2
+        if show_proportion and (total - freqs[0] != 0):
+            proportion = freqs[0] / (total - freqs[0])
 
-        if total - words1 != 0:
-            proportion = words1 / (total - words1)
+        results.append((month, freqs, proportion,
+                        es_word_counts[month]['avg_words'],
+                        es_word_counts[month]['total_words'],
+                        es_word_counts[month]['doc_count']))
 
-        results.append((month, words1, words2, proportion,
-                        word_counts[month]['avg_words'],
-                        word_counts[month]['total_words'],
-                        word_counts[month]['doc_count']))
+        proportions.append(proportion)
+        chart_word_freqs.extend(freqs)
 
-    if len(words) > 1:
-        show_proportion = 'true'
+    stats_html = render_to_string('snippets/stats_table.html', {'words': words, 'show_proportion': show_proportion, 'results': results})
+    if show_charts:
+        chart = make_charts(words, months, proportions, chart_word_freqs, chart_totals, chart_averages, chart_doc_counts)
     else:
-        show_proportion = ''
-    stats_html = render_to_string('snippets/stats_table.html', {'word1': word1, 'word2': word2,
-                                                                'show_proportion': show_proportion, 'results': results})
+        chart = ''
+
     # This was Ajax
-    return HttpResponse(json.dumps({'stats': stats_html}), content_type="application/json")
+    return HttpResponse(json.dumps({'stats': stats_html, 'chart': chart}), content_type="application/json")
 
 
 # return list of letters containing search text
@@ -105,7 +115,8 @@ def search(request):
         # so generate a string of length <es_result.pages> and use that in the template
         # Yes, it's silly, but it's simpler than adding another template filter
         pages_string = 'x' * es_result.pages
-        pagination_html = render_to_string('snippets/pagination.html', {'pages': pages_string, 'total': es_result.total})
+        pagination_html = render_to_string('snippets/pagination.html',
+                                           {'pages': pages_string, 'total': es_result.total})
     else:
         pagination_html = ''
     # This was Ajax

@@ -145,6 +145,7 @@ function get_stats() {
         url: "/get_stats/",
         success: function (result) {
             $('#stats').html(result.stats);
+            $('#chart').html(result.chart);
         }
     });
 }
