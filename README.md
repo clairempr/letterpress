@@ -18,7 +18,7 @@ The name comes from an early office technology which people used to duplicate do
  - Highly customized Django Admin 
  - Place mapping with OpenStreetMap and OpenLayers 4
  - Export to text files
- - Word frequency statistics by month
+ - Word frequency statistics by month, with Bokeh charts
  - SQLite database
 
  ![Letter](screenshots/letter.png) 
