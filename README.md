@@ -10,18 +10,19 @@ natural language processing experiments.
 The name comes from an early office technology which people used to duplicate documents and store them in a 
 [letterpress copybook](http://www2.archivists.org/glossary/terms/l/letterpress-copybook).
 
-![Map](screenshots/map_with_popup.png) 
+ ![Letter](screenshots/letter.png)
 
 #### Features ####
 
- - Full-text searching with Elasticsearch 
- - Highly customized Django Admin 
+ - Highly customized Django Admin
+ - Full-text searching with Elasticsearch
+ ![Fuzzy text search](screenshots/text_search.png)
+ - SQLite database
  - Place mapping with OpenStreetMap and OpenLayers 4
+ ![Map](screenshots/map_with_popup.png)
  - Export to text files
  - Word frequency statistics by month, with Bokeh charts
- - SQLite database
-
- ![Letter](screenshots/letter.png) 
+ ![Charts](screenshots/charts.png)
  
 #### Notes ####
  - [Elasticsearch](https://www.elastic.co/products/elasticsearch) must be installed and running.
@@ -35,8 +36,6 @@ The name comes from an early office technology which people used to duplicate do
     - Add the GDAL directory (containing GDAL dll) to your Windows PATH.
     - Add a System variable with name GDAL_DATA and value of the path to the gdal-data folder containing gcs.csv, etc.
     - If you get the error "no such module: rtree" or "Error transforming geometry...(OGR failure.)", try replacing sqlite3.dll in system python directory with another sqlite3.dll, like one from [OSGeo4W](https://trac.osgeo.org/osgeo4w/).
-
- ![Fuzzy text search](screenshots/text_search.png) 
 
 #### Credits ####
 Photograph of copy press from [Letterpress Commons](https://letterpresscommons.com), 
