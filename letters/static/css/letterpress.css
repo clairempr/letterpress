@@ -27,6 +27,10 @@ em {
     width: 300px;
 }
 
+.chart {
+    padding-bottom: 60px;
+}
+
 .footer {
     position: absolute;
     bottom: 0;

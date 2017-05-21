@@ -1,6 +1,5 @@
-<link href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.5.min.css" rel="stylesheet" type="text/css">
-<link href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.5.min.css" rel="stylesheet" type="text/css">
-
-{% for chart, script in charts %}
-   {{ chart | safe }}{{ script | safe }}
+{{ script | safe }}
+{% for div in divs %}
+   {{ div | safe }}<br>
 {% endfor %}
+

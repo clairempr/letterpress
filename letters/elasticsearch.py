@@ -106,8 +106,9 @@ def get_multiple_word_frequencies(filter_values):
                 result[year_month] = {word: 0 for word in words}
             terms = mtvdoc['term_vectors']['contents']['terms']
             for word in filter_values.words:
-                if word in terms:
-                    result[year_month][word] += terms[word]['term_freq']
+                # all words are indexed as lowercase, so look for lowercase version in termvector
+                if word.lower() in terms:
+                    result[year_month][word] += terms[word.lower()]['term_freq']
 
     return result
 
