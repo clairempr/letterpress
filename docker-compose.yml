@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.4.0
+    volumes:
+    - /usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+
+  web:
+    build: .
+    command: python manage.py runsslserver 0.0.0.0:8000
+    volumes:
+      - .:/code/
+      - ~/db/:/db/
+    ports:
+      - "8000:8000"
+    links:
+      - elasticsearch
+    environment:
+      TERM: xterm
+

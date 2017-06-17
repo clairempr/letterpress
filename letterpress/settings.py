@@ -18,6 +18,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+DB_DIR = '/db/'
 
 # Settings stored in settings_secret
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -85,7 +86,7 @@ DATABASES = {
     'default': {
         # This engine supports geodatabase functionality in Django
         'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(DB_DIR, 'db.sqlite3'),
     }
 }
 
