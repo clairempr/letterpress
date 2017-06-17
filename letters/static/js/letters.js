@@ -40,9 +40,15 @@ function get_filter_values() {
         words.push($('#word2').val());
     }
 
+    var sentiments = [];
+    $('#sentiments input:checked').each(function () {
+        sentiments.push(this.value);
+    });
+
     return {
         sources: sources,
         writers: writers,
+        sentiments: sentiments,
         start_date: start_date,
         end_date: end_date,
         search_text: search_text,
@@ -69,6 +75,7 @@ function do_search(page_number) {
             writers: filter_values.writers,
             start_date: filter_values.start_date,
             end_date: filter_values.end_date,
+            sentiments: filter_values.sentiments,
             page_number: page_number,
         },
         url: "/search/",

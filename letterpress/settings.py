@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'sslserver',
     'tinymce',
     'letters',
+    'letter_sentiment'
 ]
 
 MIDDLEWARE = [

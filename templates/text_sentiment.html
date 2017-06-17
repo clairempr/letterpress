@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container-fluid">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="text">Text to analyze</label>
+                <input type="text" class="form-control" id="text">
+            </div>
+
+
+            <div class="row">
+                <div class="col-sm-2">
+                    {% include "snippets/sentiment_dropdown.html" %}
+                </div>
+                <div class="col-sm-2">
+                    <input class="btn btn-info" id="sumit_button" type="button" value="Submit"/>
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {% load staticfiles %}
+    <script src={% static "js/letters.js" %} type="text/javascript"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) {
+            $("#search_button").click(function () {
+                do_search(0);
+            });
+        });
+    </script>
+{% endblock %}

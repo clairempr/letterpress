@@ -1,8 +1,10 @@
 from django.db import models
 from tinymce import models as tinymce_models
+
+from letter_sentiment.sentiment import get_sentiment
+from letters import es_settings
 from letters.models import Correspondent, Document, Envelope, Place
 from letters.models.util import get_envelope_preview, html_to_text
-from letters import es_settings
 
 
 class Letter(Document):
@@ -41,6 +43,9 @@ class Letter(Document):
         return str.format('<{0}, {1} to {2}>\n{3}',
                           self.list_date(), self.writer.to_export_string(),
                           self.recipient.to_export_string(), self.contents())
+
+    def sentiment(self):
+        return get_sentiment(self.contents())
 
     class Meta:
         # elasticsearch index stuff

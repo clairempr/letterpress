@@ -1,0 +1,17 @@
+<div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="sentiments" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="true">
+        Sentiments
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+        {% for sentiment in filter_values.sentiments %}
+            <div id="sentiments" class="checkbox">
+                <label>
+                    <input type="checkbox" name="sentiment" id="sentiment{{ sentiment.id }}" value="{{ sentiment.id }}">
+                    {{ sentiment.name }}
+                </label>
+            </div>
+        {% endfor %}
+    </ul>
+</div>

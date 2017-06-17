@@ -55,12 +55,12 @@
     </div>
 
 
-    {% if search_text %}
+    {% if show_search_text %}
         <div class="form-group col-sm-4">
             <label for="search_text">Search text</label>
             <input type="text" class="form-control" id="search_text" name="search_text">
         </div>
-    {% elif words %}
+    {% elif show_words %}
         <div class="form-group col-sm-2">
             <label for="word1">Word 1</label>
             <input type="text" class="form-control" id="word1" name="word1" value="{{ filter_values.words.0 }}">
@@ -76,10 +76,16 @@
 
 </div>
 
+{% if show_sentiment %}
+    <div class="row">
+        <div class="form-group col-sm-2">{% include "./sentiment_dropdown.html" %}</div>
+    </div>
+{% endif %}
+
 <div class="row">
     <div class="form-group col-sm-12">
         <input class="btn btn-info" id="search_button" type="button" value="Search"/>
-        <input class="btn btn-info {% if not export_button %}hidden{% endif %}" id="export_button" type="submit"
+        <input class="btn btn-info {% if not show_export_button %}hidden{% endif %}" id="export_button" type="submit"
                value="Export"/>
     </div>
 </div>
