@@ -1,6 +1,6 @@
 {% load staticfiles %}
-<div id="popup">
-</div>
+<div id="alert-message"></div>
+<div id="popup"></div>
 
 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
 <link rel="stylesheet" href="https://openlayers.org/en/v4.0.1/css/ol.css" type="text/css">
@@ -8,15 +8,25 @@
 <script src={% static "js/map.js" %} type="text/javascript"></script>
 
 <script type="text/javascript">
+    var alertStart = '<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a> \
+                     <strong>Error!</strong>&nbsp;'
+    var alertEnd = '</div>'
+    var alertMessageDiv = document.getElementById("alert-message");
     var features = [];
 
     {% for place in places %}
 
         // Define markers as "features" of the vector layer:
         var point = create_point({{ place.point.x }}, {{ place.point.y }});
-        var name = '<a href ="{% url 'place_by_id' place.id %}">{{ place }}</a>';
 
-        features.push(create_feature(point, name));
+        if (!point) {
+            // There was something wrong with the coordinates. Don't add to the map.
+            show_place_alert("{{ place }}", {{ place.point.x }}, {{ place.point.y }});
+        }
+        else {
+            var name = '<a href ="{% url 'place_by_id' place.id %}">{{ place }}</a>';
+            features.push(create_feature(point, name));
+        }
 
     {% endfor %}
 
@@ -25,4 +35,9 @@
     var popups = true;
 
     map_init(features, marker_image, plain_marker_image, popups);
+
+    function show_place_alert(place, x, y) {
+        var message = 'Invalid coordinates for ' + place + ' (' + x + ', ' + y + ').'
+        alertMessageDiv.innerHTML = alertStart + message + alertEnd;
+    }
 </script>
