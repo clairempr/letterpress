@@ -26,6 +26,9 @@ def highlight_text_for_sentiment(text, custom_sentiment_id):
 
     highlighted_text = text
     name, terms, max_weight = get_custom_sentiment(custom_sentiment_id)
+    # If there are no terms (or sentiment with id not found), return original text
+    if not terms:
+        return text
     terms = sort_terms_by_number_of_words(terms)
     termvector = get_sentiment_termvector_for_text(text)
     terms_to_place = {}

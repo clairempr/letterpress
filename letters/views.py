@@ -131,6 +131,24 @@ def text_sentiment_view(request):
                                               'filter_values': filter_values})
 
 
+# Get sentiment analysis (and highlighting, if custom sentiment) for submitted text
+def get_text_sentiment(request):
+    assert isinstance(request, HttpRequest)
+    if request.method != 'POST':
+        return
+
+    sentiments = filter.get_filter_values_from_request(request).sentiment_ids
+    text = request.POST.get('text')
+    highlighted_text = ''
+    for sentiment in sentiments:
+        highlighted_text += highlight_text_for_sentiment(text, sentiment) + '<br>'
+
+    highlighted_text = mark_safe(highlighted_text)
+
+    # This was Ajax
+    return HttpResponse(json.dumps({'sentiment_highlights': highlighted_text}), content_type="application/json")
+
+
 # return list of letters containing search text
 # page_number is optional
 def search(request):
@@ -234,7 +252,7 @@ def search_places(request):
     # Search for letters that meet criteria. Start at beginning, so page number = 0
     es_result = letter_search.do_letter_search(request, size, page_number=0)
     # Get list of corresponding places
-    place_ids = set([letter.place_id for letter, highlight in es_result.search_results])
+    place_ids = set([letter.place_id for letter, highlight, sentiments in es_result.search_results])
     # Only show the first 100
     places = Place.objects.filter(pk__in=place_ids, point__isnull=False)[:100]
     map_html = render_to_string('snippets/map.html', {'places': places})

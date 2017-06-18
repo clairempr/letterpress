@@ -40,10 +40,7 @@ function get_filter_values() {
         words.push($('#word2').val());
     }
 
-    var sentiments = [];
-    $('#sentiments input:checked').each(function () {
-        sentiments.push(this.value);
-    });
+    var sentiments = get_selected_sentiments();
 
     return {
         sources: sources,
@@ -54,6 +51,14 @@ function get_filter_values() {
         search_text: search_text,
         words: words
     }
+}
+
+function get_selected_sentiments() {
+    var sentiments = [];
+    $('#sentiments input:checked').each(function () {
+        sentiments.push(this.value);
+    });
+    return sentiments;
 }
 
 var active_page = 0;

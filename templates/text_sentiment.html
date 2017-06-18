@@ -8,7 +8,7 @@
 
             <div class="form-group">
                 <label for="text">Text to analyze</label>
-                <input type="text" class="form-control" id="text">
+                <textarea id="text" class="form-control" rows="5"></textarea>
             </div>
 
 
@@ -17,10 +17,12 @@
                     {% include "snippets/sentiment_dropdown.html" %}
                 </div>
                 <div class="col-sm-2">
-                    <input class="btn btn-info" id="sumit_button" type="button" value="Submit"/>
+                    <input class="btn btn-info" id="submit_button" type="button" value="Submit"/>
                 </div>
             </div>
         </form>
+
+        <div id="sentiment-highlights"></div>
 
     </div>
 
@@ -29,10 +31,12 @@
 {% block scripts %}
     {% load staticfiles %}
     <script src={% static "js/letters.js" %} type="text/javascript"></script>
+    <script src={% static "js/sentiment.js" %} type="text/javascript"></script>
     <script type="text/javascript">
         jQuery(document).ready(function ($) {
-            $("#search_button").click(function () {
-                do_search(0);
+            $("#submit_button").click(function () {
+                var sentiments = get_selected_sentiments();
+                do_text_sentiment(sentiments);
             });
         });
     </script>

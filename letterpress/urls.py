@@ -6,7 +6,7 @@ from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
 from letters.views import home, letter_by_id, random_letter, export, letters_view, search, \
     logout_view, stats_view, get_stats, places_view, place_by_id, search_places, \
-    sentiment_view, letter_sentiment_view, text_sentiment_view
+    sentiment_view, letter_sentiment_view, text_sentiment_view, get_text_sentiment
 
 from django.contrib import admin
 
@@ -29,6 +29,7 @@ urlpatterns = [
                   url(r'^get_stats/', get_stats, name='get_stats'),
                   url(r'^sentiment/', sentiment_view, name='sentiment_view'),
                   url(r'^text_sentiment/', text_sentiment_view, name='text_sentiment_view'),
+                  url(r'^get_text_sentiment/', get_text_sentiment, name='get_text_sentiment'),
                   url(r'^places/(?P<place_id>[0-9]+)/$', place_by_id, name='place_by_id'),
                   url(r'^places/', places_view, name='places'),
                   url(r'^tinymce/', include('tinymce.urls')),
