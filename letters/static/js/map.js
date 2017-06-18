@@ -1,6 +1,7 @@
 /* JavaScript for generating OpenStreetMap and features using OpenLayers 4  */
 
 var map = {};
+var EPSG3857Extent = ol.proj.get('EPSG:3857').getExtent();
 
 function map_init(features, marker_image, plain_marker_image, popups) {
     MAX_ZOOM = 9;
@@ -40,7 +41,7 @@ function map_init(features, marker_image, plain_marker_image, popups) {
     map = new ol.Map({
         target: document.getElementById('mapdiv'),
         view: new ol.View({
-            projection: "EPSG:3857"
+            projection: 'EPSG:3857'
         }),
         layers: [
             new ol.layer.Tile({
@@ -125,7 +126,9 @@ function create_point(x, y) {
     // Transform from WGS 1984 projection to Spherical Mercator projection
     point.transform("EPSG:4326", "EPSG:3857");
 
-    return point;
+    // Make sure point's coordinates fit within extent of the projection
+
+    return ol.extent.containsExtent(EPSG3857Extent, point.getExtent()) ? point : 0
 }
 
 function create_icon_style(image_file, text) {
@@ -151,3 +154,4 @@ function create_icon_style(image_file, text) {
 
     return style;
 }
+
