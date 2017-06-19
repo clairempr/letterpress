@@ -10,7 +10,7 @@ function do_text_sentiment(sentiments) {
         },
         url: "/get_text_sentiment/",
         success: function(result){
-            $('#sentiment-highlights').html(result.sentiment_highlights);
+            $('#sentiment-results').html(result.sentiments);
         }
     });
 }

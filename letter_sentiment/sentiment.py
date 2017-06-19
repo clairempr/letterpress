@@ -1,6 +1,5 @@
 from textblob import TextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as vaderSentiment
-from .custom_sentiment import calculate_custom_sentiment
 
 
 def get_sentiment(text_to_analyze):

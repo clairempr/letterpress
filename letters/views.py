@@ -7,7 +7,8 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 
-from letter_sentiment.custom_sentiment import highlight_text_for_sentiment
+from letter_sentiment.custom_sentiment import calculate_custom_sentiment_for_text, highlight_text_for_custom_sentiment
+from letter_sentiment.sentiment import get_sentiment
 
 from letters import filter, letter_search
 from letters.charts import make_charts
@@ -137,16 +138,23 @@ def get_text_sentiment(request):
     if request.method != 'POST':
         return
 
-    sentiments = filter.get_filter_values_from_request(request).sentiment_ids
+    sentiment_ids = filter.get_filter_values_from_request(request).sentiment_ids
     text = request.POST.get('text')
-    highlighted_text = ''
-    for sentiment in sentiments:
-        highlighted_text += highlight_text_for_sentiment(text, sentiment) + '<br>'
 
-    highlighted_text = mark_safe(highlighted_text)
+    sentiments = []
+    highlighted_texts = []
+    for sentiment_id in sentiment_ids:
+        if sentiment_id == 0:
+            sentiments.append(get_sentiment(text))
+            highlighted_texts.append('')
+        else:
+            sentiments.append(calculate_custom_sentiment_for_text(text, sentiment_id))
+            highlighted_texts.append(mark_safe(highlight_text_for_custom_sentiment(text, sentiment_id)))
 
+    results = zip(sentiments, highlighted_texts)
+    sentiment_html = render_to_string('snippets/sentiment_list.html', {'results': results})
     # This was Ajax
-    return HttpResponse(json.dumps({'sentiment_highlights': highlighted_text}), content_type="application/json")
+    return HttpResponse(json.dumps({'sentiments': sentiment_html}), content_type="application/json")
 
 
 # return list of letters containing search text
@@ -200,7 +208,7 @@ def show_letter_content(request, letter, title, nbar, sentiments=[]):
     image_tags = [image.image_tag() for image in letter.images.all()]
     if sentiments:
         sentiment_id, value = sentiments[0]
-        letter.body = mark_safe(highlight_text_for_sentiment(letter.body, sentiment_id))
+        letter.body = mark_safe(highlight_text_for_custom_sentiment(letter.body, sentiment_id))
     return render(request, 'letter.html',
                   {'title': title, 'nbar': nbar, 'letter': letter, 'description': description,
                    'images': image_tags, 'sentiments': sentiments})

@@ -13,6 +13,9 @@ class CustomSentiment(models.Model):
     def __str__(self):
         return self.name
 
+    def get_terms(self):
+        return self.terms.all()
+
 
 class Term(models.Model):
     text = models.CharField(max_length=100)

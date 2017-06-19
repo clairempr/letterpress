@@ -1,11 +1,18 @@
+from textblob import TextBlob
+
 from letters.elasticsearch import get_sentiment_termvector_for_text
 from letter_sentiment.models import CustomSentiment
 
 
 def calculate_custom_sentiment(custom_sentiment_id, termvector, word_count):
+    custom_sentiment = get_custom_sentiment(custom_sentiment_id)
+    if not custom_sentiment or not custom_sentiment.get_terms():
+        return 0
+
+    name = custom_sentiment.name
+    terms = sort_terms_by_number_of_words(custom_sentiment.get_terms())
+    max_weight = custom_sentiment.max_weight
     sentiment = 0
-    name, terms, max_weight = get_custom_sentiment(custom_sentiment_id)
-    terms = sort_terms_by_number_of_words(terms)
 
     for term in terms:
         term_text = term.analyzed_text
@@ -19,17 +26,25 @@ def calculate_custom_sentiment(custom_sentiment_id, termvector, word_count):
     return str.format('{0}: {1:.3f}', name, sentiment)
 
 
+# get termvector and word count for text, and then call calculate_custom_sentiment
+def calculate_custom_sentiment_for_text(text, custom_sentiment_id):
+    termvector = get_sentiment_termvector_for_text(text)
+    word_count = get_word_count_for_text(text)
+    return calculate_custom_sentiment(custom_sentiment_id, termvector, word_count)
+
+
 # surround relevant term in text with styled <span>
-def highlight_text_for_sentiment(text, custom_sentiment_id):
+def highlight_text_for_custom_sentiment(text, custom_sentiment_id):
+    custom_sentiment = get_custom_sentiment(custom_sentiment_id)
+    if not custom_sentiment or not custom_sentiment.get_terms():
+        return text
+
     highlight_normal_class = 'sentiment-highlight-normal'
     highlight_extra_class = 'sentiment-highlight-extra'
 
     highlighted_text = text
-    name, terms, max_weight = get_custom_sentiment(custom_sentiment_id)
-    # If there are no terms (or sentiment with id not found), return original text
-    if not terms:
-        return text
-    terms = sort_terms_by_number_of_words(terms)
+
+    terms = sort_terms_by_number_of_words(custom_sentiment.get_terms())
     termvector = get_sentiment_termvector_for_text(text)
     terms_to_place = {}
 
@@ -120,11 +135,12 @@ def update_tokens_in_termvector(termvector, term, token):
 
 
 def get_custom_sentiment(custom_sentiment_id):
-    sentiment_obj = CustomSentiment.objects.get(pk=custom_sentiment_id)
-    if sentiment_obj:
-        return sentiment_obj.name, sentiment_obj.terms.all(), sentiment_obj.max_weight
-    else:
-        return 'Unknown custom sentiment', [], 1
+    try:
+        sentiment_obj = CustomSentiment.objects.get(pk=custom_sentiment_id)
+    except CustomSentiment.DoesNotExist:
+        sentiment_obj = None
+
+    return sentiment_obj
 
 
 def get_custom_sentiments():
@@ -132,7 +148,7 @@ def get_custom_sentiments():
 
 
 def get_analyzed_custom_sentiment_terms(custom_sentiment_id):
-    sentiment_obj = CustomSentiment.objects.get(pk=custom_sentiment_id)
+    sentiment_obj = get_custom_sentiment(custom_sentiment_id)
     if sentiment_obj:
         return [term.analyzed_text for term in sentiment_obj.terms.all()]
     else:
@@ -151,3 +167,9 @@ def sort_terms_by_number_of_words(terms):
     for num in sorted(terms_dict.keys(), reverse=True):
         sorted_terms.extend(terms_dict[num])
     return sorted_terms
+
+
+def get_word_count_for_text(text):
+    blob_text = TextBlob(text)
+    words = blob_text.words
+    return len(words)

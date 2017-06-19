@@ -22,7 +22,7 @@ settings = {
             "letter_contents_analyzer": {
                 "char_filter": ["hide_ampersand"],
                 "tokenizer": "standard",
-                "filter": ["restore_ampersand", "lowercase", "termvector_shingle_filter"]
+                "filter": ["restore_ampersand", "lowercase"]
             },
             # For analyzing custom sentiment search terms
             "string_sentiment_analyzer": {
