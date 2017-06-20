@@ -234,9 +234,12 @@ def export(request):
 
 # retrieve a letter with a random index
 def random_letter(request):
-    random_idx = random.randint(0, Letter.objects.count() - 1)
-    letter = Letter.objects.all()[random_idx]
-    return show_letter_content(request, letter, title='Random letter', nbar='random_letter')
+    count = Letter.objects.count();
+    if count >= 1:
+        random_idx = random.randint(0, count - 1)
+        letter = Letter.objects.all()[random_idx]
+        return show_letter_content(request, letter, title='Random letter', nbar='random_letter')
+    return object_not_found(request, 0, 'Letter')
 
 
 # Show map of places

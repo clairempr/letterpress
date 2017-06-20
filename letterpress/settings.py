@@ -4,11 +4,8 @@ Django settings for letterpress project.
 For use with Django 10.6 and 1.11
 """
 
-import os
-import letterpress.settings_secret as settings_secret
-
-# For my OS-specific settings
-WINDOWS = False
+import os, platform
+from letterpress.firstrun import settings_secret
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -18,6 +15,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+# When using Docker, make sure DB_DIR is set to wherever Docker looks for it ('/db/' for example)
+# When not using Docker, root project directory is fine
+DB_DIR = './'
 
 # Settings stored in settings_secret
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -81,12 +81,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'letterpress.wsgi.application'
 
+# Where to find SpatiaLite and GDAL libraries, necessary to support geodatabase stuff in SQLite
+if platform.system() == 'Windows':
+    # For Windows, use the following setting. Get mod_spatialite from http://www.gaia-gis.it/gaia-sins/
+    # Put all DLLs in the same directory with the Python executable (system and probably also virtualenv)
+    SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
+    # For Windows, set the location of the GDAL DLL and add the GDAL directory to your PATH for the other DLLs
+    # Under Linux it doesn't seem to be necessary
+    GDAL_LIBRARY_PATH = 'C:\Program Files\GDAL\gdal201.dll'
+    # A Fallback
+    DB_DIR = BASE_DIR
+else:
+    # For Linux
+    SPATIALITE_LIBRARY_PATH = '/usr/local/lib/libspatialite.so'
+
 # Database
 DATABASES = {
     'default': {
         # This engine supports geodatabase functionality in Django
         'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(DB_DIR, 'db.sqlite3'),
     }
 }
 
@@ -139,18 +153,6 @@ TINYMCE_DEFAULT_CONFIG = {
 # Compressor stopped working, maybe when I upgraded some other package or
 # switched to django-sslserver, so I had to set it to false
 TINYMCE_COMPRESSOR = False
-
-# Where to find SpatiaLite and GDAL libraries, necessary to support geodatabase stuff in SQLite
-if WINDOWS:
-    # For Windows, use the following setting. Get mod_spatialite from http://www.gaia-gis.it/gaia-sins/
-    # Put all DLLs in the same directory with the Python executable (system and probably also virtualenv)
-    SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
-    # For Windows, set the location of the GDAL DLL and add the GDAL directory to your PATH for the other DLLs
-    # Under Linux it doesn't seem to be necessary
-    GDAL_LIBRARY_PATH = 'C:\Program Files\GDAL\gdal201.dll'
-else:
-    # For Linux
-    SPATIALITE_LIBRARY_PATH = '/usr/local/lib/libspatialite.so'
 
 # Security stuff
 # SecurityMiddleware redirects all non-HTTPS requests to HTTPS (except for those URLs matching a regular
