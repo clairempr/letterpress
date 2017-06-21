@@ -1,3 +1,4 @@
+import math
 from textblob import TextBlob
 
 from letters.elasticsearch import get_sentiment_termvector_for_text
@@ -20,8 +21,8 @@ def calculate_custom_sentiment(custom_sentiment_id, termvector, word_count):
             sentiment += (termvector[term_text]['term_freq'] * term.number_of_words() * term.weight)
             termvector = update_freqs_in_termvector(termvector, term)
 
-    weight_factor = (max_weight + 1) / 2
-    sentiment = (sentiment / weight_factor) / (word_count * .119) if word_count else 0
+    multiplier = max(math.log2(word_count * .8), 10) if word_count else 0
+    sentiment = (sentiment / max_weight / word_count) * multiplier if word_count else 0
 
     return str.format('{0}: {1:.3f}', name, sentiment)
 
@@ -169,6 +170,8 @@ def sort_terms_by_number_of_words(terms):
     return sorted_terms
 
 
+# For this we need to run 'python -m textblob.download_corpora'
+# Find another way to get word count
 def get_word_count_for_text(text):
     blob_text = TextBlob(text)
     words = blob_text.words
