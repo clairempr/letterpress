@@ -1,13 +1,18 @@
-from django.shortcuts import render
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.contrib.auth import logout
-from django.template.loader import render_to_string
-from django.utils.html import mark_safe
-from letters.models import Letter, Place
 import json
 import random
-from letters import elasticsearch, filter
+
+from django.contrib.auth import logout
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
+from django.template.loader import render_to_string
+from django.utils.html import mark_safe
+
+from letter_sentiment.custom_sentiment import calculate_custom_sentiment_for_text, highlight_text_for_custom_sentiment
+from letter_sentiment.sentiment import get_sentiment
+
+from letters import filter, letter_search
 from letters.charts import make_charts
+from letters.models import Letter, Place
 
 
 def home(request):
@@ -23,8 +28,8 @@ def letters_view(request):
         return export(request)
     filter_values = filter.get_initial_filter_values()
     return render(request, 'letters.html', {'title': 'Letters', 'nbar': 'letters_view',
-                                            'filter_values': filter_values, 'search_text': 'true',
-                                            'export_button': 'true'})
+                                            'filter_values': filter_values, 'show_search_text': 'true',
+                                            'show_export_button': 'true'})
 
 
 # Show page for requesting various stats about word use over time
@@ -32,7 +37,7 @@ def stats_view(request):
     assert isinstance(request, HttpRequest)
     filter_values = filter.get_initial_filter_values()
     return render(request, 'stats.html', {'title': 'Letter statistics', 'nbar': 'stats_view',
-                                          'filter_values': filter_values, 'words': 'true'})
+                                          'filter_values': filter_values, 'show_words': 'true'})
 
 
 # Show stats for requested words/months, based on filter
@@ -42,9 +47,9 @@ def get_stats(request):
         return
 
     filter_values = filter.get_filter_values_from_request(request)
-    es_word_counts = elasticsearch.get_word_counts_per_month(filter_values)
+    es_word_counts = letter_search.get_word_counts_per_month(filter_values)
     words = filter_values.words
-    es_word_freqs = elasticsearch.get_multiple_word_frequencies(filter_values)
+    es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
 
     if len(words) == 2:
         show_proportion = 'true'
@@ -96,6 +101,62 @@ def get_stats(request):
     return HttpResponse(json.dumps({'stats': stats_html, 'chart': chart}), content_type="application/json")
 
 
+# Show page for viewing sentiment of letters
+def sentiment_view(request):
+    assert isinstance(request, HttpRequest)
+    filter_values = filter.get_initial_filter_values()
+    return render(request, 'sentiment.html', {'title': 'Letter sentiment', 'nbar': 'sentiment',
+        'filter_values': filter_values, 'show_search_text': 'true', 'show_sentiment': 'true'})
+
+
+# view to show one letter by id, with highlights for selected sentiment
+def letter_sentiment_view(request, letter_id, sentiment_id):
+    assert isinstance(request, HttpRequest)
+    try:
+        letter = Letter.objects.get(pk=letter_id)
+    except Letter.DoesNotExist:
+        return object_not_found(request, letter_id, 'Letter')
+
+    word_count = letter_search.get_letter_word_count(letter_id)
+    # sentiments is a list of tuples (id, value)
+    sentiments = letter_search.get_letter_sentiments(letter, word_count, [sentiment_id])
+
+    return show_letter_content(request, letter, title='Letter Sentiment', nbar='sentiment', sentiments=sentiments)
+
+
+# view to show one letter by id, with highlights for selected sentiment
+def text_sentiment_view(request):
+    assert isinstance(request, HttpRequest)
+    filter_values = filter.get_initial_filter_values()
+    return render(request, 'text_sentiment.html', {'title': 'Text sentiment', 'nbar': 'sentiment',
+                                              'filter_values': filter_values})
+
+
+# Get sentiment analysis (and highlighting, if custom sentiment) for submitted text
+def get_text_sentiment(request):
+    assert isinstance(request, HttpRequest)
+    if request.method != 'POST':
+        return
+
+    sentiment_ids = filter.get_filter_values_from_request(request).sentiment_ids
+    text = request.POST.get('text')
+
+    sentiments = []
+    highlighted_texts = []
+    for sentiment_id in sentiment_ids:
+        if sentiment_id == 0:
+            sentiments.append(get_sentiment(text))
+            highlighted_texts.append('')
+        else:
+            sentiments.append(calculate_custom_sentiment_for_text(text, sentiment_id))
+            highlighted_texts.append(mark_safe(highlight_text_for_custom_sentiment(text, sentiment_id)))
+
+    results = zip(sentiments, highlighted_texts)
+    sentiment_html = render_to_string('snippets/sentiment_list.html', {'results': results})
+    # This was Ajax
+    return HttpResponse(json.dumps({'sentiments': sentiment_html}), content_type="application/json")
+
+
 # return list of letters containing search text
 # page_number is optional
 def search(request):
@@ -107,7 +168,7 @@ def search(request):
     else:
         size = 10
     page_number = int(request.POST.get('page_number'))
-    es_result = elasticsearch.do_letter_search(request, size, page_number)
+    es_result = letter_search.do_letter_search(request, size, page_number)
     result_html = render_to_string('snippets/search_list.html', {'search_results': es_result.search_results})
     # First request, no pagination yet
     if page_number == 0:
@@ -141,12 +202,16 @@ def object_not_found(request, object_id, object_type):
 
 
 # show particular letter
-def show_letter_content(request, letter, title, nbar):
+def show_letter_content(request, letter, title, nbar, sentiments=[]):
     letter.body = mark_safe(letter.body)
     description = letter.to_string()
     image_tags = [image.image_tag() for image in letter.images.all()]
+    if sentiments:
+        sentiment_id, value = sentiments[0]
+        letter.body = mark_safe(highlight_text_for_custom_sentiment(letter.body, sentiment_id))
     return render(request, 'letter.html',
-                  {'title': title, 'nbar': nbar, 'letter': letter, 'description': description, 'images': image_tags})
+                  {'title': title, 'nbar': nbar, 'letter': letter, 'description': description,
+                   'images': image_tags, 'sentiments': sentiments})
 
 
 # exports letters to output file
@@ -154,8 +219,8 @@ def export(request):
     assert isinstance(request, HttpRequest)
     # for export, return all matching records, within reason
     size = 10000
-    es_result = elasticsearch.do_letter_search(request, size, page_number=0)
-    letters = [letter for letter, highlight in es_result.search_results]
+    es_result = letter_search.do_letter_search(request, size, page_number=0)
+    letters = [letter for letter, highlight, sentiment in es_result.search_results]
     text_to_export = ''
     for letter in letters:
         text_to_export += letter.export_text() + '\n\n'
@@ -184,7 +249,7 @@ def places_view(request):
     places = Place.objects.filter(point__isnull=False)[:100]
     map_html = render_to_string('snippets/map.html', {'places': places})
     return render(request, 'places.html', {'title': 'Places', 'nbar': 'places',
-                                           'filter_values': filter_values, 'search_text': 'true',
+                                           'filter_values': filter_values, 'show_search_text': 'true',
                                            'map': map_html})
 
 
@@ -196,9 +261,9 @@ def search_places(request):
     # get a bunch of them!
     size = 5000
     # Search for letters that meet criteria. Start at beginning, so page number = 0
-    es_result = elasticsearch.do_letter_search(request, size, page_number=0)
+    es_result = letter_search.do_letter_search(request, size, page_number=0)
     # Get list of corresponding places
-    place_ids = set([letter.place_id for letter, highlight in es_result.search_results])
+    place_ids = set([letter.place_id for letter, highlight, sentiments in es_result.search_results])
     # Only show the first 100
     places = Place.objects.filter(pk__in=place_ids, point__isnull=False)[:100]
     map_html = render_to_string('snippets/map.html', {'places': places})

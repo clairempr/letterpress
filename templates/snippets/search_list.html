@@ -8,7 +8,7 @@
     </tr>
     </thead>
     <tbody>
-    {% for letter, highlight in search_results %}
+    {% for letter, highlight, sentiments in search_results %}
         <tr>
             <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.list_date }}</a></td>
             <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.writer }}</a></td>
@@ -18,6 +18,18 @@
         {% if highlight %}
         <tr>
             <td colspan="4" class="letter-highlight">{{ highlight|safe }}</td>
+        </tr>
+        {% endif %}
+        {% if sentiments %}
+        <tr>
+            <td colspan="4">
+                {% for sentiment_id, sentiment in sentiments %}
+                    <a href ="{% url 'letter_sentiment_view' letter.id sentiment_id %}">{{ sentiment }}</a>
+                    {% if not forloop.last %}
+                    ,&nbsp;&nbsp;
+                    {% endif %}
+                {% endfor %}
+            </td>
         </tr>
         {% endif %}
 

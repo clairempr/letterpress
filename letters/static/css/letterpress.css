@@ -68,6 +68,16 @@ em {
     line-height: 105%;
 }
 
+.sentiment-highlight-normal {
+    font-weight:bold;
+    color:darkorange;
+}
+
+.sentiment-highlight-extra {
+    font-weight:bold;
+    color:red;
+}
+
 .vertical-bottom {
     display: flex;
     align-items: flex-end;

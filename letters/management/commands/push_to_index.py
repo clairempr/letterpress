@@ -1,8 +1,9 @@
+from django.core.management.base import BaseCommand
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
-from django.core.management.base import BaseCommand
-from letters.models import Letter
+
 from letters import es_settings
+from letters.models import Letter
 
 
 class Command(BaseCommand):

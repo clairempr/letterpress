@@ -1,0 +1,11 @@
+{% for sentiment, highlighted_text in results %}
+    {% if sentiment %}
+        <div class="row">{{ sentiment }}</div>
+    {% endif %}
+    {% if highlighted_text %}
+        <div class="row letter-highlight well well-lg">
+            {{ highlighted_text|linebreaks }}
+        </div>
+    {% endif %}
+    <br>
+{% endfor %}

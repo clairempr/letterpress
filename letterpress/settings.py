@@ -15,7 +15,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
-DB_DIR = '/db/'
+# When using Docker, make sure DB_DIR is set to wherever Docker looks for it ('/db/' for example)
+# When not using Docker, root project directory is fine
+DB_DIR = './'
 
 # Settings stored in settings_secret
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -36,6 +38,7 @@ INSTALLED_APPS = [
     'sslserver',
     'tinymce',
     'letters',
+    'letter_sentiment'
 ]
 
 MIDDLEWARE = [
