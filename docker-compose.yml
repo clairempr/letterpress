@@ -16,7 +16,7 @@ services:
     command: sh /code/startup.sh
     volumes:
       - .:/code/
-      - ~/db/:/db/
+      - .:/db/
     ports:
       - "8000:8000"
     links:
