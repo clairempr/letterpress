@@ -1,7 +1,6 @@
 import math
-from textblob import TextBlob
 
-from letters.elasticsearch import get_sentiment_termvector_for_text
+from letters.elasticsearch import get_sentiment_termvector_for_text, get_word_count_for_text
 from letter_sentiment.models import CustomSentiment
 
 
@@ -168,11 +167,3 @@ def sort_terms_by_number_of_words(terms):
     for num in sorted(terms_dict.keys(), reverse=True):
         sorted_terms.extend(terms_dict[num])
     return sorted_terms
-
-
-# For this we need to run 'python -m textblob.download_corpora'
-# Find another way to get word count
-def get_word_count_for_text(text):
-    blob_text = TextBlob(text)
-    words = blob_text.words
-    return len(words)

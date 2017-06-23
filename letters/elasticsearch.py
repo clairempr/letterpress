@@ -36,51 +36,74 @@ def get_mtermvectors(ids, fields):
 
 
 def get_sentiment_termvector_for_letter(letter_id):
-    termvector = {}
-    query = get_sentiment_termvector_query()
-
+    query = get_sentiment_termvector_query("termvector_sentiment_analyzer")
     result = do_es_termvectors_for_id(letter_id, query)
-    if 'term_vectors' in result and 'contents' in result['term_vectors'] and 'terms' in result['term_vectors']['contents']:
-        termvector = result['term_vectors']['contents']['terms']
+    termvector = get_termvector_from_result(result)
 
     return termvector
 
 
-def get_sentiment_termvector_for_text(text):
-    termvector = {}
-
-    query = json.dumps({
-        "doc": {
-            "contents": text
-            },
-        "fields": ["contents"],
-        "per_field_analyzer": {
-            "contents": "termvector_sentiment_analyzer"
-            },
-        "offsets": "true",
-        "positions": "true",
-        "term_statistics": "false",
-        "field_statistics": "false",
-    })
-
-    result = do_es_termvectors_for_text(query)
-    if 'term_vectors' in result and 'contents' in result['term_vectors'] and 'terms' in result['term_vectors']['contents']:
-        termvector = result['term_vectors']['contents']['terms']
-
-    return termvector
-
-
-def get_sentiment_termvector_query():
+def get_sentiment_termvector_query(analyzer):
     return json.dumps({
         "fields": ["contents"],
         "per_field_analyzer": {
-            "contents": "termvector_sentiment_analyzer"
+            "contents": analyzer
         },
         "offsets": "true",
         "positions": "false",
         "term_statistics": "false",
         "field_statistics": "false",
     })
+
+
+def get_sentiment_termvector_for_text(text):
+    query = json.dumps({
+        "doc": {
+            "contents": text
+        },
+        "fields": ["contents"],
+        "per_field_analyzer": {
+            "contents": "termvector_sentiment_analyzer"
+        },
+        "offsets": "true",
+        "positions": "true",
+        "term_statistics": "false",
+        "field_statistics": "false",
+    })
+
+    termvector = do_es_termvectors_for_text(query)
+    return termvector
+
+
+def get_word_count_for_text(text):
+    query = json.dumps({
+        "doc": {
+            "contents": text
+        },
+        "fields": ["contents"],
+        "per_field_analyzer": {
+            "contents": "letter_contents_analyzer"
+        },
+        "offsets": "false",
+        "positions": "false",
+        "term_statistics": "false",
+        "field_statistics": "false",
+    })
+
+    termvector = do_es_termvectors_for_text(query)
+    word_count = 0
+    for term in termvector:
+        word_count += termvector[term]['term_freq']
+
+    return word_count
+
+
+def get_termvector_from_result(result):
+    termvector = {}
+    if 'term_vectors' in result and 'contents' in result['term_vectors'] and 'terms' in result['term_vectors']['contents']:
+        termvector = result['term_vectors']['contents']['terms']
+
+    return termvector
 
 
 def get_stored_fields_for_letter(letter_id, stored_fields):
@@ -108,7 +131,8 @@ def do_es_termvectors_for_id(id, query):
 def do_es_termvectors_for_text(query):
     termvectors_url = str.format('{0}_termvectors', ES_LETTER_URL)
     response = requests.get(termvectors_url, data=query)
-    return json.loads(response.text)
+    result =  json.loads(response.text)
+    return get_termvector_from_result(result)
 
 
 def do_es_search(query):
