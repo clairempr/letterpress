@@ -27,7 +27,6 @@ def get_mtermvectors(ids, fields):
             "fields": fields,
             "offsets": "false",
             "positions": "false",
-            "term_statistics": "false",
             "field_statistics": "false"
         }
     })
@@ -36,60 +35,22 @@ def get_mtermvectors(ids, fields):
 
 
 def get_sentiment_termvector_for_letter(letter_id):
-    query = get_sentiment_termvector_query("termvector_sentiment_analyzer")
-    result = do_es_termvectors_for_id(letter_id, query)
-    termvector = get_termvector_from_result(result)
-
+    query = build_termvector_query(text='', analyzer='termvector_sentiment_analyzer',
+                                   offsets='true', positions='false')
+    termvector = do_es_termvectors_for_id(letter_id, query)
     return termvector
 
 
-def get_sentiment_termvector_query(analyzer):
-    return json.dumps({
-        "fields": ["contents"],
-        "per_field_analyzer": {
-            "contents": analyzer
-        },
-        "offsets": "true",
-        "positions": "false",
-        "term_statistics": "false",
-        "field_statistics": "false",
-    })
-
-
 def get_sentiment_termvector_for_text(text):
-    query = json.dumps({
-        "doc": {
-            "contents": text
-        },
-        "fields": ["contents"],
-        "per_field_analyzer": {
-            "contents": "termvector_sentiment_analyzer"
-        },
-        "offsets": "true",
-        "positions": "true",
-        "term_statistics": "false",
-        "field_statistics": "false",
-    })
-
+    query = build_termvector_query(text=text, analyzer='termvector_sentiment_analyzer',
+                                   offsets='true', positions='true')
     termvector = do_es_termvectors_for_text(query)
     return termvector
 
 
 def get_word_count_for_text(text):
-    query = json.dumps({
-        "doc": {
-            "contents": text
-        },
-        "fields": ["contents"],
-        "per_field_analyzer": {
-            "contents": "letter_contents_analyzer"
-        },
-        "offsets": "false",
-        "positions": "false",
-        "term_statistics": "false",
-        "field_statistics": "false",
-    })
-
+    query = build_termvector_query(text=text, analyzer='letter_contents_analyzer',
+                                   offsets='false', positions='false')
     termvector = do_es_termvectors_for_text(query)
     word_count = 0
     for term in termvector:
@@ -98,9 +59,30 @@ def get_word_count_for_text(text):
     return word_count
 
 
+def build_termvector_query(text, analyzer, offsets, positions):
+    query = {
+        "fields": ["contents"],
+        "per_field_analyzer": {
+            "contents": analyzer
+        },
+        "offsets": offsets,
+        "positions": positions,
+        "field_statistics": "false",
+    }
+
+    # Add optional artificial document to query
+    if text:
+        query['doc'] = {
+            "contents": text
+        }
+
+    return json.dumps(query)
+
+
 def get_termvector_from_result(result):
     termvector = {}
-    if 'term_vectors' in result and 'contents' in result['term_vectors'] and 'terms' in result['term_vectors']['contents']:
+    if 'term_vectors' in result and 'contents' in result['term_vectors'] and 'terms' in result['term_vectors'][
+        'contents']:
         termvector = result['term_vectors']['contents']['terms']
 
     return termvector
@@ -125,13 +107,14 @@ def do_es_mtermvectors(query):
 def do_es_termvectors_for_id(id, query):
     termvectors_url = str.format('{0}{1}/_termvectors', ES_LETTER_URL, str(id))
     response = requests.get(termvectors_url, data=query)
-    return json.loads(response.text)
+    result = json.loads(response.text)
+    return get_termvector_from_result(result)
 
 
 def do_es_termvectors_for_text(query):
     termvectors_url = str.format('{0}_termvectors', ES_LETTER_URL)
     response = requests.get(termvectors_url, data=query)
-    result =  json.loads(response.text)
+    result = json.loads(response.text)
     return get_termvector_from_result(result)
 
 

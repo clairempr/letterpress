@@ -68,16 +68,16 @@ def get_frequency_charts(words, months, word_freqs):
     # x-axis labels pulled from the months column, stacking labels from words column
     bar = Bar(data, values='frequency', label='month', group='word',#stack='word',
               title=title, legend='top_right', bar_width=1,
-              palette=PALETTE, toolbar_location=None)
+              palette=PALETTE, toolbar_location='right')
 
     data = {
         'month': months,
-        words[0]: word_freqs[0::2],
-        words[1]: word_freqs[1::2]
     }
+    for idx, word in enumerate(words):
+        data[word] = word_freqs[idx::len(words)]
 
     time_series = TimeSeries(data, title=title, x='month', y=words, xlabel='Month', ylabel='Frequency',
-                             legend='top_right', palette=PALETTE, toolbar_location=None)
+                             legend='top_right', palette=PALETTE, toolbar_location='right')
     return [bar, time_series]
 
 
@@ -85,14 +85,14 @@ def get_proportions_chart(words, months, proportions):
     title = str.format('Proportions of "{0}" to "{1}"', words[0], words[1])
     s = pd.Series(proportions, index=months)
     time_series = TimeSeries(s, title=title, xlabel='Month', ylabel='Proportion', legend=False,
-                             palette=PALETTE, toolbar_location=None)
+                             palette=PALETTE, toolbar_location='right')
     return time_series
 
 
 def get_per_month_chart(months, values, title, label):
     s = pd.Series(values, index=months)
     time_series = TimeSeries(s, title=title, xlabel='Month', ylabel=label, legend=False,
-                             palette=PALETTE, toolbar_location=None)
+                             palette=PALETTE, toolbar_location='right')
     return time_series
 
 

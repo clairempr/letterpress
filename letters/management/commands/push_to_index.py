@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 
 from letters import es_settings
@@ -12,7 +11,7 @@ class Command(BaseCommand):
         self.push_db_to_index()
 
     def recreate_index(self):
-        indices_client = IndicesClient(client=es_settings.ES_CLIENT)
+        indices_client = es_settings.ES_CLIENT.indices
         index_name = Letter._meta.es_index_name
         if indices_client.exists(index_name):
             indices_client.delete(index=index_name)
