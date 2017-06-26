@@ -86,12 +86,15 @@ def get_letter_sentiments(letter, word_count, sentiment_ids):
     sentiments = []
     termvector = get_sentiment_termvector_for_letter(letter.id)
     for sentiment_id in sentiment_ids:
+        sentiment_id = int(sentiment_id)
         # Id 0 is used for standard sentiment,
         # since CustomSentiment starts numbering from 1
         # letter.sentiment() is an array while I'm experimenting with
         # different sentiment analysis packages
         if sentiment_id == 0:
-            sentiments.append((sentiment_id, ' ,'.join(letter.sentiment())))
+            letter_sentiments = letter.sentiment()
+            #sentiments.extend([(sentiment_id, ls) for ls in letter_sentiments])
+            sentiments.append((sentiment_id, letter_sentiments))
         else:
             custom_sentiment = calculate_custom_sentiment(sentiment_id, termvector, word_count)
             sentiments.append((sentiment_id, custom_sentiment))

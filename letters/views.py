@@ -1,5 +1,6 @@
 import json
 import random
+from copy import deepcopy
 
 from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -8,7 +9,7 @@ from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 
 from letter_sentiment.custom_sentiment import calculate_custom_sentiment_for_text, highlight_text_for_custom_sentiment
-from letter_sentiment.sentiment import get_sentiment
+from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentiment
 
 from letters import filter, letter_search
 from letters.charts import make_charts
@@ -118,10 +119,64 @@ def letter_sentiment_view(request, letter_id, sentiment_id):
         return object_not_found(request, letter_id, 'Letter')
 
     word_count = letter_search.get_letter_word_count(letter_id)
-    # sentiments is a list of tuples (id, value)
-    sentiments = letter_search.get_letter_sentiments(letter, word_count, [sentiment_id])
 
-    return show_letter_content(request, letter, title='Letter Sentiment', nbar='sentiment', sentiments=sentiments)
+    # sentiments is a list of tuples (id, value)
+    sentiments = letter_search.get_letter_sentiments(letter, word_count, sentiment_id)
+
+    return show_letter_sentiment(request, letter, title='Letter Sentiment', nbar='sentiment', sentiments=sentiments)
+
+
+# show particular letter with sentiment highlights
+def show_letter_sentiment(request, letter, title, nbar, sentiments):
+    description = letter.to_string()
+    image_tags = [image.image_tag() for image in letter.images.all()]
+
+    highlighted_letters = []
+    sentiment_values = []
+
+    for sentiment in sentiments:
+        sentiment_id, value = sentiment
+        highlighted_letter = highlight_letter_for_sentiment(letter, sentiment_id)
+
+        # Sentiment value might be a list
+        if isinstance(value, str):
+            sentiment_values.append(value)
+        else:
+            sentiment_values.extend(value)
+
+        # highlight_letter_for_sentiment always returns a list, so use extend
+        highlighted_letters.extend(highlighted_letter)
+
+    results = zip(sentiment_values, highlighted_letters)
+    return render(request, 'letter_sentiment.html',
+                  {'title': title, 'nbar': nbar, 'letter': letter, 'description': description,
+                   'images': image_tags, 'results': results})
+
+
+def highlight_letter_for_sentiment(letter, sentiment_id):
+    highlighted_letters = []
+
+    headings = highlight_for_sentiment(letter.heading, sentiment_id)
+    greetings = highlight_for_sentiment(letter.greeting, sentiment_id)
+    bodies = highlight_for_sentiment(letter.body_as_text(), sentiment_id)
+    closings = highlight_for_sentiment(letter.closing, sentiment_id)
+    sigs = highlight_for_sentiment(letter.signature, sentiment_id)
+    pss = highlight_for_sentiment(letter.ps, sentiment_id)
+
+    for idx, heading in enumerate(headings):
+        # Make a copy of the letter so we can manipulate the content fields
+        highlighted_letter = deepcopy(letter)
+        highlighted_letter.pk = None
+        highlighted_letter.heading = mark_safe(heading)
+        highlighted_letter.greeting = mark_safe(greetings[idx])
+        highlighted_letter.body = mark_safe(bodies[idx])
+        highlighted_letter.closing = mark_safe(closings[idx])
+        highlighted_letter.signature = mark_safe(sigs[idx])
+        highlighted_letter.ps = mark_safe(pss[idx])
+
+        highlighted_letters.append(highlighted_letter)
+
+    return highlighted_letters
 
 
 # view to show one letter by id, with highlights for selected sentiment
@@ -144,17 +199,23 @@ def get_text_sentiment(request):
     sentiments = []
     highlighted_texts = []
     for sentiment_id in sentiment_ids:
+        highlighted_texts.extend(highlight_for_sentiment(text))
         if sentiment_id == 0:
-            sentiments.append(get_sentiment(text))
-            highlighted_texts.append('')
+            sentiments.extend(get_sentiment(text))
         else:
             sentiments.append(calculate_custom_sentiment_for_text(text, sentiment_id))
-            highlighted_texts.append(mark_safe(highlight_text_for_custom_sentiment(text, sentiment_id)))
 
     results = zip(sentiments, highlighted_texts)
     sentiment_html = render_to_string('snippets/sentiment_list.html', {'results': results})
     # This was Ajax
     return HttpResponse(json.dumps({'sentiments': sentiment_html}), content_type="application/json")
+
+
+def highlight_for_sentiment(text, sentiment_id):
+    if sentiment_id == 0:
+        return highlight_text_for_sentiment(text)
+    else:
+        return [highlight_text_for_custom_sentiment(text, sentiment_id)]
 
 
 # return list of letters containing search text
@@ -202,16 +263,13 @@ def object_not_found(request, object_id, object_type):
 
 
 # show particular letter
-def show_letter_content(request, letter, title, nbar, sentiments=[]):
+def show_letter_content(request, letter, title, nbar):
     letter.body = mark_safe(letter.body)
     description = letter.to_string()
     image_tags = [image.image_tag() for image in letter.images.all()]
-    if sentiments:
-        sentiment_id, value = sentiments[0]
-        letter.body = mark_safe(highlight_text_for_custom_sentiment(letter.body, sentiment_id))
     return render(request, 'letter.html',
                   {'title': title, 'nbar': nbar, 'letter': letter, 'description': description,
-                   'images': image_tags, 'sentiments': sentiments})
+                   'images': image_tags})
 
 
 # exports letters to output file

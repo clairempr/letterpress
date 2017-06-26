@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+
+    <div class="container">
+
+        <h5>{{ description }}</h5>
+
+        <h5>Sentiment</h5>
+        {% for sentiment, letter in results %}
+            <p>{{ sentiment }}</p>
+            {% include "snippets/letter_contents.html" %}
+        {% endfor %}
+
+        <div class="row">
+            {% for image in images %}
+                {% if forloop.counter == 3 %}
+                    <br>
+                {% endif %}
+                <span>
+                {{ image }}
+            </span>
+            {% endfor %}
+        </div>
+
+    </div>
+
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

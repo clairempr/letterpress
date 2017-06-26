@@ -30,10 +30,14 @@ class Letter(Document):
     def envelope_preview(self):
         return get_envelope_preview(self)
 
+    # body without html markup
+    def body_as_text(self):
+        return html_to_text(self.body)
+
     # all the separate parts of the letter put together
     def contents(self):
         letter_contents = ''
-        for part in [self.heading, self.greeting, html_to_text(self.body), self.closing, self.signature, self.ps]:
+        for part in [self.heading, self.greeting, self.body_as_text(), self.closing, self.signature, self.ps]:
             if part:
                 letter_contents += part + '\n'
         return letter_contents

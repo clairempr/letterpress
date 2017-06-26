@@ -68,6 +68,14 @@ em {
     line-height: 105%;
 }
 
+.sentiment-highlight-pos {
+    background-color: lightgreen;
+}
+
+.sentiment-highlight-neg {
+    background-color: palevioletred;
+}
+
 .sentiment-highlight-normal {
     font-weight:bold;
     color:darkorange;
