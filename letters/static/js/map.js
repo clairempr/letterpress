@@ -41,7 +41,10 @@ function map_init(features, marker_image, plain_marker_image, popups) {
     map = new ol.Map({
         target: document.getElementById('mapdiv'),
         view: new ol.View({
-            projection: 'EPSG:3857'
+            projection: 'EPSG:3857',
+            // Center map on Null Island by default, in case no places found
+            center: [0, 0],
+            zoom: 2
         }),
         layers: [
             new ol.layer.Tile({

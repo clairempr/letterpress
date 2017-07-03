@@ -1,29 +1,26 @@
-<div class="container row vertical-center">
+{% if pages|length > 1 %}
+    <nav aria-label="Page navigation">
+        <ul id="pages" class="pagination">
+            <li>
+                <a href="#" aria-label="Previous" onclick="return search_prev_page();">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% for page in pages %}
+                <li name="page{{ forloop.counter }}">
+                    <a href="#" onclick="return do_search({{ forloop.counter }});">{{ forloop.counter }}</a>
+                </li>
+            {% endfor %}
+            <li>
+                <a href="#" aria-label="Next" onclick="return search_next_page();">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}
 
-    <div class="col-sm-8">
-        {% if pages|length > 1 %}
-            <nav aria-label="Page navigation">
-                <ul id="pages" class="pagination">
-                    <li>
-                        <a href="#" aria-label="Previous" onclick="return search_prev_page();">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    {% for page in pages %}
-                        <li name="page{{ forloop.counter }}">
-                            <a href="#" onclick="return do_search({{ forloop.counter }});">{{ forloop.counter }}</a>
-                        </li>
-                    {% endfor %}
-                    <li>
-                        <a href="#" aria-label="Next" onclick="return search_next_page();">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        {% endif %}
-    </div>
 
-    <label class="col-sm-4">{{ total }} results found</label>
+<label>{{ total }} results found</label>
 
-</div>
+
