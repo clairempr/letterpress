@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
 {% block content %}
+    <link href="{% static 'css/sentiment.css' %}" rel="stylesheet">
     <div class="container-fluid">
 
         <form method="post">
@@ -31,7 +33,6 @@
 {% endblock %}
 
 {% block scripts %}
-    {% load staticfiles %}
     <script src={% static "js/letterpress.js" %} type="text/javascript"></script>
     <script src={% static "js/sentiment.js" %} type="text/javascript"></script>
     <script type="text/javascript">

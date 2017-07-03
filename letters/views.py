@@ -199,7 +199,7 @@ def get_text_sentiment(request):
     sentiments = []
     highlighted_texts = []
     for sentiment_id in sentiment_ids:
-        highlighted_texts.extend(highlight_for_sentiment(text))
+        highlighted_texts.extend(highlight_for_sentiment(text, sentiment_id))
         if sentiment_id == 0:
             sentiments.extend(get_sentiment(text))
         else:
@@ -213,9 +213,9 @@ def get_text_sentiment(request):
 
 def highlight_for_sentiment(text, sentiment_id):
     if sentiment_id == 0:
-        return highlight_text_for_sentiment(text)
+        return [mark_safe(highlight) for highlight in highlight_text_for_sentiment(text)]
     else:
-        return [highlight_text_for_custom_sentiment(text, sentiment_id)]
+        return [mark_safe(highlight_text_for_custom_sentiment(text, sentiment_id))]
 
 
 # return list of letters containing search text

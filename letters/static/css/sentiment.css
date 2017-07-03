@@ -1,0 +1,25 @@
+.sentiment-highlight-pos {
+    background-color: lightgreen;
+}
+
+.sentiment-highlight-sorta-pos {
+    background-color: rgba(144,238,144,0.33)
+}
+
+.sentiment-highlight-neg {
+    background-color: palevioletred;
+}
+
+.sentiment-highlight-sorta-neg {
+    background-color: rgba(219,112,147,0.33)
+}
+
+.sentiment-highlight-normal {
+    font-weight:bold;
+    color:darkorange;
+}
+
+.sentiment-highlight-extra {
+    font-weight:bold;
+    color:red;
+}
