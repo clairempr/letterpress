@@ -336,7 +336,7 @@ def place_by_id(request, place_id):
         place = Place.objects.get(pk=place_id)
         letters = Letter.objects.filter(place=place_id)
         return render(request, 'place.html',
-                      {'title': 'Place', 'nbar': 'place', 'place': place, 'letters': letters})
+                      {'title': 'Place', 'nbar': 'places', 'place': place, 'letters': letters})
     except Place.DoesNotExist:
         return object_not_found(request, place_id, 'Place')
 
