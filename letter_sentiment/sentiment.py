@@ -13,9 +13,9 @@ def get_sentiment(text_to_analyze):
 
 
 def sentiment_to_string(polarity):
-    if polarity <= -0.5:
+    if polarity < -0.5:
         sentiment = 'negative'
-    elif polarity <= -0.2:
+    elif polarity < -0.2:
         sentiment = 'slightly negative'
     elif polarity < 0.2:
         sentiment = 'neutral'

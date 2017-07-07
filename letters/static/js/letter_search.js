@@ -1,6 +1,12 @@
 jQuery(document).ready(function ($) {
     var last_page = 0;
 
+    // If coming back to this page after a letter view, show the search results again
+    if (history.state) {
+        restore_search_results(history.state.result, history.state.pagination);
+    }
+
+    // Enable going back and forth between pages of search results with back button
     window.addEventListener('popstate', function (event) {
         if (event.state) {
             restore_search_results(event.state.result, event.state.pagination);
