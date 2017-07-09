@@ -69,6 +69,9 @@ class LetterAdmin(DocumentAdmin):
     list_display = DocumentAdmin.list_display + ('writer', 'recipient', 'place')
     list_filter = DocumentAdmin.list_filter + ('place', RecipientFilter, )
     readonly_fields = DocumentAdmin.readonly_fields + ('envelope_preview',)
+    search_fields = ('writer__last_name', 'writer__first_names',
+                     'recipient__last_name', 'recipient__first_names',
+                     'place__name',  'place__state', 'date')
     filter_horizontal = DocumentAdmin.filter_horizontal + ('envelopes',)
     actions = [delete_selected]
 
