@@ -56,9 +56,11 @@ def get_filter_values_from_request(request):
     end_date = get_end_date_from_request(request)
 
     sentiment_ids = [int(id) for id in sentiment_ids]
+    sort_by = request.POST.get('sort_by')
 
     FilterValues = collections.namedtuple('FilterValues',
-        ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date', 'words', 'sentiment_ids'])
+        ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date', 'words',
+         'sentiment_ids', 'sort_by'])
     filter_values = FilterValues(
         search_text=search_text,
         source_ids=source_ids,
@@ -66,7 +68,8 @@ def get_filter_values_from_request(request):
         start_date=start_date,
         end_date=end_date,
         words=words,
-        sentiment_ids=sentiment_ids
+        sentiment_ids=sentiment_ids,
+        sort_by=sort_by
     )
     return filter_values
 

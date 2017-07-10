@@ -14,6 +14,7 @@ from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentime
 from letters import filter, letter_search
 from letters.charts import make_charts
 from letters.models import Letter, Place
+from letters.sort_by import DATE, RELEVANCE
 
 
 def home(request):
@@ -28,8 +29,10 @@ def letters_view(request):
     if request.method == 'POST':
         return export(request)
     filter_values = filter.get_initial_filter_values()
+    sort_by = [(DATE, 'Date'), (RELEVANCE, 'Relevance')]
     return render(request, 'letters.html', {'title': 'Letters', 'nbar': 'letters_view',
                                             'filter_values': filter_values, 'show_search_text': 'true',
+                                            'sort_by': sort_by,
                                             'show_export_button': 'true'})
 
 

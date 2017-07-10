@@ -8,12 +8,12 @@
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                {% for sources in filter_values.sources %}
+                {% for source in filter_values.sources %}
                     <div id="sources" class="checkbox">
                         <label>
-                            <input type="checkbox" name="sources" id="sources{{ sources.id }}"
-                                   value="{{ sources.id }}">
-                            {{ sources }}
+                            <input type="checkbox" name="source" id="source{{ source.id }}"
+                                   value="{{ source.id }}">
+                            {{ source }}
                         </label>
                     </div>
                 {% endfor %}
@@ -76,9 +76,14 @@
 
 </div>
 
-{% if show_sentiment %}
+{% if show_sentiment or sort_by %}
     <div class="row">
-        <div class="form-group col-sm-2">{% include "./sentiment_dropdown.html" %}</div>
+        {% if show_sentiment %}
+            <div class="form-group col-sm-2">{% include "./sentiment_dropdown.html" %}</div>
+        {% endif %}
+        {% if sort_by %}
+            <div class="form-group col-sm-2">{% include "./sort_by_dropdown.html" %}</div>
+        {% endif %}
     </div>
 {% endif %}
 

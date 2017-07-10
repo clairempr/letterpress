@@ -32,6 +32,7 @@ function do_search(page_number) {
             start_date: filter_values.start_date,
             end_date: filter_values.end_date,
             sentiments: filter_values.sentiments,
+            sort_by: filter_values.sort_by,
             page_number: page_number,
         },
         url: "/search/",

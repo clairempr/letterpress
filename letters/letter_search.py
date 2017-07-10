@@ -4,8 +4,10 @@ import json
 
 from letter_sentiment.custom_sentiment import calculate_custom_sentiment
 from letters import filter
-from letters.elasticsearch import do_es_search, get_mtermvectors, get_stored_fields_for_letter, get_sentiment_termvector_for_letter
+from letters.elasticsearch import do_es_search, get_mtermvectors, get_stored_fields_for_letter, \
+    get_sentiment_termvector_for_letter
 from letters.models import Letter
+from letters.sort_by import DATE, RELEVANCE
 
 
 # Based on search criteria in request, query elasticsearch and
@@ -31,8 +33,9 @@ def do_letter_search(request, size, page_number):
     date_query = get_date_query(filter_values)
     filter_conditions = get_filter_conditions_for_query(filter_values)
     must_conditions = [condition for condition in [contents_query, date_query] if condition]
+    sort_conditions = get_sort_conditions(filter_values.sort_by)
 
-    query = json.dumps({
+    query = {
         'query': {
             'bool': {
                 'must': must_conditions,
@@ -47,10 +50,10 @@ def do_letter_search(request, size, page_number):
             }
         },
         'stored_fields': ['contents.word_count'],
-        'sort': {'date': {'order': 'asc'}}
-    })
+        'sort': [sort_conditions]
+    }
 
-    results = do_es_search(query)
+    results = do_es_search(json.dumps(query))
     search_results = []
     total = 0
     if 'hits' in results:
@@ -93,7 +96,7 @@ def get_letter_sentiments(letter, word_count, sentiment_ids):
         # different sentiment analysis packages
         if sentiment_id == 0:
             letter_sentiments = letter.sentiment()
-            #sentiments.extend([(sentiment_id, ls) for ls in letter_sentiments])
+            # sentiments.extend([(sentiment_id, ls) for ls in letter_sentiments])
             sentiments.append((sentiment_id, letter_sentiments))
         else:
             custom_sentiment = calculate_custom_sentiment(sentiment_id, termvector, word_count)
@@ -138,7 +141,7 @@ def get_multiple_word_frequencies(filter_values):
     es_result = do_es_search(query)
 
     if 'hits' in es_result and 'hits' in es_result['hits']:
-        matching_docs = {hit['_id']: hit['_source']['date'] for hit in es_result['hits']['hits'] }
+        matching_docs = {hit['_id']: hit['_source']['date'] for hit in es_result['hits']['hits']}
         ids = list(matching_docs.keys())
     else:
         matching_docs = {}
@@ -236,5 +239,12 @@ def get_filter_conditions_for_query(filter_values):
     return filter_conditions
 
 
+def get_sort_conditions(sort_by):
+    if sort_by == DATE or sort_by == '':
+        sort_field = 'date'
+        sort_order = 'asc'
 
+    else:  # RELEVANCE
+        return '_score'
 
+    return {sort_field: {'order': sort_order}}

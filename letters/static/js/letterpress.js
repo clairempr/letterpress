@@ -42,6 +42,7 @@ function get_filter_values() {
     }
 
     var sentiments = get_selected_sentiments();
+    var sort_by = get_selected_sort_by_option();
 
     return {
         sources: sources,
@@ -50,7 +51,8 @@ function get_filter_values() {
         start_date: start_date,
         end_date: end_date,
         search_text: search_text,
-        words: words
+        words: words,
+        sort_by: sort_by
     }
 }
 
@@ -61,3 +63,8 @@ function get_selected_sentiments() {
     });
     return sentiments;
 }
+
+function get_selected_sort_by_option() {
+    return $('#sort_by option:selected').val();
+}
+
