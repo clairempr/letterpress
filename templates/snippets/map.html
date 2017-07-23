@@ -5,6 +5,9 @@
 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
 <link rel="stylesheet" href="https://openlayers.org/en/v4.0.1/css/ol.css" type="text/css">
 <script src="https://openlayers.org/en/v4.0.1/build/ol.js" type="text/javascript"></script>
+<!-- Use ol3-geocoder to search for place names in the map -->
+<link href="https://unpkg.com/ol3-geocoder/build/ol3-geocoder.min.css" rel="stylesheet">
+<script src="https://unpkg.com/ol3-geocoder/build/ol3-geocoder.js"></script>
 <script src={% static "js/map.js" %} type="text/javascript"></script>
 
 <script type="text/javascript">
@@ -35,6 +38,7 @@
     var popups = true;
 
     map_init(features, marker_image, plain_marker_image, popups);
+    enable_place_search();
 
     function show_place_alert(place, x, y) {
         var message = 'Invalid coordinates for ' + place + ' (' + x + ', ' + y + ').'

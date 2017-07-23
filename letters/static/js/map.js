@@ -158,3 +158,28 @@ function create_icon_style(image_file, text) {
     return style;
 }
 
+function enable_place_search() {
+    // Use ol3-geocoder to search for place names in the map
+    var geocoder = new Geocoder('nominatim', {
+        provider: 'osm',
+        autoComplete: true,
+        lang: 'en-US',
+        placeholder: 'Search for ...',
+        targetType: 'glass-button',
+        limit: 8,
+        keepOpen: false,
+        preventDefault : true // don't automatically place feature on map
+    });
+    map.addControl(geocoder);
+
+    geocoder.on('addresschosen', function (evt) {
+        var feature = evt.feature,
+            coord = evt.coordinate,
+            address = evt.address;
+        // Center and zoom in to chosen address
+        var view = map.getView();
+        view.setCenter(coord);
+        view.setZoom(MAX_ZOOM);
+    });
+}
+
