@@ -337,7 +337,7 @@ def place_by_id(request, place_id):
     assert isinstance(request, HttpRequest)
     try:
         place = Place.objects.get(pk=place_id)
-        letters = Letter.objects.filter(place=place_id)
+        letters = Letter.objects.filter(place=place_id).order_by('date')
         return render(request, 'place.html',
                       {'title': 'Place', 'nbar': 'places', 'place': place, 'letters': letters})
     except Place.DoesNotExist:
