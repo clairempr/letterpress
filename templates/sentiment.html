@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
 {% block content %}
+    <link href="{% static 'css/elasticsearch.css' %}" rel="stylesheet">
     <div class="container-fluid">
 
         <form method="post">

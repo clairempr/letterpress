@@ -13,13 +13,14 @@
                 <textarea id="text" class="form-control" rows="6"></textarea>
             </div>
 
-
-            <div class="row">
+            <div class="row vertical-bottom">
                 <div class="col-sm-2">
                     {% include "snippets/sentiment_dropdown.html" %}
                 </div>
                 <div class="col-sm-2">
-                    <input class="btn btn-info" id="submit_button" type="button" value="Submit"/>
+                    <div class="form-group">
+                        <input class="btn btn-info" id="submit_button" type="button" value="Submit"/>
+                    </div>
                 </div>
             </div>
         </form>

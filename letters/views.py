@@ -8,13 +8,14 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 
-from letter_sentiment.custom_sentiment import calculate_custom_sentiment_for_text, highlight_text_for_custom_sentiment
+from letter_sentiment.custom_sentiment import get_custom_sentiment_for_text, highlight_for_custom_sentiment
 from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentiment
 
-from letters import filter, letter_search
+from letters import letter_search
+from letters import filter as letters_filter
 from letters.charts import make_charts
 from letters.models import Letter, Place
-from letters.sort_by import DATE, RELEVANCE
+from letters.sort_by import DATE, RELEVANCE, get_sentiments_for_sort_by_list
 
 
 def home(request):
@@ -28,7 +29,7 @@ def letters_view(request):
     assert isinstance(request, HttpRequest)
     if request.method == 'POST':
         return export(request)
-    filter_values = filter.get_initial_filter_values()
+    filter_values = letters_filter.get_initial_filter_values()
     sort_by = [(DATE, 'Date'), (RELEVANCE, 'Relevance')]
     return render(request, 'letters.html', {'title': 'Letters', 'nbar': 'letters_view',
                                             'filter_values': filter_values, 'show_search_text': 'true',
@@ -39,7 +40,7 @@ def letters_view(request):
 # Show page for requesting various stats about word use over time
 def stats_view(request):
     assert isinstance(request, HttpRequest)
-    filter_values = filter.get_initial_filter_values()
+    filter_values = letters_filter.get_initial_filter_values()
     return render(request, 'stats.html', {'title': 'Letter statistics', 'nbar': 'stats_view',
                                           'filter_values': filter_values, 'show_words': 'true'})
 
@@ -50,7 +51,7 @@ def get_stats(request):
     if request.method != 'POST':
         return
 
-    filter_values = filter.get_filter_values_from_request(request)
+    filter_values = letters_filter.get_filter_values_from_request(request)
     es_word_counts = letter_search.get_word_counts_per_month(filter_values)
     words = filter_values.words
     es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
@@ -108,9 +109,12 @@ def get_stats(request):
 # Show page for viewing sentiment of letters
 def sentiment_view(request):
     assert isinstance(request, HttpRequest)
-    filter_values = filter.get_initial_filter_values()
+    filter_values = letters_filter.get_initial_filter_values()
+    sort_by = [(DATE, 'Date')]
+    sort_by.extend(get_sentiments_for_sort_by_list())
     return render(request, 'sentiment.html', {'title': 'Letter sentiment', 'nbar': 'sentiment',
-        'filter_values': filter_values, 'show_search_text': 'true', 'show_sentiment': 'true'})
+                                              'filter_values': filter_values, 'show_search_text': 'true',
+                                              'sort_by': sort_by, 'show_sentiment': 'true'})
 
 
 # view to show one letter by id, with highlights for selected sentiment
@@ -121,10 +125,8 @@ def letter_sentiment_view(request, letter_id, sentiment_id):
     except Letter.DoesNotExist:
         return object_not_found(request, letter_id, 'Letter')
 
-    word_count = letter_search.get_letter_word_count(letter_id)
-
     # sentiments is a list of tuples (id, value)
-    sentiments = letter_search.get_letter_sentiments(letter, word_count, sentiment_id)
+    sentiments = letter_search.get_letter_sentiments(letter, sentiment_id)
 
     return show_letter_sentiment(request, letter, title='Letter Sentiment', nbar='sentiment', sentiments=sentiments)
 
@@ -185,9 +187,9 @@ def highlight_letter_for_sentiment(letter, sentiment_id):
 # view to show one letter by id, with highlights for selected sentiment
 def text_sentiment_view(request):
     assert isinstance(request, HttpRequest)
-    filter_values = filter.get_initial_filter_values()
+    filter_values = letters_filter.get_initial_filter_values()
     return render(request, 'text_sentiment.html', {'title': 'Text sentiment', 'nbar': 'sentiment',
-                                              'filter_values': filter_values})
+                                                   'filter_values': filter_values})
 
 
 # Get sentiment analysis (and highlighting, if custom sentiment) for submitted text
@@ -196,7 +198,7 @@ def get_text_sentiment(request):
     if request.method != 'POST':
         return
 
-    sentiment_ids = filter.get_filter_values_from_request(request).sentiment_ids
+    sentiment_ids = letters_filter.get_filter_values_from_request(request).sentiment_ids
     text = request.POST.get('text')
 
     sentiments = []
@@ -206,7 +208,7 @@ def get_text_sentiment(request):
         if sentiment_id == 0:
             sentiments.extend(get_sentiment(text))
         else:
-            sentiments.append(calculate_custom_sentiment_for_text(text, sentiment_id))
+            sentiments.append(get_custom_sentiment_for_text(text, sentiment_id))
 
     results = zip(sentiments, highlighted_texts)
     sentiment_html = render_to_string('snippets/sentiment_list.html', {'results': results})
@@ -217,8 +219,8 @@ def get_text_sentiment(request):
 def highlight_for_sentiment(text, sentiment_id):
     if sentiment_id == 0:
         return [mark_safe(highlight) for highlight in highlight_text_for_sentiment(text)]
-    else:
-        return [mark_safe(highlight_text_for_custom_sentiment(text, sentiment_id))]
+
+    return [mark_safe(highlight_for_custom_sentiment(text, sentiment_id))]
 
 
 # return list of letters containing search text
@@ -247,7 +249,7 @@ def search(request):
     # This was Ajax
     return HttpResponse(json.dumps({
         'letters': result_html, 'pagination': pagination_html, 'pages': es_result.pages}),
-        content_type="application/json")
+                        content_type="application/json")
 
 
 # view to show one letter by id
@@ -281,7 +283,7 @@ def export(request):
     # for export, return all matching records, within reason
     size = 10000
     es_result = letter_search.do_letter_search(request, size, page_number=0)
-    letters = [letter for letter, highlight, sentiment in es_result.search_results]
+    letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
     text_to_export = ''
     for letter in letters:
         text_to_export += letter.export_text() + '\n\n'
@@ -295,7 +297,7 @@ def export(request):
 
 # retrieve a letter with a random index
 def random_letter(request):
-    count = Letter.objects.count();
+    count = Letter.objects.count()
     if count >= 1:
         random_idx = random.randint(0, count - 1)
         letter = Letter.objects.all()[random_idx]
@@ -306,7 +308,7 @@ def random_letter(request):
 # Show map of places
 def places_view(request):
     assert isinstance(request, HttpRequest)
-    filter_values = filter.get_initial_filter_values()
+    filter_values = letters_filter.get_initial_filter_values()
     places = Place.objects.filter(point__isnull=False)[:100]
     map_html = render_to_string('snippets/map.html', {'places': places})
     return render(request, 'places.html', {'title': 'Places', 'nbar': 'places',
@@ -324,7 +326,7 @@ def search_places(request):
     # Search for letters that meet criteria. Start at beginning, so page number = 0
     es_result = letter_search.do_letter_search(request, size, page_number=0)
     # Get list of corresponding places
-    place_ids = set([letter.place_id for letter, highlight, sentiments in es_result.search_results])
+    place_ids = set([letter.place_id for letter, highlight, sentiments, score in es_result.search_results])
     # Only show the first 100
     places = Place.objects.filter(pk__in=place_ids, point__isnull=False)[:100]
     map_html = render_to_string('snippets/map.html', {'places': places})

@@ -38,6 +38,7 @@ function do_search(page_number) {
         url: "/search/",
         success: function (result) {
             show_search_results(result, page_number);
+            //window.location.hash = "#search_button";
         }
     });
 }

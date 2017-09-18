@@ -64,8 +64,13 @@ class Letter(Document):
                              "fields": {
                                  "word_count": {
                                      "type": "token_count",
-                                     "analyzer": "letter_contents_analyzer",
+                                     "analyzer": "string_sentiment_analyzer",
                                      "store": "yes"
+                                 },
+                                 "custom_sentiment": {
+                                     "type": "text",
+                                     "analyzer": "string_sentiment_analyzer",
+                                     "term_vector": "with_positions_offsets"
                                  }
                              }
                         },

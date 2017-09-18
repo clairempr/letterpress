@@ -8,18 +8,13 @@
     </tr>
     </thead>
     <tbody>
-    {% for letter, highlight, sentiments in search_results %}
+    {% for letter, highlight, sentiments, score in search_results %}
         <tr>
-            <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.list_date }}</a></td>
-            <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.writer }}</a></td>
-            <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.recipient }}</a></td>
-            <td><a href ="{% url 'letter_by_id' letter.id %}">{{ letter.place }}</a></td>
+            <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.list_date }}</a></td>
+            <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.writer }}</a></td>
+            <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.recipient }}</a></td>
+            <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.place }}</a></td>
         </tr>
-        {% if highlight %}
-        <tr>
-            <td colspan="4" class="letter-highlight">{{ highlight|safe }}</td>
-        </tr>
-        {% endif %}
         {% if sentiments %}
         <tr>
             <td colspan="4">
@@ -32,6 +27,14 @@
             </td>
         </tr>
         {% endif %}
+        {% if highlight %}
+        <tr>
+            <td colspan="4" class="letter-highlight">
+               <!-- <b>Elasticsearch score: {{ score }}</b><br> -->
+                {{ highlight|safe }}</td>
+        </tr>
+        {% endif %}
+
 
     {% endfor %}
     </tbody>

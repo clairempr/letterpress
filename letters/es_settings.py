@@ -4,7 +4,7 @@ import letterpress.settings_secret as settings_secret
 
 ES_LETTER_URL = settings_secret.ES_URL + 'letterpress/letter/'
 ES_ANALYZE = settings_secret.ES_URL + 'letterpress/_analyze'
-ES_SEARCH = ES_LETTER_URL + '_search'
+ES_SEARCH = ES_LETTER_URL + '_search?explain'
 ES_MTERMVECTORS = ES_LETTER_URL + '_mtermvectors'
 
 ES_CLIENT = Elasticsearch(

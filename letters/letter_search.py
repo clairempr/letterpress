@@ -1,69 +1,83 @@
-# (elastic)search stuff that's specific to letters and related models
+""" (elastic)search stuff that's specific to letters and related models """
 import collections
 import json
 
-from letter_sentiment.custom_sentiment import calculate_custom_sentiment
-from letters import filter
-from letters.elasticsearch import do_es_search, get_mtermvectors, get_stored_fields_for_letter, \
-    get_sentiment_termvector_for_letter
+from letters import filter as letters_filter
+from letters.elasticsearch import do_es_search, get_mtermvectors, get_stored_fields_for_letter
 from letters.models import Letter
-from letters.sort_by import DATE, RELEVANCE
+from letters.sort_by import DATE, SENTIMENT, get_selected_sentiment_id
+from letter_sentiment.custom_sentiment import get_custom_sentiment_for_letter, \
+    get_custom_sentiment_name
+from letter_sentiment.elasticsearch import get_sentiment_function_score_query, \
+    get_sentiment_match_query
+from letter_sentiment.sentiment import format_sentiment
 
 
 # Based on search criteria in request, query elasticsearch and
 # return list of tuples containing letter and highlight
 def do_letter_search(request, size, page_number):
-    filter_values = filter.get_filter_values_from_request(request)
-    search_text = filter_values.search_text
-
-    if search_text:
-        if '"' in search_text:
-            contents_query = {'match_phrase': {'contents':
-                                                   {'query': search_text, 'analyzer': 'standard'}}}
-        else:
-            contents_query = {'match': {'contents': {'query': search_text, 'fuzziness': 'AUTO'}}}
-    else:
-        contents_query = ''
+    filter_values = letters_filter.get_filter_values_from_request(request)
 
     if page_number > 0:
         results_from = (page_number - 1) * size
     else:
         results_from = 0
 
-    date_query = get_date_query(filter_values)
-    filter_conditions = get_filter_conditions_for_query(filter_values)
-    must_conditions = [condition for condition in [contents_query, date_query] if condition]
-    sort_conditions = get_sort_conditions(filter_values.sort_by)
+    if filter_values.sort_by and filter_values.sort_by.startswith(SENTIMENT):
+        sentiment_id = get_selected_sentiment_id(filter_values.sort_by)
+        sentiment_match_query = get_sentiment_match_query(sentiment_id)
+        custom_sentiment_name = get_custom_sentiment_name(sentiment_id)
+    else:
+        sentiment_match_query = []
+        sentiment_id = 0
 
-    query = {
-        'query': {
-            'bool': {
-                'must': must_conditions,
-                'filter': filter_conditions
-            }
-        },
-        'from': results_from,
-        'size': size,
-        'highlight': {
-            'fields': {
-                'contents': {'type': 'postings'}
-            }
-        },
-        'stored_fields': ['contents.word_count'],
-        'sort': [sort_conditions]
+    # when sorting by custom sentiment, wrap the bool query in a function_score query
+    bool_query = {
+        'should': sentiment_match_query,
+        'filter': get_filter_conditions_for_query(filter_values)
     }
 
-    results = do_es_search(json.dumps(query))
+    letter_match_query = get_letter_match_query(filter_values)
+    if letter_match_query:
+        bool_query['must'] = letter_match_query
+
+    if sentiment_match_query:
+        query = {
+            'function_score': get_sentiment_function_score_query(bool_query)
+        }
+    else:
+        query = {
+            'bool': bool_query
+        }
+
+    query_json = {
+        'query': query,
+        'from': results_from,
+        'size': size,
+        'highlight': get_highlight_options(filter_values),
+        'stored_fields': ['contents.word_count'],
+        'sort': [get_sort_conditions(filter_values.sort_by)]
+    }
+
+    results = do_es_search(json.dumps(query_json))
     search_results = []
     total = 0
     if 'hits' in results:
         total = results['hits']['total']
         for doc in results['hits']['hits']:
             letter = Letter.objects.get(pk=doc['_id'])
-            highlight = get_doc_highlights(doc)
-            word_count = get_doc_word_count(doc)
-            sentiments = get_letter_sentiments(letter, word_count, filter_values.sentiment_ids)
-            search_results.append((letter, highlight, sentiments))
+            # Only show Elasticsearch higlights if user explicitly searched for a term
+            # Don't show highlights associated with custom sentiment search terms
+            highlight = get_doc_highlights(doc) if letter_match_query else ''
+            score = doc['_score']
+            if sentiment_id:
+                sentiments = get_letter_sentiments(letter,
+                                                   [id for id in filter_values.sentiment_ids if id != sentiment_id])
+                sentiments.append((sentiment_id, format_sentiment(custom_sentiment_name, score)))
+            else:
+                sentiments = get_letter_sentiments(letter, filter_values.sentiment_ids)
+
+            search_results.append((letter, highlight, sentiments, score))
     if total % size:
         pages = int(total / size + 1)
     else:
@@ -75,19 +89,21 @@ def do_letter_search(request, size, page_number):
 
 
 def get_doc_highlights(doc):
-    if 'highlight' in doc and 'contents' in doc['highlight']:
-        return '<br>'.join(doc['highlight']['contents'])
-    else:
-        return ''
+    if 'highlight' in doc:
+        if 'contents' in doc['highlight']:
+            return '<br>'.join(doc['highlight']['contents'])
+        elif 'contents.custom_sentiment' in doc['highlight']:
+            return '<br>'.join(doc['highlight']['contents.custom_sentiment'])
+
+    return ''
 
 
 # sentiments is a list of (id, name/result)
-def get_letter_sentiments(letter, word_count, sentiment_ids):
+def get_letter_sentiments(letter, sentiment_ids):
     if not sentiment_ids:
         return []
 
     sentiments = []
-    termvector = get_sentiment_termvector_for_letter(letter.id)
     for sentiment_id in sentiment_ids:
         sentiment_id = int(sentiment_id)
         # Id 0 is used for standard sentiment,
@@ -96,10 +112,9 @@ def get_letter_sentiments(letter, word_count, sentiment_ids):
         # different sentiment analysis packages
         if sentiment_id == 0:
             letter_sentiments = letter.sentiment()
-            # sentiments.extend([(sentiment_id, ls) for ls in letter_sentiments])
             sentiments.append((sentiment_id, letter_sentiments))
         else:
-            custom_sentiment = calculate_custom_sentiment(sentiment_id, termvector, word_count)
+            custom_sentiment = get_custom_sentiment_for_letter(letter.id, sentiment_id)
             sentiments.append((sentiment_id, custom_sentiment))
     return sentiments
 
@@ -108,8 +123,8 @@ def get_letter_sentiments(letter, word_count, sentiment_ids):
 def get_doc_word_count(doc):
     if 'fields' in doc and 'contents.word_count' in doc['fields']:
         return doc['fields']['contents.word_count'][0]
-    else:
-        return 0
+
+    return 0
 
 
 # get word_count for letter with letter_id using elasticsearch query
@@ -122,17 +137,12 @@ def get_letter_word_count(letter_id):
 
 def get_multiple_word_frequencies(filter_values):
     words = filter_values.words
-    contents_query = {'match': {'contents': ' '.join(words)}}
-    filter_conditions = get_filter_conditions_for_query(filter_values)
-    date_query = get_date_query(filter_values)
-    must_conditions = [condition for condition in [contents_query, date_query] if condition]
-
     query = json.dumps({
         '_source': ['date'],
         'query': {
             'bool': {
-                'must': must_conditions,
-                'filter': filter_conditions
+                'must': {'match': {'contents': ' '.join(words)}},
+                'filter': get_filter_conditions_for_query(filter_values)
             }
         },
         'size': 10000,
@@ -152,8 +162,8 @@ def get_multiple_word_frequencies(filter_values):
 
     if 'docs' in mtermvectors:
         for mtvdoc in mtermvectors['docs']:
-            id = mtvdoc['_id']
-            year_month = get_year_and_month_from_date_string(matching_docs[id])
+            doc_id = mtvdoc['_id']
+            year_month = get_year_month_from_date(matching_docs[doc_id])
             if year_month not in result:
                 result[year_month] = {word: 0 for word in words}
             terms = mtvdoc['term_vectors']['contents']['terms']
@@ -165,7 +175,7 @@ def get_multiple_word_frequencies(filter_values):
     return result
 
 
-def get_year_and_month_from_date_string(date_string):
+def get_year_month_from_date(date_string):
     components = date_string.split('-')
     return str.format('{year}-{month}',
                       year=components[0] if components else '0000',
@@ -174,8 +184,6 @@ def get_year_and_month_from_date_string(date_string):
 
 def get_word_counts_per_month(filter_values):
     filter_conditions = get_filter_conditions_for_query(filter_values)
-    date_query = get_date_query(filter_values)
-    must_conditions = [condition for condition in [date_query] if condition]
 
     aggs = {
         "words_per_month": {
@@ -202,7 +210,6 @@ def get_word_counts_per_month(filter_values):
         '_source': ['date'],
         'query': {
             'bool': {
-                'must': must_conditions,
                 'filter': filter_conditions
             }
         },
@@ -223,12 +230,25 @@ def get_word_counts_per_month(filter_values):
     return word_counts
 
 
+def get_letter_match_query(filter_values):
+    contents_query = ''
+    search_text = filter_values.search_text
+    if search_text and not contents_query:
+        if '"' in search_text:
+            contents_query = {'match_phrase': {'contents':
+                                                   {'query': search_text, 'analyzer': 'standard'}}}
+        else:
+            contents_query = {'match': {'contents': {'query': search_text, 'fuzziness': 'AUTO'}}}
+
+    return contents_query
+
+
 def get_date_query(filter_values):
     return {'range': {'date': {'gte': filter_values.start_date, 'lte': filter_values.end_date}}}
 
 
 def get_filter_conditions_for_query(filter_values):
-    filter_conditions = []
+    filter_conditions = [get_date_query(filter_values)]
     source_ids = filter_values.source_ids
     writer_ids = filter_values.writer_ids
     if source_ids:
@@ -239,12 +259,31 @@ def get_filter_conditions_for_query(filter_values):
     return filter_conditions
 
 
+def get_highlight_options(filter_values):
+    if filter_values.sort_by and filter_values.sort_by.startswith(SENTIMENT):
+        return {
+            # 'tags_schema': 'styled',
+            'pre_tags': ['<span class="hlt1">', '<span class="hlt2">'],
+            'post_tags': ['</span>', '</span>'],
+            'fields': {
+                'contents.custom_sentiment':
+                    {'type': 'fvh', 'number_of_fragments': 0, 'phrase_limit': 500}
+            }
+        }
+
+    return {
+        'fields': {
+            'contents': {'type': 'postings', 'number_of_fragments': 6}
+        }
+    }
+
+
 def get_sort_conditions(sort_by):
     if sort_by == DATE or sort_by == '':
         sort_field = 'date'
         sort_order = 'asc'
 
-    else:  # RELEVANCE
+    else:  # RELEVANCE or SENTIMENT
         return '_score'
 
     return {sort_field: {'order': sort_order}}
