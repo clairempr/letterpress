@@ -24,7 +24,7 @@ The name comes from an early office technology which people used to duplicate do
  - Word frequency statistics by month, with Bokeh charts
  ![Charts](screenshots/charts.png)
  - Word clouds for writers, date ranges, etc.
-  ![Charts](screenshots/wordcloud_page.png)
+ ![Word cloud](screenshots/wordcloud_page.png)
  
 #### Notes ####
  - [Elasticsearch](https://www.elastic.co/products/elasticsearch) must be installed and running.
