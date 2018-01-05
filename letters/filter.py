@@ -35,16 +35,20 @@ def get_sentiment_list():
 
 # Get filter values entered by user
 def get_filter_values_from_request(request):
-    search_text = request.POST.get('search_text')
+    if request.method == 'GET':
+        get_or_post = request.GET
+    else:
+        get_or_post = request.POST
+    search_text = get_or_post.get('search_text')
     # Ajax request
     if request.is_ajax():
-        source_ids = request.POST.getlist('sources[]')
-        writer_ids = request.POST.getlist('writers[]')
-        words = request.POST.getlist('words[]')
-        sentiment_ids = request.POST.getlist('sentiments[]')
+        source_ids = get_or_post.getlist('sources[]')
+        writer_ids = get_or_post.getlist('writers[]')
+        words = get_or_post.getlist('words[]')
+        sentiment_ids = get_or_post.getlist('sentiments[]')
     else:
-        source_ids = request.POST.getlist('source')
-        writer_ids = request.POST.getlist('writer')
+        source_ids = get_or_post.getlist('source')
+        writer_ids = get_or_post.getlist('writer')
         words = []  # Ajax only
         sentiment_ids = []  # Ajax only
 
@@ -56,7 +60,7 @@ def get_filter_values_from_request(request):
     end_date = get_end_date_from_request(request)
 
     sentiment_ids = [int(id) for id in sentiment_ids]
-    sort_by = request.POST.get('sort_by')
+    sort_by = get_or_post.get('sort_by')
 
     FilterValues = collections.namedtuple('FilterValues',
         ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date', 'words',
@@ -75,12 +79,20 @@ def get_filter_values_from_request(request):
 
 
 def get_start_date_from_request(request):
-    start_date_value = request.POST.get('start_date') if request.POST.get('start_date') else '0001-01-01'
+    if request.method == 'GET':
+        get_or_post = request.GET
+    else:
+        get_or_post = request.POST
+    start_date_value = get_or_post.get('start_date') if get_or_post.get('start_date') else '0001-01-01'
     return start_date_value
 
 
 def get_end_date_from_request(request):
-    end_date_value = request.POST.get('end_date') if request.POST.get('end_date') else '9999-12-31'
+    if request.method == 'GET':
+        get_or_post = request.GET
+    else:
+        get_or_post = request.POST
+    end_date_value = get_or_post.get('end_date') if get_or_post.get('end_date') else '9999-12-31'
     return end_date_value
 
 

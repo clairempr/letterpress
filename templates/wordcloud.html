@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container-fluid">
+
+            <form method="post">
+                {% csrf_token %}
+                {% include "snippets/filter.html" %}
+            </form>
+        
+            <div id="message"></div>
+            <img id="wordcloud" src="" />
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {% load staticfiles %}
+    <script src={% static "js/letterpress.js" %} type="text/javascript"></script>
+    <script src={% static "js/wordcloud.js" %} type="text/javascript"></script>
+{% endblock %}

@@ -6,7 +6,8 @@ from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
 from letters.views import home, letter_by_id, random_letter, export, letters_view, search, \
     logout_view, stats_view, get_stats, places_view, place_by_id, search_places, \
-    sentiment_view, letter_sentiment_view, text_sentiment_view, get_text_sentiment
+    sentiment_view, letter_sentiment_view, text_sentiment_view, get_text_sentiment, \
+    wordcloud_view, get_wordcloud
 
 from django.contrib import admin
 
@@ -33,4 +34,6 @@ urlpatterns = [
                   url(r'^places/(?P<place_id>[0-9]+)/$', place_by_id, name='place_by_id'),
                   url(r'^places/', places_view, name='places'),
                   url(r'^tinymce/', include('tinymce.urls')),
+                  url(r'^wordcloud_image.png', get_wordcloud, name='get_wordcloud'),
+                  url(r'^wordcloud/', wordcloud_view, name='wordcloud_view'),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
