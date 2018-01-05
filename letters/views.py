@@ -146,7 +146,7 @@ def get_wordcloud(request):
                                              colors=['#a1bdef', '#7da5ef', '#5c90ef'],
                                              N=10)
     wc = WordCloud(max_words=1000, mask=mask, stopwords=stopwords, margin=2,
-                   random_state=1, background_color='black', colormap=cmap, scale=1)\
+                   background_color='black', colormap=cmap, scale=0.95)\
         .generate(text)
 
     # Save generated image as base64 and convert to string so it can
