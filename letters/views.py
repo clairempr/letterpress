@@ -1,9 +1,10 @@
+import csv
 import json
 import random
 from copy import deepcopy
 
-# for wordcloud
-from io import BytesIO
+# for wordcloud, csv
+from io import BytesIO, StringIO
 import base64
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
@@ -346,15 +347,52 @@ def export(request):
     size = 10000
     es_result = letter_search.do_letter_search(request, size, page_number=0)
     letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
+    if request.POST.get('export_text'):
+        return export_text(letters)
+    else:
+        return export_csv(letters)
+
+
+def export_csv(letters):
+    # write csv file contents to buffer rather than directly to HttpResponse
+    # because that was causing SSL EOF errors
+    buffer = StringIO()
+    csv_writer = csv.writer(buffer)
+    csv_writer.writerow(['date', 'writer', 'recipient', 'place', 'contents'])
+
+    for letter in letters:
+        date = letter.sort_date()
+        writer = letter.writer.to_export_string()
+        recipient = letter.recipient.to_export_string()
+        place = letter.place
+        contents = letter.contents()
+        csv_writer.writerow([date, writer, recipient, place, contents])
+
+    buffer.seek(0)
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(buffer, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="letters_export.csv"'
+
+    return response
+
+
+def export_text(letters):
     text_to_export = ''
     for letter in letters:
-        text_to_export += letter.export_text() + '\n\n'
+        text_to_export += get_letter_export_text(letter) + '\r\n\r\n'
 
     # Create the HttpResponse object with the appropriate header.
     response = HttpResponse(text_to_export, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="letters_export.txt"'
 
     return response
+
+
+# what gets exported for each letter
+def get_letter_export_text(letter):
+        return str.format('<{0}, {1} to {2}>\n{3}',
+                          letter.index_date(), letter.writer.to_export_string(),
+                          letter.recipient.to_export_string(), letter.contents())
 
 
 # retrieve a letter with a random index

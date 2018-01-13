@@ -90,8 +90,10 @@
 <div class="row">
     <div class="form-group col-sm-12">
         <input class="btn btn-info" id="search_button" type="button" value="Search"/>
-        <input class="btn btn-info {% if not show_export_button %}hidden{% endif %}" id="export_button" type="submit"
-               value="Export"/>
+        {% if show_export_button %}
+        <input class="btn btn-info" id="export_text" name="export_text" type="submit" value="Export text"/>
+        <input class="btn btn-info" id="export_csv" name="export_csv" type="submit" value="Export CSV"/>
+        {% endif %}
     </div>
 </div>
 

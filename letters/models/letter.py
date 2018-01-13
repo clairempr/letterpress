@@ -42,12 +42,6 @@ class Letter(Document):
                 letter_contents += part + '\n'
         return letter_contents
 
-    # what gets exported for each letter
-    def export_text(self):
-        return str.format('<{0}, {1} to {2}>\n{3}',
-                          self.list_date(), self.writer.to_export_string(),
-                          self.recipient.to_export_string(), self.contents())
-
     def sentiment(self):
         return get_sentiment(self.contents())
 
