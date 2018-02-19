@@ -6,8 +6,9 @@
 ############
 
 # misc scripts
-elasticsearch.bat.lnk
+elasticsearch*.lnk
 letterpress_to_github
+requirements-backup*
 
 # repository-specific .gitignore files
 .gitignore-*
