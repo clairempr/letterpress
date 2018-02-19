@@ -3,7 +3,7 @@
 *Claire Pritchard*  
 *April 2017 - January 2018*   
 
-Letterpress is a Django web application for the management of transcriptions and images of letters and related documents. 
+Letterpress is a [Django](https://www.djangoproject.com/) web application for the management of transcriptions and images of letters and related documents. 
 I originally created it to help manage my transcriptions of 19th-century correspondence which I was using as input for 
 natural language processing experiments. 
 
@@ -27,6 +27,7 @@ The name comes from an early office technology which people used to duplicate do
  ![Word cloud](screenshots/wordcloud_page.png)
  
 #### Notes ####
+ - Set up a Django Admin user with the command ```shell python manage.py createsuperuser ```.
  - [Elasticsearch](https://www.elastic.co/products/elasticsearch) must be installed and running.
  - Elasticsearch index can be created or updated manually with the Django management command push_to_index, otherwise updates are automatic when the model is saved.
  - Text searches are fuzzy by default. For exact match, enclose search terms in quotes.
