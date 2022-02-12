@@ -2,7 +2,7 @@ version: "3"
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.4.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2
     volumes:
     - /usr/share/elasticsearch/data
     ports:
@@ -11,7 +11,7 @@ services:
       ES_JAVA_OPTS: "-Xms256m -Xmx256m"
       xpack.security.enabled: "false"
 
-  web:
+  django:
     build: .
     command: sh /code/startup.sh
     volumes:
@@ -23,4 +23,3 @@ services:
       - elasticsearch
     environment:
       TERM: xterm
-
