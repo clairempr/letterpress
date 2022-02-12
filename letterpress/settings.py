@@ -93,7 +93,7 @@ if platform.system() == 'Windows':
     DB_DIR = BASE_DIR
 else:
     # For Linux
-    SPATIALITE_LIBRARY_PATH = '/usr/local/lib/libspatialite.so'
+    SPATIALITE_LIBRARY_PATH = '/usr/lib/x86_64-linux-gnu/mod_spatialite.so'
 
 # Database
 DATABASES = {
@@ -178,7 +178,6 @@ SECURE_BROWSER_XSS_FILTER = True
 # For django.middleware.clickjacking.XFrameOptionsMiddleware, default is "SAMEORIGIN"
 X_FRAME_OPTIONS = "DENY"
 
-
-
-
-
+# Elasticsearch URL: If using Docker, host needs to be the name of the service in the docker-compose file,
+# otherwise it should be localhost if running locally
+ELASTICSEARCH_URL = 'http://elasticsearch:9200/'

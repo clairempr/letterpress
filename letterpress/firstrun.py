@@ -8,7 +8,6 @@ except ImportError as e:
 # You should edit this file. If it is missing, it will be recreated. 
 SECRET_KEY="very very secret %s"
 ALLOWED_HOSTS=["0.0.0.0", "127.0.0.1", "localhost"]
-ES_URL="http://elasticsearch:9200/"
 ''' % uuid.uuid4()
 
     with open('letterpress/settings_secret.py', 'w') as f:
