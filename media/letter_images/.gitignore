@@ -1,0 +1,8 @@
+# Additional .gitignore file to ensure that media/letter_images folder will be included in repo,
+# even if it's empty
+
+# Ignore everything...
+*
+
+# ...except this file
+!.gitignore
