@@ -93,7 +93,7 @@ if platform.system() == 'Windows':
     DB_DIR = BASE_DIR
 else:
     # For Linux
-    SPATIALITE_LIBRARY_PATH = '/usr/lib/x86_64-linux-gnu/mod_spatialite.so'
+    SPATIALITE_LIBRARY_PATH = '/usr/local/lib/mod_spatialite.so'
 
 # Database
 DATABASES = {
