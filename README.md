@@ -48,6 +48,7 @@ The name comes from an early office technology which people used to duplicate do
     - Add the GDAL directory (containing GDAL dll) to your Windows PATH.
     - Add a System variable with name GDAL_DATA and value of the path to the gdal-data folder containing gcs.csv, etc.
     - If you get the error "no such module: rtree" or "Error transforming geometry...(OGR failure.)", try replacing sqlite3.dll in system python directory with another sqlite3.dll, like one from [OSGeo4W](https://trac.osgeo.org/osgeo4w/).
+ - Download textblob corpora, for sentiment analysis: `python -m textblob.download_corpora`
     
 #### Credits ####
 Photograph of copy press from [Letterpress Commons](https://letterpresscommons.com), 
