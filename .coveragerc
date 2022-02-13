@@ -1,0 +1,6 @@
+[run]
+include = letter_sentiment/*, letterpress/*, letters/*
+omit = *migrations*, *tests*, /code/
+branch = True
+plugins =
+    django_coverage_plugin
