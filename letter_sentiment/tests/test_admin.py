@@ -61,7 +61,7 @@ class FirstLetterFilterTestCase(TestCase):
 
         # Make sure the correct queryset is returned
         queryset = changelist.get_queryset(request)
-        self.assertSetEqual(set(queryset), {horse, pony})
+        self.assertSetEqual(set(queryset), set([horse, pony]))
 
         # Look for terms that start with p
         request = self.request_factory.get('/', {'term': 'p'})
@@ -70,7 +70,7 @@ class FirstLetterFilterTestCase(TestCase):
 
         # Make sure the correct queryset is returned
         queryset = changelist.get_queryset(request)
-        self.assertSetEqual(set(queryset), {pony})
+        self.assertSetEqual(set(queryset), set([pony]))
 
 
 class TermInlineTestCase(TestCase):

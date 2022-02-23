@@ -176,7 +176,7 @@ class GetCustomSentimentsTestCase(TestCase):
         hipster_sentiment = CustomSentimentFactory(name='Hipster')
         pony_sentiment = CustomSentimentFactory(name='OMG Ponies!')
 
-        self.assertEqual(set(get_custom_sentiments()), set({hipster_sentiment, pony_sentiment}))
+        self.assertEqual(set(get_custom_sentiments()), set([hipster_sentiment, pony_sentiment]))
 
 
 class GetTokenOffsetsTestCase(SimpleTestCase):
@@ -229,7 +229,7 @@ class HighlightForCustomSentimentTestCase(TestCase):
         self.text = 'Hashtag direct trade before they sold out aesthetic typewriter locavore prism vinyl.'
 
         # Get actual return value from sort_terms_by_number_of_words() to set return_value of mock
-        self.terms_sorted_by_number_of_words = sort_terms_by_number_of_words({self.locavore, self.vinyl})
+        self.terms_sorted_by_number_of_words = sort_terms_by_number_of_words([self.locavore, self.vinyl])
         # Get actual return value from get_sentiment_termvector_for_text() to set return_value of mock
         self.termvector = get_sentiment_termvector_for_text(self.text)
 
@@ -277,7 +277,7 @@ class HighlightForCustomSentimentTestCase(TestCase):
         highlight_for_custom_sentiment(self.text, custom_sentiment_id=self.custom_sentiment.id)
 
         args, kwargs = mock_sort_terms_by_number_of_words.call_args
-        self.assertEqual(set(args[0]), set({self.locavore, self.pabst, self.vinyl}),
+        self.assertEqual(set(args[0]), set([self.locavore, self.pabst, self.vinyl]),
                          'highlight_for_custom_sentiment() should call sort_terms_by_number_of_words()')
 
         # get_sentiment_termvector_for_text(text) should be called

@@ -1,4 +1,4 @@
-from factory import SubFactory
+from factory import post_generation, SubFactory
 from factory.django import DjangoModelFactory
 
 from letter_sentiment.models import CustomSentiment, Term
@@ -19,6 +19,8 @@ class TermFactory(DjangoModelFactory):
     """
 
     custom_sentiment = SubFactory(CustomSentimentFactory)
+    # Can't figure out to reference to __original_text in unit test
+    __original_text = None
 
     class Meta:
         model = Term
