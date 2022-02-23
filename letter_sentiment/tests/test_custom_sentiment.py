@@ -225,13 +225,18 @@ class HighlightForCustomSentimentTestCase(TestCase):
         self.custom_sentiment = CustomSentimentFactory(name=self.custom_sentiment_name)
         self.locavore = TermFactory(text='locavore', analyzed_text='locavore', custom_sentiment=self.custom_sentiment)
         self.pabst = TermFactory(text='pabst', analyzed_text='pabst', custom_sentiment=self.custom_sentiment)
-        self.vinyl = TermFactory(text='vinyl', analyzed_text='vinyl', custom_sentiment=self.custom_sentiment)
-        self.text = 'Hashtag direct trade before they sold out aesthetic typewriter locavore prism vinyl.'
-
-        # Get actual return value from sort_terms_by_number_of_words() to set return_value of mock
-        self.terms_sorted_by_number_of_words = sort_terms_by_number_of_words([self.locavore, self.vinyl])
-        # Get actual return value from get_sentiment_termvector_for_text() to set return_value of mock
-        self.termvector = get_sentiment_termvector_for_text(self.text)
+        self.tofu_artisan = TermFactory(text='tofu artisan', analyzed_text='tofu artisan', custom_sentiment=self.custom_sentiment)
+        self.text = 'tofu artisan pabst'
+        self.termvector = {'pabst': {'term_freq': 1, 'tokens': [{'start_offset': 13, 'end_offset': 18, 'position': 2}]},
+                           'tofu artisan': {'term_freq': 1,
+                                            'tokens': [{'start_offset': 0, 'end_offset': 12, 'position': 0}]},
+                           'tofu artisan pabst': {'term_freq': 1,
+                                                  'tokens': [{'start_offset': 0, 'end_offset': 18, 'position': 0}]},
+                           'tofu': {'term_freq': 1, 'tokens': [{'start_offset': 0, 'end_offset': 4, 'position': 0}]},
+                           'artisan pabst': {'term_freq': 1,
+                                             'tokens': [{'start_offset': 5, 'end_offset': 18, 'position': 1}]},
+                           'artisan': {'term_freq': 1,
+                                       'tokens': [{'start_offset': 5, 'end_offset': 12, 'position': 1}]}}
 
     @patch('letter_sentiment.custom_sentiment.get_custom_sentiment', autospec=True)
     def test_highlight_for_custom_sentiment_no_terms(self, mock_get_custom_sentiment):
@@ -268,7 +273,7 @@ class HighlightForCustomSentimentTestCase(TestCase):
         """
 
         mock_get_custom_sentiment.return_value = self.custom_sentiment
-        mock_sort_terms_by_number_of_words.return_value = self.terms_sorted_by_number_of_words
+        mock_sort_terms_by_number_of_words.return_value = [self.tofu_artisan, self.pabst, self.locavore]
         mock_get_sentiment_termvector_for_text.return_value = self.termvector
         mock_get_token_offsets.return_value = (1, 2, 3)
         mock_update_tokens_in_termvector.return_value = self.termvector
@@ -277,7 +282,7 @@ class HighlightForCustomSentimentTestCase(TestCase):
         highlight_for_custom_sentiment(self.text, custom_sentiment_id=self.custom_sentiment.id)
 
         args, kwargs = mock_sort_terms_by_number_of_words.call_args
-        self.assertEqual(set(args[0]), set([self.locavore, self.pabst, self.vinyl]),
+        self.assertEqual(set(args[0]), set([self.locavore, self.pabst, self.tofu_artisan]),
                          'highlight_for_custom_sentiment() should call sort_terms_by_number_of_words()')
 
         # get_sentiment_termvector_for_text(text) should be called
@@ -288,6 +293,37 @@ class HighlightForCustomSentimentTestCase(TestCase):
         # get_token_offsets() should be called twice (once for each term(
         self.assertEqual(mock_get_token_offsets.call_count, 2,
                          'highlight_for_custom_sentiment() should call get_token_offsets() once for each Term in text')
+
+    @patch('letter_sentiment.custom_sentiment.get_custom_sentiment', autospec=True)
+    @patch('letter_sentiment.custom_sentiment.sort_terms_by_number_of_words', autospec=True)
+    @patch('letter_sentiment.custom_sentiment.get_sentiment_termvector_for_text', autospec=True)
+    @patch('letter_sentiment.custom_sentiment.get_token_offsets', autospec=True)
+    @patch('letter_sentiment.custom_sentiment.update_tokens_in_termvector', autospec=True)
+    def test_highlight_for_custom_sentiment_termvector_no_tokens(self, mock_update_tokens_in_termvector,
+                                            mock_get_token_offsets,
+                                            mock_get_sentiment_termvector_for_text,
+                                            mock_sort_terms_by_number_of_words,
+                                            mock_get_custom_sentiment):
+        """
+        Test highlight_for_custom_sentiment() for situations where there are terms found but no tokens
+        (shouldn't be possible, but need to test all conditions)
+        """
+
+        mock_get_custom_sentiment.return_value = self.custom_sentiment
+        mock_sort_terms_by_number_of_words.return_value = [self.tofu_artisan, self.pabst, self.locavore]
+        mock_get_sentiment_termvector_for_text.return_value = {
+            'pabst': {'term_freq': 1,},
+            }
+
+        highlight_for_custom_sentiment(self.text, custom_sentiment_id=self.custom_sentiment.id)
+
+        # get_token_offsets() should not be called
+        self.assertEqual(mock_get_token_offsets.call_count, 0,
+                         "highlight_for_custom_sentiment() shouldn't call get_token_offsets() if no tokens in text")
+
+        # update_tokens_in_termvector() should not be called
+        self.assertEqual(mock_update_tokens_in_termvector.call_count, 0,
+            "highlight_for_custom_sentiment() shouldn't call update_tokens_in_termvector() if no tokens in text")
 
 
 class SortTermsByNumberOfWordsTestCase(TestCase):
@@ -302,11 +338,13 @@ class SortTermsByNumberOfWordsTestCase(TestCase):
                                     custom_sentiment=custom_sentiment)
         two_word_term = TermFactory(text='disrupt gastropub', analyzed_text='disrupt gastropub',
                                     custom_sentiment=custom_sentiment)
+        another_two_word_term = TermFactory(text='kinfolk distillery', analyzed_text='kinfolk distillery',
+                                    custom_sentiment=custom_sentiment)
         three_word_term = TermFactory(text='sustainable 8-bit kombucha', analyzed_text='sustainable 8-bit kombucha',
                                       custom_sentiment=custom_sentiment)
 
-        unsorted_terms = [two_word_term, one_word_term, three_word_term]
-        sorted_terms = [three_word_term, two_word_term, one_word_term]
+        unsorted_terms = [two_word_term, one_word_term, three_word_term, another_two_word_term]
+        sorted_terms = [three_word_term, two_word_term, another_two_word_term, one_word_term]
 
         self.assertListEqual(sort_terms_by_number_of_words(unsorted_terms), sorted_terms,
                              'sort_terms_by_number_of_words() should sort list of terms by # of words, descending')
@@ -322,27 +360,101 @@ class UpdateTokensInTermvectorTestCase(TestCase):
     Does this have something to do with n-grams?
     """
 
-    def test_update_tokens_in_termvector(self):
-        original_termvector = {
+    def setUp(self):
+        self.original_termvector_single_pounce_box = {
             'box': {'tokens': [{'start_offset': 7, 'end_offset': 10, 'position': 1}], 'term_freq': 1},
             'pounce': {'tokens': [{'start_offset': 0, 'end_offset': 6, 'position': 0}], 'term_freq': 1},
             'pounce box': {'tokens': [{'start_offset': 0, 'end_offset': 10, 'position': 0}], 'term_freq': 1}
         }
+        self.original_termvector_double_pounce_box = {
+            'pounce': {'term_freq': 2,
+                       'tokens': [{'end_offset': 6, 'position': 0, 'start_offset': 0},
+                                  {'end_offset': 17, 'position': 2, 'start_offset': 11}]},
+            'box pounce box': {'term_freq': 1,
+                               'tokens': [
+                                   {'end_offset': 21, 'position': 1, 'start_offset': 7}]},
+            'box pounce': {'term_freq': 1,
+                           'tokens': [{'end_offset': 17, 'position': 1, 'start_offset': 7}]},
+            'pounce box': {'term_freq': 2,
+                           'tokens': [{'end_offset': 10, 'position': 0, 'start_offset': 0},
+                                      {'end_offset': 21, 'position': 2, 'start_offset': 11}]},
+            'pounce box pounce': {'term_freq': 1,
+                                  'tokens': [
+                                      {'end_offset': 17, 'position': 0, 'start_offset': 0}]},
+            'box': {'term_freq': 2,
+                    'tokens': [{'end_offset': 10, 'position': 1, 'start_offset': 7},
+                               {'end_offset': 21, 'position': 3,
+                                'start_offset': 18}]}}
 
+    def test_update_tokens_in_termvector(self):
         # If an n-gram of the term is inside the token, the termvector should get updated
         term = TermFactory(text='pounce box', analyzed_text='pounce box')
-        token = original_termvector['pounce box']['tokens'][0]
-        termvector = copy.deepcopy(original_termvector)
+        token = self.original_termvector_single_pounce_box['pounce box']['tokens'][0]
+        termvector = copy.deepcopy(self.original_termvector_single_pounce_box)
 
         updated_termvector = update_tokens_in_termvector(termvector, term, token)
-        self.assertNotEqual(original_termvector, updated_termvector,
+        self.assertNotEqual(self.original_termvector_single_pounce_box, updated_termvector,
                             "If an n-gram of the term is inside the token, the termvector should get updated")
 
         # If an n-gram of the term is not inside the token, the termvector shouldn't get updated
         term = TermFactory(text='pounce', analyzed_text='pounce')
-        token = original_termvector['box']['tokens'][0]
-        termvector = copy.deepcopy(original_termvector)
+        token = self.original_termvector_single_pounce_box['box']['tokens'][0]
+        termvector = copy.deepcopy(self.original_termvector_single_pounce_box)
 
         updated_termvector = update_tokens_in_termvector(termvector, term, token)
-        self.assertEqual(original_termvector, updated_termvector,
+        self.assertEqual(self.original_termvector_single_pounce_box, updated_termvector,
                          "If an n-gram of the term is not inside the token, the termvector shouldn't get updated")
+
+    @patch('letter_sentiment.custom_sentiment.get_token_offsets', autospec=True)
+    def test_update_tokens_in_termvector_term_not_found(self, mock_get_token_offsets):
+        # If a term isn't found in the termvector, get_token_offsets() should be called only once
+        mock_get_token_offsets.return_value = (1, 2, 3)
+
+        term = TermFactory(text='mucilage bottle', analyzed_text='mucilage bottle')
+        token = self.original_termvector_single_pounce_box['pounce box']['tokens'][0]
+        termvector = copy.deepcopy(self.original_termvector_single_pounce_box)
+
+        update_tokens_in_termvector(termvector, term, token)
+        self.assertEqual(mock_get_token_offsets.call_count, 1,
+                         "If term isn't found in termvector, get_token_offsets() should be called only once")
+
+    @patch('letter_sentiment.custom_sentiment.get_token_offsets', autospec=True)
+    def test_update_tokens_in_termvector_search_token_outside_token(self, mock_get_token_offsets):
+        # If the term's tokens aren't inside the token that's passed in,
+        # get_token_offsets() should be called at least twice, but termvector should not be updated
+
+        mock_get_token_offsets.side_effect = [(5, 5, 5), (4, 4, 4), (3, 3, 3), (2, 2, 2), (1, 1, 1)]
+
+        term = TermFactory(text='pounce box', analyzed_text='pounce box')
+
+        token = self.original_termvector_double_pounce_box['pounce']['tokens'][1]
+        termvector = copy.deepcopy(self.original_termvector_double_pounce_box)
+
+        # If the term's tokens aren't inside the token that's passed in,
+        # get_token_offsets() should be called twice, but termvector should not be updated
+        updated_termvector = update_tokens_in_termvector(termvector, term, token)
+        self.assertGreaterEqual(mock_get_token_offsets.call_count, 2,
+                "If term's tokens aren't inside the token, get_token_offsets() should still be called at least twice")
+        self.assertEqual(self.original_termvector_double_pounce_box, updated_termvector,
+                         "If an n-gram of the term is not inside the token, the termvector shouldn't get updated")
+
+
+    @patch('letter_sentiment.custom_sentiment.get_token_offsets', autospec=True)
+    def test_update_tokens_in_termvector_multiple_search_tokens(self, mock_get_token_offsets):
+        # If the term's tokens are found multiple times inside the token that's passed in,
+        # get_token_offsets() should be called at least twice, and termvector should be updated
+
+        mock_get_token_offsets.return_value = (1, 2, 3)
+
+        term = TermFactory(text='pounce box', analyzed_text='pounce box')
+
+        token = self.original_termvector_double_pounce_box['pounce']['tokens'][1]
+        termvector = copy.deepcopy(self.original_termvector_double_pounce_box)
+
+        # If the term's tokens are found multiple times inside the token that's passed in,
+        # get_token_offsets() should be called at least twice, and termvector should be updated
+        updated_termvector = update_tokens_in_termvector(termvector, term, token)
+        self.assertGreaterEqual(mock_get_token_offsets.call_count, 2,
+                "If term's tokens are inside token multiple times, get_token_offsets() should be called at least twice")
+        self.assertNotEqual(self.original_termvector_double_pounce_box, updated_termvector,
+                         "If an n-gram of term is inside the token multiple times, termvector should get updated")
