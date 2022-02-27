@@ -115,9 +115,18 @@ class Letter(Document):
         return self.source_id
 
     def save(self, *args, **kwargs):
-        es = es_settings.ES_CLIENT
         is_new = self.pk
         super(Letter, self).save(*args, **kwargs)
+        self.create_or_update_in_elasticsearch(is_new=is_new)
+
+    def create_or_update_in_elasticsearch(self, is_new):
+        """
+        If this is a newly-created Letter that hasn't been assigned a pk yet,
+        index it in Elasticsearch
+
+        If it's an existing Letter, update the Elasticsearch index
+        """
+        es = es_settings.ES_CLIENT
         payload = self.es_repr()
         del payload['_id']
         if is_new is None:
