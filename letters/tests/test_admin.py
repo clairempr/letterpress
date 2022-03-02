@@ -1,12 +1,15 @@
 from unittest.mock import patch
 
 from django.contrib.admin import site
+from django.contrib.auth import get_user_model
 from django.db.models import Model
 from django.test import RequestFactory, TestCase
 
 from letters.admin import delete_selected, LetterAdmin
 from letters.models import Letter
 from letters.tests.factories import LetterFactory
+
+User = get_user_model()
 
 
 class DeleteSelectedTestCase(TestCase):
@@ -35,3 +38,23 @@ class DeleteSelectedTestCase(TestCase):
 
         self.assertEqual(mock_delete.call_count, 2,
                          'delete_selected() should delete all objects in queryset')
+
+
+class LetterAdminFormTestCase(TestCase):
+
+    def test_get_form(self):
+        """
+        get_form() should return a form with custom styling
+        """
+        modeladmin = LetterAdmin(Letter, site)
+        # Set up superuser to log in to admin and be able to create new Employees
+        user = User.objects.create_superuser('admin', 'admin@example.com', 'Password123')
+        request = RequestFactory()
+        request.user = user
+
+        form = modeladmin.get_form(request=request, obj=LetterFactory())
+
+        # Make sure form fields have height set
+        for field in ['heading', 'greeting', 'closing', 'signature', 'ps']:
+            self.assertIn('height', form.base_fields[field].widget.attrs['style'],
+                          "LetterAdmin form should have height set for field'{}'" )
