@@ -20,9 +20,9 @@ jobs:
         key: pip-env-{{ checksum "requirements.txt" }}
     - run:
         command: |  # install dependencies, modify libgeos.py to avoid error, download data for textblob
-          apt-get update
-          apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
-          apt-get install -y libsqlite3-mod-spatialite gdal-bin
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
+          sudo apt-get install -y libsqlite3-mod-spatialite gdal-bin
           ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
           sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /home/circleci/.pyenv/versions/3.5.10/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
           python -m textblob.download_corpora
