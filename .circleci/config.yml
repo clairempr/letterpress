@@ -19,7 +19,7 @@ jobs:
     - run: python -m textblob.download_corpora
     - run: sudo sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /usr/local/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
     - run: pip install coveralls
-    - run: touch settings_secret.py
+    - run: touch letterpress/settings_secret.py
     - save_cache: # cache installed dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
         paths:
