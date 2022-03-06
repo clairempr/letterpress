@@ -41,12 +41,12 @@ jobs:
           - '/usr/local/bin'
 #          - '/home/circleci/.pyenv/versions/3.5.10/lib/python3.5/site-packages'
           - '/usr/local/lib/python3.5/site-packages'
-    - run:
-        command: |
-#          /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coverage run manage.py test
-          coverage run manage.py test
+    - run: coverage run manage.py test
+#        command: |
+##          /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coverage run manage.py test
+#          coverage run manage.py test
 
-    - run:
-       command: |
-#          /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coveralls
-          coveralls
+    - run: coveralls
+#       command: |
+# #         /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coveralls
+#          coveralls
