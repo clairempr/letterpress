@@ -15,8 +15,8 @@ jobs:
     - run: sudo chown -R circleci:circleci /usr/local/lib/python3.5/site-packages
     - restore_cache: # restore cached dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
-    - run: sudo apt-get update
-        command: |  # install dependencies, modify libgeos.py to avoid error, download data for textblob
+    - run:
+        command: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
           sudo apt-get install -y libsqlite3-mod-spatialite gdal-bin
