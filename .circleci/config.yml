@@ -20,14 +20,14 @@ jobs:
         key: pip-env-{{ checksum "requirements/local.txt" }}
     - run:
         command: |  # install dependencies
-          pip install -r requirements/local.txt
+          pip install -r requirements.txt
           pip install coveralls
     - save_cache: # cache installed dependencies
-        key: pip-env-{{ checksum "requirements/local.txt" }}
+        key: pip-env-{{ checksum "requirements.txt" }}
         paths:
           - '/home/circleci/.cache/pip'
           - '/usr/local/bin'
-          - '/home/circleci/.pyenv/versions/3.5/lib/python3.5/site-packages'
+          - '/home/circleci/.pyenv/versions/3.5.10/lib/python3.5/site-packages'
     - run:
         command: |
           /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coverage run manage.py test
