@@ -15,7 +15,7 @@ jobs:
     - run: sudo chown -R circleci:circleci /usr/local/lib/python3.5/site-packages
     - restore_cache: # restore cached dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
-    - run: sudo apt-get update
+    - run: sudo apt-get update --allow-releaseinfo-change
     - run: sudo apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
     - run: sudo apt-get install -y libsqlite3-mod-spatialite gdal-bin
     - run: sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
