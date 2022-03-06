@@ -192,4 +192,7 @@ X_FRAME_OPTIONS = "DENY"
 
 # Elasticsearch URL: If using Docker, host needs to be the name of the service in the docker-compose file,
 # otherwise it should be localhost if running locally
-ELASTICSEARCH_URL = 'http://elasticsearch:9200/'
+if CIRCLECI:
+    ELASTICSEARCH_URL = 'http://localhost:9200/'
+else:
+    ELASTICSEARCH_URL = 'http://elasticsearch:9200/'
