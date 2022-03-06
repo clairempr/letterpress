@@ -28,7 +28,7 @@ class FirstRunCase(SimpleTestCase):
         """
         This just imports settings_secret.py
 
-        Since unit tests won't run if it's not there,
+        Since unit tests won't run locally if it's not there,
         just test that calling import_settings_secret() doesn't cause an error
         """
 
