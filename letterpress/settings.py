@@ -4,8 +4,16 @@ Django settings for letterpress project.
 For use with Django 10.6 and 1.11
 """
 
-import os, platform
-from letterpress.firstrun import settings_secret
+import environ
+import os
+import platform
+
+env = environ.Env()
+
+# If this is running under CircleCI, then settings_secret won't be available
+CIRCLECI = env('CIRCLECI', None)
+if not CIRCLECI:
+    from letterpress.firstrun import settings_secret
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -21,8 +29,12 @@ DB_DIR = './'
 
 # Settings stored in settings_secret
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = settings_secret.SECRET_KEY
-ALLOWED_HOSTS = settings_secret.ALLOWED_HOSTS
+if CIRCLECI:
+    SECRET_KEY = 'super-super-secret-key-for-circleci'
+    ALLOWED_HOSTS = []
+else:
+    SECRET_KEY = settings_secret.SECRET_KEY
+    ALLOWED_HOSTS = settings_secret.ALLOWED_HOSTS
 
 # Application definition
 INSTALLED_APPS = [
