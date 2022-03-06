@@ -15,6 +15,7 @@ jobs:
     - run: sudo chown -R circleci:circleci /usr/local/lib/python3.5/site-packages
     - restore_cache: # restore cached dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
+    - run: sudo apt-get update
     - run:
         command: |  # install dependencies, modify libgeos.py to avoid error, download data for textblob
           sudo apt-get update
