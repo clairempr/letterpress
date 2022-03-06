@@ -12,7 +12,7 @@ jobs:
         command: |
           echo "Troubleshooting"
           pwd
-          ls -al /home/circleci/.pyenv/versions/3.5.10
+          ls -al /home/circleci/.pyenv/versions/3.5.10/lib
     - checkout  # checkout source code to working directory
     - run: sudo chown -R circleci:circleci /usr/local/bin
     - run: sudo chown -R circleci:circleci /home/circleci/.pyenv/versions/3.5.10/lib/python3.5.10/site-packages
@@ -30,7 +30,7 @@ jobs:
           - '/home/circleci/.pyenv/versions/3.5/lib/python3.5/site-packages'
     - run:
         command: |
-          /home/circleci/.pyenv/versions/3.5/bin/python3.5 -m coverage run manage.py test
+          /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coverage run manage.py test
     - run:
        command: |
-          /home/circleci/.pyenv/versions/3.5/bin/python3.5 -m coveralls
+          /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coveralls
