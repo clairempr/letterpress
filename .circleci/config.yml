@@ -10,10 +10,11 @@ jobs:
     steps:
     - run:
         command: |
+          echo "Troubleshooting"
           pwd
-          ls -al
-          ls -al /usr/local/bin
           ls -al /home/circleci
+          ls -al /home/circleci/.pyenv
+          ls -al /home/circleci/.pyenv/versions
     - checkout  # checkout source code to working directory
     - run: sudo chown -R circleci:circleci /usr/local/bin
     - run: sudo chown -R circleci:circleci /home/circleci/.pyenv/versions/3.5/lib/python3.5/site-packages
