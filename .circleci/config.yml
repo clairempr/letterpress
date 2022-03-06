@@ -19,8 +19,8 @@ jobs:
     - run: sudo apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
     - run: sudo apt-get install -y libsqlite3-mod-spatialite gdal-bin
     - run: sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
-    - run: python -m textblob.download_corpora
     - run: pip install -r requirements.txt
+    - run: python -m textblob.download_corpora
     - run: ls /usr/local/lib/python3.5/site-packages
     - run: sudo sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /usr/local/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
     - run: pip install coveralls
