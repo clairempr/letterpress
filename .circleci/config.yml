@@ -7,7 +7,9 @@ jobs:
       - image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2 # an example of how to specify a service container
     steps:
     - checkout  # checkout source code to working directory
-    - run: sudo chown -R circleci:circleci /usr/local/bin
+    - run:
+        command: |
+          sudo chown -R circleci:circleci /usr/local/bin
     - run: sudo chown -R circleci:circleci /usr/local/lib/python3.5/site-packages
     - restore_cache: # restore cached dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
