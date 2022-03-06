@@ -1,14 +1,17 @@
-from factory import SubFactory
+from factory import Faker, SubFactory
 from factory.django import DjangoModelFactory
 from unittest.mock import patch
 
-from letters.models import Correspondent, Document, DocumentSource, Letter, Place
+from letters.models import Correspondent, Document, DocumentImage, DocumentSource, Envelope, Letter, MiscDocument, Place
 
 
 class CorrespondentFactory(DjangoModelFactory):
     """
     Base Correspondent factory
     """
+
+    last_name = Faker('last_name')
+    first_names = Faker('first_name')
 
     class Meta:
         model = Correspondent
@@ -23,6 +26,15 @@ class DocumentSourceFactory(DjangoModelFactory):
         model = DocumentSource
 
 
+class PlaceFactory(DjangoModelFactory):
+    """
+    Base Place factory
+    """
+
+    class Meta:
+        model = Place
+
+
 class DocumentFactory(DjangoModelFactory):
     """
     Base Document factory
@@ -31,18 +43,21 @@ class DocumentFactory(DjangoModelFactory):
     source = SubFactory(DocumentSourceFactory)
     writer = SubFactory(CorrespondentFactory)
 
-
     class Meta:
         model = Document
 
 
-class PlaceFactory(DjangoModelFactory):
+class EnvelopeFactory(DocumentFactory):
     """
-    Base Place factory
+    Base Envelope factory
     """
 
+    recipient = SubFactory(CorrespondentFactory)
+    origin = SubFactory(PlaceFactory)
+    destination = SubFactory(PlaceFactory)
+
     class Meta:
-        model = Place
+        model = Envelope
 
 
 class LetterFactory(DocumentFactory):
@@ -63,3 +78,23 @@ class LetterFactory(DocumentFactory):
         obj = model_class(*args, **kwargs)
         obj.save()
         return obj
+
+
+class MiscDocumentFactory(DocumentFactory):
+    """
+    Base MiscDocument factory
+    """
+
+    place = SubFactory(PlaceFactory)
+
+    class Meta:
+        model = MiscDocument
+
+
+class DocumentImageFactory(DjangoModelFactory):
+    """
+    Base DocumentImage factory
+    """
+
+    class Meta:
+        model = DocumentImage
