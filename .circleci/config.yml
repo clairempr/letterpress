@@ -17,7 +17,7 @@ jobs:
     - run: sudo chown -R circleci:circleci /usr/local/bin
     - run: sudo chown -R circleci:circleci /home/circleci/.pyenv/versions/3.5.10/lib/python3.5/site-packages
     - restore_cache: # restore cached dependencies
-        key: pip-env-{{ checksum "requirements/local.txt" }}
+        key: pip-env-{{ checksum "requirements.txt" }}
     - run:
         command: |  # install dependencies
           pip install -r requirements.txt
