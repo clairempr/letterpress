@@ -3,15 +3,13 @@ jobs:
   build:
     working_directory: ~/letterpress
     docker:
-#      - image: cimg/python:3.5.10 # every job must define an image for the docker executor and subsequent jobs may define a different image.
       - image: circleci/python:3.5.10 # every job must define an image for the docker executor and subsequent jobs may define a different image.
         environment:
-          ELASTICSEARCH_URL: 'http://elasticsearch:9200/'
+          ELASTICSEARCH_URL: 'http://localhost:9200/'
       - image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2 # an example of how to specify a service container
     steps:
     - checkout  # checkout source code to working directory
     - run: sudo chown -R circleci:circleci /usr/local/bin
-#    - run: sudo chown -R circleci:circleci /home/circleci/.pyenv/versions/3.5.10/lib/python3.5/site-packages
     - run: sudo chown -R circleci:circleci /usr/local/lib/python3.5/site-packages
     - restore_cache: # restore cached dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
@@ -21,33 +19,14 @@ jobs:
     - run: sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
     - run: pip install -r requirements.txt
     - run: python -m textblob.download_corpora
-    - run: ls /usr/local/lib/python3.5/site-packages
     - run: sudo sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /usr/local/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
     - run: pip install coveralls
-#    - run:
-#        command: |  # install dependencies, modify libgeos.py to avoid error, download data for textblob
-#          sudo apt-get update
-#          sudo apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
-#          sudo apt-get install -y libsqlite3-mod-spatialite gdal-bin
-#          sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
-# #         sudo sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /home/circleci/.pyenv/versions/3.5.10/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
-#          sudo sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /usr/local/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
-#          python -m textblob.download_corpora
-#          pip install -r requirements.txt
-#          pip install coveralls
     - save_cache: # cache installed dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
         paths:
           - '/home/circleci/.cache/pip'
           - '/usr/local/bin'
-#          - '/home/circleci/.pyenv/versions/3.5.10/lib/python3.5/site-packages'
           - '/usr/local/lib/python3.5/site-packages'
     - run: coverage run manage.py test
-#        command: |
-##          /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coverage run manage.py test
-#          coverage run manage.py test
 
     - run: coveralls
-#       command: |
-# #         /home/circleci/.pyenv/versions/3.5.10/bin/python3.5 -m coveralls
-#          coveralls
