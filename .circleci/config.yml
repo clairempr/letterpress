@@ -8,10 +8,17 @@ jobs:
           ELASTICSEARCH_URL: 'http://elasticsearch:9200/'
       - image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2 # an example of how to specify a service container
     steps:
+    - troubleshooting
+    - run:
+        command: |
+          pwd
+          ls -al
+          ls -al /usr/local/bin
+          ls -al /home/circleci
     - checkout  # checkout source code to working directory
-    #- run: sudo chown -R circleci:circleci /home/circleci/.pyenv/versions/3.5/lib/python3.5/site-packages
-    - run: sudo chown -R circleci:circleci /home/circleci/.pyenv/versions
-    - restore_cache: # restore cached dependencies /usr/local/lib/python3.5/site-packages
+    - run: sudo chown -R circleci:circleci /usr/local/bin
+    - run: sudo chown -R circleci:circleci /home/circleci/.pyenv/versions/3.5/lib/python3.5/site-packages
+    - restore_cache: # restore cached dependencies
         key: pip-env-{{ checksum "requirements/local.txt" }}
     - run:
         command: |  # install dependencies
