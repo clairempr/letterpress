@@ -8,10 +8,13 @@ import environ
 import os
 import platform
 
-env = environ.Env()
+env = environ.Env(
+    # set casting, default value
+    CIRCLECI=(bool, False)
+)
 
 # If this is running under CircleCI, then settings_secret won't be available
-CIRCLECI = env('CIRCLECI', None)
+CIRCLECI = env('CIRCLECI')
 if not CIRCLECI:
     from letterpress.firstrun import settings_secret
 

@@ -15,11 +15,17 @@ PALETTE = ['#4582ec', '#a6a6a6', '#aed5f9', '#5bc0de', '#6699ef']
 
 
 def make_charts(words, months, proportions, word_freqs, totals, averages, doc_counts):
+    """
+    Create Bokeh charts for word frequencies and totals over time
+    and return some rendered html
+    """
+
     charts = []
 
     # Make pandas dataframe with word frequencies
     # word_freqs is a list of word frequencies, grouped by month and then by word
     frequency_df = pd.DataFrame()
+    # Every n elements is for word
     for idx, word in enumerate(words):
         frequency_df[word] = word_freqs[idx::len(words)]
     frequency_df['Month'] = months
@@ -53,6 +59,10 @@ def make_charts(words, months, proportions, word_freqs, totals, averages, doc_co
 
 
 def get_frequency_charts(words, df):
+    """
+    Return a time series bar chart
+    """
+
     title = 'Frequency of '
     for idx, word in enumerate(words):
         if idx > 0:
@@ -75,6 +85,10 @@ def get_frequency_charts(words, df):
 
 
 def get_proportions_chart(words, df):
+    """
+    Create a time series of the proportions of the use of one word compared to another
+    """
+
     title = str.format('Proportions of "{0}" to "{1}"', words[0], words[1])
     time_series = TimeSeries(df, title=title, x='Month',
                              xlabel='Month', ylabel='Proportion', legend=False,
@@ -87,4 +101,3 @@ def get_per_month_chart(df, title, label):
                              xlabel='Month', ylabel=label, legend=False,
                              palette=PALETTE, toolbar_location='right')
     return time_series
-
