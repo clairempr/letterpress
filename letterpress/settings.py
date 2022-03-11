@@ -33,7 +33,7 @@ DB_DIR = './'
 # Settings stored in settings_secret
 # SECURITY WARNING: keep the secret key used in production secret!
 if CIRCLECI:
-    SECRET_KEY = 'super-super-secret-key-for-circleci'
+    SECRET_KEY = 'super-duper-secret-key-for-circleci'
     ALLOWED_HOSTS = []
 else:
     SECRET_KEY = settings_secret.SECRET_KEY
