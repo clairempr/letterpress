@@ -27,7 +27,7 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
             # Reload Django settings
             importlib.reload(letterpress.settings)
 
-            if actually_circleci:
+            if not actually_circleci:
                 # SECRET_KEY should NOT be 'super-duper-secret-key-for-circleci'
                 self.assertNotEqual(letterpress.settings.SECRET_KEY, 'super-duper-secret-key-for-circleci',
                             "When setting CIRCLECI isn't True, SECRET_KEY shouldn't be 'super-duper-secret-key-for-circleci'")
