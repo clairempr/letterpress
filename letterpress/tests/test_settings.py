@@ -20,6 +20,8 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
         # CIRCLECI environment variable not set to True:
         # CIRCLECI environment variable set to True:
         with patch.dict(os.environ, {'CIRCLECI': ''}):
+            # Reload Django settings
+            importlib.reload(letterpress.settings
             # SECRET_KEY should NOT be 'super-duper-secret-key-for-circleci'
             self.assertNotEqual(letterpress.settings.SECRET_KEY, 'super-duper-secret-key-for-circleci',
                         "When setting CIRCLECI isn't True, SECRET_KEY shouldn't be 'super-duper-secret-key-for-circleci'")
@@ -29,9 +31,6 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
             # ELASTICSEARCH_URL should have elasticsearch as host
             self.assertTrue('elasticsearch' in letterpress.settings.ELASTICSEARCH_URL,
                             "When setting CIRCLECI is True, ELASTICSEARCH_URL should contain 'elasticsearch'")
-
-            print(letterpress.settings.CIRCLECI)
-
 
         # CIRCLECI environment variable set to True:
         with patch.dict(os.environ, {'CIRCLECI': 'true'}):
