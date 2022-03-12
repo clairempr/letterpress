@@ -25,7 +25,7 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
 
         with patch.dict(os.environ, {'CIRCLECI': ''}):
             if actually_circleci:
-                with self.assertRaises(AttributeError, importlib.reload(letterpress.settings)):
+                with self.assertRaises(AttributeError)):
                     importlib.reload(letterpress.settings)
 
             # If actually running on CircleCI but setting CIRCLECI is false,
