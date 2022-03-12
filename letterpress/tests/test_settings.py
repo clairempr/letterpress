@@ -24,16 +24,32 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
         actually_circleci = letterpress.settings.CIRCLECI
 
         with patch.dict(os.environ, {'CIRCLECI': ''}):
-            # Reload Django settings
-            importlib.reload(letterpress.settings)
+            if actually_circleci:
+                self.assertRaises(AttributeError, importlib.reload(letterpress.settings))
 
-            if not actually_circleci:
+
+            # If actually running on CircleCI but setting CIRCLECI is false,
+            # the values SECRET_KEY and ALLOWED_HOSTS should be different
+            if actually_circleci:
+                self.assertRaises(AttributeError, letterpress.settings.SECRET_KEY)
+                # SECRET_KEY should NOT be 'super-duper-secret-key-for-circleci'
+                self.assertNotEqual(letterpress.settings.SECRET_KEY, 'SECRET_SETTINGS not in settings_secret',
+                    "When running on CircleCI but setting CIRCLECI isn't True, SECRET_KEY should be 'SECRET_SETTINGS not in settings_secret'")
+                # ALLOWED_HOSTS should NOT be []
+                self.assertNotEqual(letterpress.settings.ALLOWED_HOSTS, [],
+                    "When running on CircleCI but setting CIRCLECI isn't True, ALLOWED_HOSTS should be 'ALLOWED_HOSTS not in settings_secret'")
+            else:
+                # Really not running on CircleCI
+                # Reload Django settings
+                importlib.reload(letterpress.settings)
+
                 # SECRET_KEY should NOT be 'super-duper-secret-key-for-circleci'
                 self.assertNotEqual(letterpress.settings.SECRET_KEY, 'super-duper-secret-key-for-circleci',
                             "When setting CIRCLECI isn't True, SECRET_KEY shouldn't be 'super-duper-secret-key-for-circleci'")
                 # ALLOWED_HOSTS should NOT be []
                 self.assertNotEqual(letterpress.settings.ALLOWED_HOSTS, [],
                                     "When setting CIRCLECI isn't True, ALLOWED_HOSTS shouldn't be []")
+            # Maybe running on CircleCI, maybe locally
             # ELASTICSEARCH_URL should have elasticsearch as host
             self.assertTrue('elasticsearch' in letterpress.settings.ELASTICSEARCH_URL,
                             "When setting CIRCLECI is True, ELASTICSEARCH_URL should contain 'elasticsearch'")
