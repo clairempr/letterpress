@@ -25,14 +25,10 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
 
         with patch.dict(os.environ, {'CIRCLECI': ''}):
             if actually_circleci:
-                with self.assertRaises(AttributeError):
-                    importlib.reload(letterpress.settings)
-
+                self.assertRaises(AttributeError, importlib.reload(letterpress.settings))
 
             # If actually running on CircleCI but setting CIRCLECI is false,
             # the values SECRET_KEY and ALLOWED_HOSTS should be different
-            if actually_circleci:
-                self.assertRaises(AttributeError, letterpress.settings.SECRET_KEY)
                 # SECRET_KEY should NOT be 'super-duper-secret-key-for-circleci'
                 self.assertNotEqual(letterpress.settings.SECRET_KEY, 'SECRET_SETTINGS not in settings_secret',
                     "When running on CircleCI but setting CIRCLECI isn't True, SECRET_KEY should be 'SECRET_SETTINGS not in settings_secret'")
