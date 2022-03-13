@@ -7,6 +7,11 @@ from letters.models import Letter
 
 
 def analyze_term(term, analyzer):
+    """
+    Builds a query using analyzer and term, call do_es_analyze(query),
+    and return the analyzed text if there are tokens in the result, otherwise it returns an empty string
+    """
+
     query = json.dumps({
         "analyzer": analyzer,
         "text": term
@@ -22,6 +27,10 @@ def analyze_term(term, analyzer):
 
 
 def get_mtermvectors(ids, fields):
+    """
+    Build an Elasticsearch query, using ids and fields,
+    call do_es_mtermvectors(query), and return its return value
+    """
     query = json.dumps({
         "ids": ids,
         "parameters": {
@@ -36,6 +45,11 @@ def get_mtermvectors(ids, fields):
 
 
 def get_sentiment_termvector_for_text(text):
+    """
+    Build a query for the given text using build_termvector_query(),
+    call do_es_termvectors_for_text() with that query, and return the result
+    """
+
     query = build_termvector_query(text=text, analyzer='termvector_sentiment_analyzer',
                                    offsets='true', positions='true')
     termvector = do_es_termvectors_for_text(query)
@@ -43,6 +57,10 @@ def get_sentiment_termvector_for_text(text):
 
 
 def build_termvector_query(text, analyzer, offsets, positions):
+    """
+    Build a query with given analyzer, offsets, position,
+    and optionally text
+    """
     query = {
         "fields": ["contents"],
         "per_field_analyzer": {
@@ -63,6 +81,11 @@ def build_termvector_query(text, analyzer, offsets, positions):
 
 
 def get_termvector_from_result(result):
+    """
+    Return the 'terms' portion of term_vectors contents from result,
+    if they're in there
+    """
+
     termvector = {}
     if 'term_vectors' in result \
             and 'contents' in result['term_vectors'] \
@@ -73,6 +96,10 @@ def get_termvector_from_result(result):
 
 
 def get_stored_fields_for_letter(letter_id, stored_fields):
+    """
+    Return the Elasticsearch stored fields for letter with the given id
+    """
+
     url = str.format('{0}{1}?stored_fields={2}', ES_LETTER_URL,
                      str(letter_id), ','.join(stored_fields))
     response = requests.get(url)
@@ -80,16 +107,29 @@ def get_stored_fields_for_letter(letter_id, stored_fields):
 
 
 def do_es_analyze(query):
+    """
+    Return the results of Elasticsearch analyze for the given query
+    """
+
     response = requests.get(ES_ANALYZE, data=query)
     return json.loads(response.text)
 
 
 def do_es_mtermvectors(query):
+    """
+    Return the results of Elasticsearch mtermvector request for the given query
+    """
+
     response = requests.get(ES_MTERMVECTORS, data=query)
     return json.loads(response.text)
 
 
 def do_es_termvectors_for_text(query):
+    """
+    Call Elasticsearch termvectors request for the given query, call get_termvector_from_result()
+    with return value, and return result
+    """
+
     termvectors_url = str.format('{0}_termvectors', ES_LETTER_URL)
     response = requests.get(termvectors_url, data=query)
     result = json.loads(response.text)
@@ -97,26 +137,44 @@ def do_es_termvectors_for_text(query):
 
 
 def do_es_search(query):
+    """
+    Call Elasticsearch search for the given query and return result
+    """
+
     response = requests.get(ES_SEARCH, data=query)
     return json.loads(response.text)
 
 
-# Temporarily index a document to use elasticsearch to calculate
-# custom sentiment score for a piece of arbitrary text
 def index_temp_document(text):
+    """
+    Temporarily index a document to use Elasticsearch to calculate
+    custom sentiment score for a piece of arbitrary text
+    """
+
+    # refresh=True causes the error "TypeError: got an unexpected keyword argument 'refresh'"
+    # during unit test with Elasticsearch 5.6.2
+    # Works fine when actually run, but seems to work without it also
     ES_CLIENT.index(
         index=Letter._meta.es_index_name,
         doc_type=Letter._meta.es_type_name,
         id='temp',
-        refresh=True,
+        # refresh=True,
         body={'contents': text}
     )
 
 
 def delete_temp_document():
+    """
+    Delete temporarily indexed document from Elasticsearch index because it's not an actual transcription
+    and was only used to get a score for sentiment
+    """
+
+    # refresh=True causes the error "TypeError: got an unexpected keyword argument 'refresh'"
+    # during unit test with Elasticsearch 5.6.2
+    # Works fine when actually run, but seems to work without it also
     ES_CLIENT.delete(
         index=Letter._meta.es_index_name,
         doc_type=Letter._meta.es_type_name,
         id='temp',
-        refresh=True,
+        # refresh=True,
     )
