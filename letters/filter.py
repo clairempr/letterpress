@@ -6,8 +6,11 @@ from letter_sentiment.custom_sentiment import get_custom_sentiments
 DEFAULT_STATS_SEARCH_WORDS = ['&', 'and']
 
 
-# get list of writers, dates, etc to fill filter fields in page
 def get_initial_filter_values():
+    """
+    Get list of writers, dates, etc to fill filter fields in page
+    """
+
     sources = sorted({letter.source for letter in Letter.objects.all()})
     writers = sorted({letter.writer for letter in Letter.objects.all()})
     dates = sorted({letter.index_date() for letter in Letter.objects.all()})
@@ -24,8 +27,11 @@ def get_initial_filter_values():
             'words': DEFAULT_STATS_SEARCH_WORDS, 'sentiments': sentiments}
 
 
-# Return list of sentiments, both standard and custom, in named tuple with id and name
 def get_sentiment_list():
+    """
+    Return list of sentiments, both standard and custom, in named tuple with id and name
+    """
+
     Sentiment = collections.namedtuple('Sentiment', ['id', 'name'])
     sentiments = [Sentiment(id=0, name='Positive/negative')]
     custom_sentiments = [Sentiment(id=sentiment.id, name=sentiment.name) for sentiment in get_custom_sentiments()]
@@ -33,8 +39,11 @@ def get_sentiment_list():
     return sentiments
 
 
-# Get filter values entered by user
 def get_filter_values_from_request(request):
+    """
+    Get filter values entered by user
+    """
+
     if request.method == 'GET':
         get_or_post = request.GET
     else:
@@ -79,6 +88,10 @@ def get_filter_values_from_request(request):
 
 
 def get_start_date_from_request(request):
+    """
+    Return the start_date from request parameters if it's there and '0001-01-01' otherwise
+    """
+
     if request.method == 'GET':
         get_or_post = request.GET
     else:
@@ -88,14 +101,13 @@ def get_start_date_from_request(request):
 
 
 def get_end_date_from_request(request):
+    """
+    Return the end_date from request parameters if it's there and '9999-12-31' otherwise
+    """
+
     if request.method == 'GET':
         get_or_post = request.GET
     else:
         get_or_post = request.POST
     end_date_value = get_or_post.get('end_date') if get_or_post.get('end_date') else '9999-12-31'
     return end_date_value
-
-
-def display_date_to_sort_date(display_date):
-    date_parts = display_date.split('-')
-    return str.format('{:0>4}{:0>2}{:0>2}', date_parts[0], date_parts[1], date_parts[2])
