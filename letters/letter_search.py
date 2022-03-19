@@ -305,6 +305,11 @@ def get_filter_conditions_for_query(filter_values):
 
 
 def get_highlight_options(filter_values):
+    """
+    Return something something to do with highlighting for an Elasticsearch query,
+    depending on whether it's a custom sentiment
+    """
+
     if filter_values.sort_by and filter_values.sort_by.startswith(SENTIMENT):
         return {
             # 'tags_schema': 'styled',
@@ -324,6 +329,11 @@ def get_highlight_options(filter_values):
 
 
 def get_sort_conditions(sort_by):
+    """
+    Return field/order to use for sorting in Elasticsearch query,
+    depending on type of sorting
+    """
+
     if sort_by == DATE or sort_by == '':
         sort_field = 'date'
         sort_order = 'asc'

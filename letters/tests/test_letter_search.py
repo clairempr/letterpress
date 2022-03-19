@@ -6,10 +6,11 @@ from unittest.mock import patch
 from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from letters.letter_search import do_letter_search, get_doc_highlights, get_date_query, get_doc_word_count, \
-    get_filter_conditions_for_query, get_letter_match_query, get_letter_sentiments, get_letter_word_count, \
-    get_multiple_word_frequencies, get_word_counts_per_month, get_year_month_from_date
+    get_filter_conditions_for_query, get_highlight_options, get_letter_match_query, get_letter_sentiments, \
+    get_letter_word_count, get_multiple_word_frequencies, get_sort_conditions, get_word_counts_per_month, \
+    get_year_month_from_date
 from letters.models import Letter
-from letters.sort_by import SENTIMENT
+from letters.sort_by import DATE, SENTIMENT
 from letters.tests.factories import LetterFactory
 
 
@@ -622,6 +623,52 @@ class GetFilterConditionsForQueryTestCase(SimpleTestCase):
         self.assertTrue('writer' in result[condition]['terms'] for condition in result)
 
 
+
+class GetHighlightOptionsTestCase(SimpleTestCase):
+    """
+    get_highlight_options() should return something something to do with highlighting
+    for an Elasticsearch query, depending on whether it's a custom sentiment
+    """
+
+    def test_get_highlight_options(self):
+        FilterValues = get_filter_values_namedtuple()
+
+        # If filter_values.sort_by starts with SENTIMENT, it's a custom sentiment
+        filter_values = FilterValues(
+            search_text='search_text',
+            source_ids=[1, 2, 3],
+            writer_ids=[1, 2, 3],
+            start_date=['1864-01-01'],
+            end_date=['1864-12-31'],
+            words=['word'],
+            sentiment_ids=[1, 2, 3],
+            sort_by=SENTIMENT + 'some other stuff'
+        )
+
+        # If it's a custom sentiment, 'pre_tags' and 'post_tags' should be in returned value
+        result = get_highlight_options(filter_values)
+        for key in ['pre_tags', 'post_tags']:
+            self.assertIn(key, result,
+                "Value returned by get_highlight_options() should include '{}' if it's a custom sentiment".format(key))
+
+        # If filter_values.sort_by doesn't start with SENTIMENT, it's not a custom sentiment
+        filter_values = FilterValues(
+            search_text='search_text',
+            source_ids=[1, 2, 3],
+            writer_ids=[1, 2, 3],
+            start_date=['1864-01-01'],
+            end_date=['1864-12-31'],
+            words=['word'],
+            sentiment_ids=[1, 2, 3],
+            sort_by='something'
+        )
+
+        # If it's not a custom sentiment, 'fields' should be in returned value
+        result = get_highlight_options(filter_values)
+        self.assertIn('fields', result,
+                "Value returned by get_highlight_options() should include 'fields' if it's not a custom sentiment")
+
+
 class GetLetterMatchQueryTestCase(SimpleTestCase):
     """
     get_letter_match_query() should take search_text from filter_values and return a query for contents
@@ -854,6 +901,33 @@ class GetMultipleWordFrequenciesTestCase(SimpleTestCase):
 
         self.ampersand_total_freq = 3
         self.and_total_freq = 1
+
+
+class GetSortConditionsTestCase(SimpleTestCase):
+    """
+    get_sort_conditions() should return field/order to use for sorting in Elasticsearch query,
+    depending on type of sorting
+    """
+
+    def test_get_sort_conditions(self):
+        # If sort_by == DATE, sort_field in returned value should be 'date' and sort_order should be 'asc'
+        result = get_sort_conditions(sort_by=DATE)
+        self.assertIn('date', result,
+                      "If sort_by == DATE, sort_field in value returned by get_sort_conditions() should be 'date'")
+        self.assertEqual(result['date']['order'], 'asc',
+                         "If sort_by == DATE, sort_order in value returned by get_sort_conditions() should be 'asc'")
+
+        # If sort_by is empty string, sort_field in returned value should be 'date' and sort_order should be 'asc'
+        result = get_sort_conditions(sort_by='')
+        self.assertIn('date', result,
+                "If sort_by is empty string, sort_field in value returned by get_sort_conditions() should be 'date'")
+        self.assertEqual(result['date']['order'], 'asc',
+                "If sort_by is empty string, sort_order in value returned by get_sort_conditions() should be 'asc'")
+
+        # If sort_by isn't DATE or empty string, get_sort_conditions() should return '_score'
+        result = get_sort_conditions(sort_by=SENTIMENT)
+        self.assertEqual(result, '_score',
+                         "If sort_by isn't DATE or empty string, get_sort_conditions() should return '_score'")
 
 
 class GetWordCountsPerMonthTestCase(SimpleTestCase):
