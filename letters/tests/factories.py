@@ -45,6 +45,7 @@ class DocumentFactory(DjangoModelFactory):
 
     class Meta:
         model = Document
+        abstract = True
 
 
 class EnvelopeFactory(DocumentFactory):
