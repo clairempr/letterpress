@@ -80,6 +80,13 @@ class Letter(Document):
         }
 
     def es_repr(self):
+        """
+        Serialize letter fields for Elasticsearch indexing by getting mapping from Meta
+        and generating a representation of each field with field_es_repr
+
+        See https://qbox.io/blog/elasticsearch-and-django-bulk-index/
+        """
+
         data = {}
         mapping = self._meta.es_mapping
         data['_id'] = self.pk
@@ -88,6 +95,16 @@ class Letter(Document):
         return data
 
     def field_es_repr(self, field_name):
+        """
+        Serialize letter field for Elasticsearch indexing:
+        Get field description from mapping
+        If there's a method named get_es_{field name} – use it to get field's value
+        If it's an object, populate a dictionary directly from attributes of the related object
+        If it's not an object, and there's no special method with special name, get an attribute from the model
+
+        See https://qbox.io/blog/elasticsearch-and-django-bulk-index/
+        """
+
         config = self._meta.es_mapping['properties'][field_name]
         if hasattr(self, 'get_es_%s' % field_name):
             field_es_value = getattr(self, 'get_es_%s' % field_name)()
