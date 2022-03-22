@@ -19,8 +19,7 @@ class DocumentTestCase(TestCase):
 
         expected = 'Define "get_display_string" in %(class)s'
 
-        document = Document()
-        self.assertEqual(str(document), expected,
+        self.assertEqual(str(Document()), expected,
                          "Document.get_display_string() should return '{}'".format(expected))
 
     @patch.object(Document, 'get_display_string', autospec=True)
@@ -31,10 +30,9 @@ class DocumentTestCase(TestCase):
 
         mock_get_display_string.return_value = 'display str'
 
-        document = Document()
-        document_str = str(document)
+        document_str = str(Document())
         self.assertEqual(document_str, mock_get_display_string.return_value,
-                         '__str__() should return value of Document.get_display_string()')
+                         'Document.__str__() should return value of Document.get_display_string()')
 
     @patch.object(Document, 'get_display_string', autospec=True)
     def test_to_string(self, mock_get_display_string):
@@ -44,9 +42,8 @@ class DocumentTestCase(TestCase):
 
         mock_get_display_string.return_value = 'display str'
 
-        document = Document()
-        self.assertEqual(document.to_string(), mock_get_display_string.return_value,
-                         'to_string() should return value of Document.get_display_string()')
+        self.assertEqual(Document().to_string(), mock_get_display_string.return_value,
+                         'Document.to_string() should return value of Document.get_display_string()')
 
     @patch('letters.models.document.get_image_preview', autospec=True)
     def test_image_preview(self, mock_get_image_preview):
@@ -56,9 +53,8 @@ class DocumentTestCase(TestCase):
 
         mock_get_image_preview.return_value = 'image_preview'
 
-        document = Document()
-        self.assertEqual(document.image_preview(), mock_get_image_preview.return_value,
-                         '__str__() should return value of Document.get_image_preview()')
+        self.assertEqual(Document().image_preview(), mock_get_image_preview.return_value,
+                         'Document.image_preview() should return value of Document.get_image_preview()')
 
     def test_list_date(self):
         """
@@ -69,28 +65,27 @@ class DocumentTestCase(TestCase):
         """
 
         # If no date, list_date() should return '(Undated)'
-        document = Document()
         expected = '(Undated)'
-        self.assertEqual(document.list_date(), expected,
-                         "If no date, list_date() should return '{}'".format(expected))
+        self.assertEqual(Document().list_date(), expected,
+                         "If no date, Document.list_date() should return '{}'".format(expected))
 
         # If year only, list_date() should return year-??-??
         document = Document(date=ApproximateDate(1864))
         expected = '1864-??-??'
         self.assertEqual(document.list_date(), expected,
-                         "If year only, list_date() should return '{}'".format(expected))
+                         "If year only, Document.list_date() should return '{}'".format(expected))
 
         # If year and month only, list_date() should return year-month-??
         document = Document(date=ApproximateDate(1864, 6))
         expected = '1864-06-??'
         self.assertEqual(document.list_date(), expected,
-                         "If year and month only, list_date() should return '{}'".format(expected))
+                         "If year and month only, Document.list_date() should return '{}'".format(expected))
 
         # If year, month, and day, list_date() should return year-month-day
         document = Document(date=ApproximateDate(1864, 6, 15))
         expected = '1864-06-15'
         self.assertEqual(document.list_date(), expected,
-                         "If year, month, and day, list_date() should return '{}'".format(expected))
+                         "If year, month, and day, Document.list_date() should return '{}'".format(expected))
 
     def test_sort_date(self):
         """
@@ -100,17 +95,17 @@ class DocumentTestCase(TestCase):
         document = Document(date=ApproximateDate(1864))
         expected = '18640000'
         self.assertEqual(document.sort_date(), expected,
-                         "If date with year only, sort_date() should return '{}'".format(expected))
+                         "If date with year only, Document.sort_date() should return '{}'".format(expected))
 
         document = Document(date=ApproximateDate(1864, 6))
         expected = '18640600'
         self.assertEqual(document.sort_date(), expected,
-                         "If date with year and month only, sort_date() should return '{}'".format(expected))
+                         "If date with year and month only, Document.sort_date() should return '{}'".format(expected))
 
         document = Document(date=ApproximateDate(1864, 6, 15))
         expected = '18640615'
         self.assertEqual(document.sort_date(), expected,
-                         "If date with year, month, and day, sort_date() should return '{}'".format(expected))
+                         "If date with year, month, and day, Document.sort_date() should return '{}'".format(expected))
 
     def test_index_date(self):
         """
@@ -120,14 +115,14 @@ class DocumentTestCase(TestCase):
         document = Document(date=ApproximateDate(1864))
         expected = '1864'
         self.assertEqual(document.index_date(), expected,
-                         "If date with year only, index_date() should return '{}'".format(expected))
+                         "If date with year only, Document.index_date() should return '{}'".format(expected))
 
         document = Document(date=ApproximateDate(1864, 6))
         expected = '1864-06'
         self.assertEqual(document.index_date(), expected,
-                         "If date with year and month only, sort_date() should return '{}'".format(expected))
+                         "If date with year and month only, Document.sort_date() should return '{}'".format(expected))
 
         document = Document(date=ApproximateDate(1864, 6, 15))
         expected = '1864-06-15'
         self.assertEqual(document.index_date(), expected,
-                         "If date with year, month, and day, index_date() should return '{}'".format(expected))
+                         "If date with year, month, and day, Document.index_date() should return '{}'".format(expected))

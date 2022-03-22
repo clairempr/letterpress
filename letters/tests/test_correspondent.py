@@ -19,10 +19,8 @@ class CorrespondentTestCase(TestCase):
 
         mock_get_display_string.return_value = 'correspondent str'
 
-        correspondent = CorrespondentFactory()
-        correspondent_str = str(correspondent)
-        self.assertEqual(correspondent_str, mock_get_display_string.return_value,
-                         '__str__() should return value of Correspondent.get_display_string()')
+        self.assertEqual(str(CorrespondentFactory()), mock_get_display_string.return_value,
+                         'Correspondent.__str__() should return value of Correspondent.get_display_string()')
 
     def test__lt__(self):
         """
@@ -49,9 +47,8 @@ class CorrespondentTestCase(TestCase):
 
         mock_get_display_string.return_value = 'correspondent str'
 
-        correspondent = CorrespondentFactory()
-        self.assertEqual(correspondent.to_string(), mock_get_display_string.return_value,
-                         'to_string() should return value of Correspondent.get_display_string()')
+        self.assertEqual(CorrespondentFactory().to_string(), mock_get_display_string.return_value,
+                         'Correspondent.() should return value of Correspondent.get_display_string()')
 
     def test_get_display_string(self):
         """
@@ -116,8 +113,7 @@ class CorrespondentTestCase(TestCase):
 
         mock_get_image_preview.return_value = 'image_preview'
 
-        correspondent = CorrespondentFactory()
-        self.assertEqual(correspondent.image_preview(), mock_get_image_preview.return_value,
-                         '__str__() should return value of Correspondent.get_image_preview()')
+        self.assertEqual(CorrespondentFactory().image_preview(), mock_get_image_preview.return_value,
+                         'Correspondent.image_preview() should return value of Correspondent.get_image_preview()')
 
 
