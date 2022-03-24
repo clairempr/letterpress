@@ -142,7 +142,11 @@ class Letter(Document):
         index it in Elasticsearch
 
         If it's an existing Letter, update the Elasticsearch index
+
+        Calling create() or update() with refresh as arg causes TypeError: got an unexpected keyword argument 'refresh',
+        at least in a unit test, so it's commented out
         """
+
         es = es_settings.ES_CLIENT
         payload = self.es_repr()
         del payload['_id']
@@ -151,7 +155,7 @@ class Letter(Document):
                 index=self._meta.es_index_name,
                 doc_type=self._meta.es_type_name,
                 id=self.pk,
-                refresh=True,
+                # refresh=True,
                 body=payload
             )
         else:
@@ -159,7 +163,7 @@ class Letter(Document):
                 index=self._meta.es_index_name,
                 doc_type=self._meta.es_type_name,
                 id=self.pk,
-                refresh=True,
+                # refresh=True,
                 body={
                     "doc": payload
                 }
@@ -171,10 +175,15 @@ class Letter(Document):
         self.delete_from_elasticsearch(pk)
 
     def delete_from_elasticsearch(self, pk):
+        """
+        Calling create() or update() with refresh as arg causes TypeError: got an unexpected keyword argument 'refresh',
+        at least in a unit test, so it's commented out
+        """
+
         es = es_settings.ES_CLIENT
         es.delete(
             index=self._meta.es_index_name,
             doc_type=self._meta.es_type_name,
             id=pk,
-            refresh=True,
+            # refresh=True,
         )

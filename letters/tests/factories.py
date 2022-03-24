@@ -74,8 +74,11 @@ class LetterFactory(DocumentFactory):
 
     @classmethod
     @patch.object(Letter, 'create_or_update_in_elasticsearch', autospec=True)
-    def _create(cls, model_class, mock_create_or_update_in_elasticsearch,
-                *args, **kwargs):
+    def _create(cls, model_class, mock_create_or_update_in_elasticsearch, *args, **kwargs):
+        """
+        Mock create_or_update_in_elasticsearch() so a letter doesn't actually get indexed
+        """
+
         obj = model_class(*args, **kwargs)
         obj.save()
         return obj

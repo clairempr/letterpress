@@ -4,8 +4,9 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
+from letters.es_settings import ES_CLIENT
 from letters.models import Letter
-from letters.tests.factories import CorrespondentFactory, LetterFactory, PlaceFactory
+from letters.tests.factories import CorrespondentFactory, DocumentSourceFactory, LetterFactory, PlaceFactory
 
 
 class LetterTestCase(TestCase):
@@ -227,3 +228,91 @@ class LetterTestCase(TestCase):
 
         self.assertEqual(LetterFactory().get_es_date(), mock_index_date.return_value,
                          'Letter.get_es_date() should return Letter.index_date()')
+
+    def test_get_es_writer(self):
+        """
+        Letter.get_es_writer() should return Letter.writer.id
+        """
+
+        letter = LetterFactory()
+        self.assertEqual(letter.get_es_writer(), letter.writer.id,
+                         'Letter.get_es_writer() should return Letter.writer.id')
+
+    def test_get_es_source(self):
+        """
+        Letter.get_es_source() should return Letter.source.id
+        """
+
+        letter = LetterFactory()
+        self.assertEqual(letter.get_es_source(), letter.source.id,
+                         'Letter.get_es_source() should return Letter.source.id')
+
+    @patch.object(Letter, 'create_or_update_in_elasticsearch', autospec=True)
+    def test_save(self, mock_create_or_update_in_elasticsearch):
+        """
+        Letter.save() should call Letter.create_or_update_in_elasticsearch()
+        """
+
+        letter = Letter(writer=CorrespondentFactory(), recipient=CorrespondentFactory(), source=DocumentSourceFactory(),
+                        place=PlaceFactory())
+        letter.save()
+        args, kwargs = mock_create_or_update_in_elasticsearch.call_args
+        self.assertIsNone(kwargs['is_new'],
+                          'Letter.save() should call create_or_update_in_elasticsearch(None) on Letter creation')
+
+        letter.save()
+        args, kwargs = mock_create_or_update_in_elasticsearch.call_args
+        self.assertIsNotNone(kwargs['is_new'],
+                             'Letter.save() should call create_or_update_in_elasticsearch(None) on Letter update')
+
+    @patch.object(Letter, 'es_repr', autospec=True)
+    @patch.object(ES_CLIENT, 'create', autospec=True)
+    @patch.object(ES_CLIENT, 'update', autospec=True)
+    def test_create_or_update_in_elasticsearch(self, mock_update, mock_create, mock_es_repr):
+        """
+        If this is a newly-created Letter that hasn't been assigned a pk yet,
+        it should get indexed in Elasticsearch
+
+        If it's an existing Letter, Elasticsearch index should get updated
+        """
+
+        letter = LetterFactory()
+        letter.create_or_update_in_elasticsearch(is_new=None)
+
+        self.assertEqual(mock_es_repr.call_count, 1,
+                         'Letter.create_or_update_in_elasticsearch() should call Letter.es_repr()')
+
+        # When create_or_update_in_elasticsearch() called with is_new = None, ES_CLIENT.create() should get called
+        self.assertEqual(mock_create.call_count, 1,
+            'When create_or_update_in_elasticsearch(is_new=None) called, ES_CLIENT.create() should get called')
+
+        # When create_or_update_in_elasticsearch() called with is_new not None, ES_CLIENT.update() should get called
+        letter.create_or_update_in_elasticsearch(is_new=letter.pk)
+        self.assertEqual(mock_update.call_count, 1,
+            'When create_or_update_in_elasticsearch(is_new=not None) called, ES_CLIENT.mock_update() should get called')
+
+    @patch.object(Letter, 'delete_from_elasticsearch', autospec=True)
+    def test_delete(self, mock_delete_from_elasticsearch):
+        """
+        Letter.delete() should call delete_from_elasticsearch(letter.pk)
+        """
+
+        letter = Letter(pk=1, writer=CorrespondentFactory(), recipient=CorrespondentFactory())
+        letter_pk = letter.pk
+        letter.delete()
+
+        args, kwargs = mock_delete_from_elasticsearch.call_args
+        self.assertEqual(args[1], letter_pk, 'Letter.delete() should call delete_from_elasticsearch(letter.pk)')
+
+    @patch.object(ES_CLIENT, 'delete', autospec=True)
+    def test_delete_from_elasticsearch(self, mock_delete):
+        """
+        Letter.delete_from_elasticsearch() should call ES_CLIENT.delete()
+        """
+
+        letter = LetterFactory()
+        letter.delete_from_elasticsearch(letter.pk)
+
+        args, kwargs = mock_delete.call_args
+        self.assertEqual(kwargs['id'], letter.pk,
+                         'Letter.delete_from_elasticsearch() should call ES_CLIENT.delete()')
