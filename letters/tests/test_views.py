@@ -1,12 +1,18 @@
+import base64
+import collections
 import json
 
 from collections import namedtuple
-from unittest.mock import patch
+from matplotlib.colors import LinearSegmentedColormap
+from unittest.mock import MagicMock, patch
+from wordcloud import WordCloud
 
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
-from letters.views import get_stats, letters_view
+from letters.models import Letter
+from letters.tests.factories import LetterFactory
+from letters.views import get_stats, get_wordcloud, letters_view
 
 
 class HomeTestCase(SimpleTestCase):
@@ -203,3 +209,107 @@ class WordcloudViewTestCase(TestCase):
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
                              "wordcloud_view() context '{}' should be '{}'".format(key, expected[key]))
+
+
+class GetWordcloudTestCase(TestCase):
+    """
+    Test get_wordcloud()
+    """
+
+    @patch('letters.views.letter_search.do_letter_search', autospec=True)
+    @patch.object(Letter, 'contents', autospec=True)
+    @patch('numpy.array', autospec=True)
+    @patch('letters.views.LinearSegmentedColormap', autospec=True)
+    @patch('letters.views.WordCloud', autospec=True)
+    @patch.object(base64, 'b64encode', autospec=True)
+    def test_get_wordcloud(self, mock_b64encode, mock_WordCloud, mock_LinearSegmentedColormap, mock_numpy_array,
+                           mock_contents, mock_do_letter_search):
+        # POST
+        # For some reason, it's impossible to request a POST request via the Django test client,
+        # so manually create one and call the view directly
+        request = RequestFactory().post(reverse('get_wordcloud'))
+        response = get_wordcloud(request)
+        self.assertIsNone(response, 'get_wordcloud() should return None if not a GET request')
+
+        # GET
+        # If no letters returned by Elasticsearch, response content['wc'] should be empty string
+        response = self.client.get(reverse('get_wordcloud'), follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['wc'], '',
+                    "get_wordcloud() should return '' in response content['wc'] if no letters found by Elasticsearch")
+
+        # If something returned by Elasticsearch, decoded WordCloud image should get returned in response content['wc']
+        letter = LetterFactory()
+        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        search_results = [(letter, 'highlight', 'sentiment', 'score')]
+        es_result = ES_Result(search_results=search_results, total=42, pages=4)
+
+        mock_do_letter_search.return_value = es_result
+        mock_contents.return_value = 'letter contents'
+        mock_WordCloud.return_value = MagicMock()
+        mock_b64encode.return_value.decode.return_value = 'decoded image string'
+
+        response = self.client.get(reverse('get_wordcloud'), follow=True)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['wc'], 'decoded image string',
+                         "get_wordcloud() should return decoded WordCloud image in response content['wc']")
+
+
+class SentimentViewTestCase(TestCase):
+    """
+    Test sentiment_view
+    """
+
+    @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
+    @patch('letters.views.get_sentiments_for_sort_by_list', autospec=True)
+    def test_sentiment_view(self, mock_get_sentiments_for_sort_by_list, mock_get_initial_filter_values):
+        """
+        sentiment_view() should show a page for viewing sentiment letters, depending on filter_values
+        """
+
+        mock_get_initial_filter_values.return_value = 'initial filter values'
+
+        response = self.client.get(reverse('sentiment_view'), follow=True)
+
+        self.assertEqual(mock_get_sentiments_for_sort_by_list.call_count, 1,
+                         'sentiment_view() should call get_sentiments_for_sort_by_list()')
+
+        expected = {'title': 'Letter sentiment', 'nbar': 'sentiment',
+                    'filter_values': mock_get_initial_filter_values.return_value,
+                    'show_search_text': 'true', 'show_sentiment': 'true'}
+        for key in expected.keys():
+            self.assertEqual(response.context[key], expected[key],
+                             "sentiment_view() context '{}' should be '{}'".format(key, expected[key]))
+        self.assertIn('sort_by', response.context, "sentiment_view() context should contain 'sort_by'")
+
+
+class Letter_SentimentViewTestCase(TestCase):
+    """
+    Test letter_sentiment_view
+    """
+
+    @patch('letters.views.letter_search.get_letter_sentiments', autospec=True)
+    def test_letter_sentiment_view(self, mock_get_letter_sentiments):
+        """
+        If letter exists, return response with list of sentiments
+
+        For some reason, object_not_found() and show_letter_sentiment() can't be successfully mocked,
+        so actually call them
+        """
+
+        # If Letter with letter_id not found, letter_sentiment_view() should return object_not_found()
+        response = self.client.get(reverse('letter_sentiment_view',
+                                           kwargs={'letter_id': '1', 'sentiment_id': '1'}), follow=True)
+        expected = {'title': 'Letter not found', 'object_id': '1', 'object_type': 'Letter'}
+        for key in expected.keys():
+            self.assertEqual(response.context[key], expected[key],
+                "letter_sentiment_view() context '{}' should be '{}', if letter not found".format(key, expected[key]))
+
+        # If Letter with letter_id found, letter_sentiment_view() should return show_letter_sentiment()
+        letter = LetterFactory()
+        response = self.client.get(reverse('letter_sentiment_view',
+                                           kwargs={'letter_id': letter.pk, 'sentiment_id': '1'}), follow=True)
+        expected = {'title': 'Letter Sentiment', 'nbar': 'sentiment'}
+        for key in expected.keys():
+            self.assertEqual(response.context[key], expected[key],
+                "letter_sentiment_view() context '{}' should be '{}', if letter found".format(key, expected[key]))
