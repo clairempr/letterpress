@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from letters.models import Letter
 from letters.tests.factories import LetterFactory
-from letters.views import get_stats, get_wordcloud, letters_view
+from letters.views import get_stats, get_wordcloud, highlight_letter_for_sentiment, letters_view, show_letter_sentiment
 
 
 class HomeTestCase(SimpleTestCase):
@@ -26,6 +26,7 @@ class HomeTestCase(SimpleTestCase):
         """
 
         response = self.client.get(reverse('home'), follow=True)
+        self.assertTemplateUsed(response, 'letterpress.html')
         self.assertEqual(response.context['title'], 'Letterpress', "Home view context 'title' should be 'Letterpress'")
         self.assertEqual(response.context['nbar'], 'home', "Home view context 'nbar' should be 'home'")
 
@@ -57,6 +58,7 @@ class LettersViewTestCase(TestCase):
 
         # GET
         response = self.client.get(reverse('letters_view'), follow=True)
+        self.assertTemplateUsed(response, 'letters.html')
 
         expected = {'title': 'Letters', 'nbar': 'letters_view',
                     'filter_values': mock_get_initial_filter_values.return_value,
@@ -79,6 +81,7 @@ class StatsViewTestCase(TestCase):
         mock_get_initial_filter_values.return_value = 'initial filter values'
 
         response = self.client.get(reverse('stats_view'), follow=True)
+        self.assertTemplateUsed(response, 'stats.html')
 
         expected = {'title': 'Letter statistics', 'nbar': 'stats',
                     'filter_values': mock_get_initial_filter_values.return_value, 'show_words': 'true'}
@@ -203,6 +206,7 @@ class WordcloudViewTestCase(TestCase):
         mock_get_initial_filter_values.return_value = 'initial filter values'
 
         response = self.client.get(reverse('wordcloud_view'), follow=True)
+        self.assertTemplateUsed(response, 'wordcloud.html')
 
         expected = {'title': 'Word cloud', 'nbar': 'stats',
                     'filter_values': mock_get_initial_filter_values.return_value, 'show_search_text': 'true'}
@@ -270,6 +274,7 @@ class SentimentViewTestCase(TestCase):
         mock_get_initial_filter_values.return_value = 'initial filter values'
 
         response = self.client.get(reverse('sentiment_view'), follow=True)
+        self.assertTemplateUsed(response, 'sentiment.html')
 
         self.assertEqual(mock_get_sentiments_for_sort_by_list.call_count, 1,
                          'sentiment_view() should call get_sentiments_for_sort_by_list()')
@@ -283,15 +288,15 @@ class SentimentViewTestCase(TestCase):
         self.assertIn('sort_by', response.context, "sentiment_view() context should contain 'sort_by'")
 
 
-class Letter_SentimentViewTestCase(TestCase):
+class LetterSentimentViewTestCase(TestCase):
     """
-    Test letter_sentiment_view
+    Test letter_sentiment_view()
     """
 
     @patch('letters.views.letter_search.get_letter_sentiments', autospec=True)
     def test_letter_sentiment_view(self, mock_get_letter_sentiments):
         """
-        If letter exists, return response with list of sentiments
+        If letter exists, letter_sentiment_view() should return response with list of sentiments
 
         For some reason, object_not_found() and show_letter_sentiment() can't be successfully mocked,
         so actually call them
@@ -309,7 +314,103 @@ class Letter_SentimentViewTestCase(TestCase):
         letter = LetterFactory()
         response = self.client.get(reverse('letter_sentiment_view',
                                            kwargs={'letter_id': letter.pk, 'sentiment_id': '1'}), follow=True)
+        self.assertTemplateUsed(response, 'letter_sentiment.html')
+
         expected = {'title': 'Letter Sentiment', 'nbar': 'sentiment'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
                 "letter_sentiment_view() context '{}' should be '{}', if letter found".format(key, expected[key]))
+
+
+class ShowLetterSentimentTestCase(TestCase):
+    """
+    Test show_letter_sentiment()
+    """
+
+    @patch('letters.views.highlight_letter_for_sentiment', autospec=True)
+    def test_show_letter_sentiment(self, mock_highlight_letter_for_sentiment):
+        """
+        show_letter_sentiment() should show particular letter with sentiment highlights
+
+        It's not a view, but it gets returned by the letter_sentiment_view
+        """
+        letter = LetterFactory()
+
+        mock_highlight_letter_for_sentiment.return_value = [letter]
+
+        title = 'Letter sentiment'
+        nbar = 'sentiment'
+        sentiments = [('1', '0.1234')]
+
+        request = RequestFactory().get(reverse('letter_sentiment_view', kwargs={'letter_id': '1', 'sentiment_id': '1'}),
+                                       follow=True)
+        response = show_letter_sentiment(request, letter, title, nbar, sentiments)
+        content = str(response.content)
+
+        self.assertTrue(str(letter) in content)
+
+        expected = [title, nbar, str(letter)]
+        for item in expected:
+            self.assertTrue(item in content,
+                            "show_letter_sentiment() response content should contain '{}'".format(item))
+        for item in ['0.1234']:
+            self.assertTrue(item in content,
+                            "show_letter_sentiment() response content should contain sentiment value".format(item))
+
+        # If sentiment value is a list, all those values should end up in response
+        mock_highlight_letter_for_sentiment.return_value = [letter, letter]
+        sentiments = [('1', ['0.1234', '0.5678'])]
+
+        request = RequestFactory().get(reverse('letter_sentiment_view', kwargs={'letter_id': '1', 'sentiment_id': '1'}),
+                                       follow=True)
+        response = show_letter_sentiment(request, letter, title, nbar, sentiments)
+        content = str(response.content)
+
+        for item in ['0.1234', '0.5678']:
+            self.assertTrue(item in content,
+                            "show_letter_sentiment() response content should contain sentiment value".format(item))
+
+
+class HighlightLetterForSentimentTestCase(TestCase):
+    """
+    Test highlight_letter_for_sentiment()
+    """
+
+    @patch('letters.views.highlight_for_sentiment', autospec=True)
+    @patch.object(Letter, 'body_as_text', autospec=True)
+    def test_highlight_letter_for_sentiment(self, mock_body_as_text, mock_highlight_for_sentiment):
+        """
+        highlight_letter_for_sentiment() should call highlight_for_sentiment()
+        for each of a letter's fields and return a copy of the letter with fields highlighted
+
+        It returns a list, for some reason, even though only one sentiment_id is specified
+        """
+
+        mock_body_as_text.return_value = 'As this is the beginin of a new year I thought as I was a lone to night I ' \
+                                         'would write you a few lines to let you know that we are not all ded yet.'
+        letter = Letter(heading='Januery the 1st / 62',
+                        greeting='Miss Evey',
+                        closing='your friend as every',
+                        signature='F.P. Black',
+                        ps='p.s. remember me to enquirin friends')
+
+        mock_highlight_for_sentiment.side_effect = [[letter.heading], [letter.greeting],
+                                                    [mock_body_as_text.return_value], [letter.closing],
+                                                    [letter.signature], [letter.ps]]
+
+        result = highlight_letter_for_sentiment(letter, 1)
+
+        self.assertEqual(mock_highlight_for_sentiment.call_args_list[0][0], (letter.heading, 1),
+                         'highlight_letter_for_sentiment() should call highlight_for_sentiment(heading, sentiment_id)')
+        self.assertEqual(mock_highlight_for_sentiment.call_args_list[1][0], (letter.greeting, 1),
+                         'highlight_letter_for_sentiment() should call highlight_for_sentiment(greeting, sentiment_id)')
+        self.assertEqual(mock_highlight_for_sentiment.call_args_list[2][0], (mock_body_as_text.return_value, 1),
+                         'highlight_letter_for_sentiment() should call highlight_for_sentiment(body, sentiment_id)')
+        self.assertEqual(mock_highlight_for_sentiment.call_args_list[3][0], (letter.closing, 1),
+                         'highlight_letter_for_sentiment() should call highlight_for_sentiment(closing, sentiment_id)')
+        self.assertEqual(mock_highlight_for_sentiment.call_args_list[4][0], (letter.signature, 1),
+                         'highlight_letter_for_sentiment() should call highlight_for_sentiment(signature, sentiment_id)')
+        self.assertEqual(mock_highlight_for_sentiment.call_args_list[5][0], (letter.ps, 1),
+                         'highlight_letter_for_sentiment() should call highlight_for_sentiment(ps, sentiment_id)')
+
+        self.assertEqual(letter.contents(), result[0].contents())
