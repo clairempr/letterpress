@@ -12,7 +12,8 @@ from django.urls import reverse
 
 from letters.models import Letter
 from letters.tests.factories import LetterFactory
-from letters.views import get_stats, get_wordcloud, highlight_letter_for_sentiment, letters_view, show_letter_sentiment
+from letters.views import get_stats, get_text_sentiment, get_wordcloud, highlight_for_sentiment, \
+    highlight_letter_for_sentiment, letters_view, show_letter_sentiment
 
 
 class HomeTestCase(SimpleTestCase):
@@ -31,7 +32,7 @@ class HomeTestCase(SimpleTestCase):
         self.assertEqual(response.context['nbar'], 'home', "Home view context 'nbar' should be 'home'")
 
 
-class LettersViewTestCase(TestCase):
+class LettersViewTestCase(SimpleTestCase):
     """
     Test letters_view
     """
@@ -70,7 +71,7 @@ class LettersViewTestCase(TestCase):
                       "letters_view() context should contain 'sort_by' if GET request".format(key))
 
 
-class StatsViewTestCase(TestCase):
+class StatsViewTestCase(SimpleTestCase):
     """
     Test stats_view
     """
@@ -90,7 +91,7 @@ class StatsViewTestCase(TestCase):
                              "stats_view() context '{}' should be '{}' if GET request".format(key, expected[key]))
 
 
-class GetStatsTestCase(TestCase):
+class GetStatsTestCase(SimpleTestCase):
     """
     Test get_stats()
 
@@ -121,7 +122,7 @@ class GetStatsTestCase(TestCase):
     @patch('letters.views.make_charts', autospec=True)
     def test_get_stats(self, mock_make_charts, mock_render_to_string, mock_get_multiple_word_frequencies,
                        mock_get_word_counts_per_month, mock_get_filter_values_from_request):
-        # GET request should return ValueError
+        # GET request should raise ValueError
         with self.assertRaises(ValueError):
             self.client.get(reverse('get_stats'), follow=True)
 
@@ -195,7 +196,7 @@ class GetStatsTestCase(TestCase):
             "If months not in Elasticsearch word frequencies, 'chart' in get_stats() response should be empty string")
 
 
-class WordcloudViewTestCase(TestCase):
+class WordcloudViewTestCase(SimpleTestCase):
     """
     Test wordcloud_view()
     """
@@ -259,7 +260,7 @@ class GetWordcloudTestCase(TestCase):
                          "get_wordcloud() should return decoded WordCloud image in response content['wc']")
 
 
-class SentimentViewTestCase(TestCase):
+class SentimentViewTestCase(SimpleTestCase):
     """
     Test sentiment_view
     """
@@ -413,4 +414,124 @@ class HighlightLetterForSentimentTestCase(TestCase):
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[5][0], (letter.ps, 1),
                          'highlight_letter_for_sentiment() should call highlight_for_sentiment(ps, sentiment_id)')
 
-        self.assertEqual(letter.contents(), result[0].contents())
+        self.assertEqual(letter.contents(), result[0].contents(),
+                         'highlight_letter_for_sentiment() should return highlighted letter')
+
+
+class TextSentimentViewTestCase(SimpleTestCase):
+    """
+    Test text_sentiment_view()
+    """
+
+    @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
+    def test_text_sentiment_view(self, mock_get_initial_filter_values):
+        """
+        text_sentiment_view() should return response containing filter values
+        from get_initial_filter_values()
+        """
+
+        mock_get_initial_filter_values.return_value = 'initial filter values'
+
+        response = self.client.get(reverse('text_sentiment_view'), follow=True)
+
+        expected = {'title': 'Text sentiment', 'nbar': 'sentiment',
+                    'filter_values': mock_get_initial_filter_values.return_value}
+        for key in expected.keys():
+            self.assertEqual(response.context[key], expected[key],
+                             "sentiment_view() context '{}' should be '{}'".format(key, expected[key]))
+
+
+class GetTextSentimentTestCase(SimpleTestCase):
+    """
+    Test get_text_sentiment()
+    """
+
+    @patch('letters.views.letters_filter.get_filter_values_from_request', autospec=True)
+    @patch('letters.views.highlight_for_sentiment', autospec=True)
+    @patch('letters.views.get_sentiment', autospec=True)
+    @patch('letters.views.get_custom_sentiment_for_text', autospec=True)
+    def test_get_text_sentiment(self, mock_get_custom_sentiment_for_text, mock_get_sentiment,
+                                mock_highlight_for_sentiment, mock_get_filter_values_from_request):
+        # GET request should raise ValueError
+        with self.assertRaises(ValueError):
+            self.client.get(reverse('get_text_sentiment'), follow=True)
+
+        FilterValues = namedtuple('FilterValues',
+                                  ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date',
+                                   'words',
+                                   'sentiment_ids', 'sort_by'])
+        filter_values = FilterValues(
+            search_text='search_text',
+            source_ids=[1, 2, 3],
+            writer_ids=[1, 2, 3],
+            start_date=['1862-01-01'],
+            end_date=['1862-12-31'],
+            words=['&', 'and'],
+            sentiment_ids=[0, 1, 2],
+            sort_by='sort_by'
+        )
+        mock_get_filter_values_from_request.return_value = filter_values
+        mock_highlight_for_sentiment.return_value = 'highlight for sentiment'
+        mock_get_custom_sentiment_for_text.return_value = 'custom sentiment for text'
+
+        # POST
+        # For some reason, it's impossible to request a POST request via the Django test client,
+        # so manually create one and call the view directly
+        request = RequestFactory().post(reverse('get_text_sentiment'), follow=True)
+        response = get_text_sentiment(request)
+
+        # highlight_for_sentiment() should be called for each sentiment
+        self.assertEqual(mock_highlight_for_sentiment.call_count, 3,
+                         'get_text_sentiment() should call highlight_for_sentiment() for each sentiment')
+
+        # get_sentiment() should be called for sentiment with id 0
+        self.assertEqual(mock_get_sentiment.call_count, 1,
+                         'get_text_sentiment() should call get_sentiment() for sentiment with id 0')
+
+        # get_custom_sentiment_for_text() should be called for each sentiment with id != 0
+        self.assertEqual(mock_get_custom_sentiment_for_text.call_count, 2,
+                         'get_text_sentiment() should call get_custom_sentiment_for_text() for sentiments with id != 0')
+
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertTrue(mock_get_custom_sentiment_for_text.return_value in content['sentiments'],
+                        "get_text_sentiment() should return custom sentiment in response content['sentiments']")
+
+
+class HighlightForSentimentTestCase(SimpleTestCase):
+    """
+    Test highlight_for_sentiment()
+    """
+
+
+    @patch('letters.views.highlight_text_for_sentiment')
+    @patch('letters.views.highlight_for_custom_sentiment')
+    def test_highlight_for_sentiment(self, mock_highlight_for_custom_sentiment, mock_highlight_text_for_sentiment):
+        """
+        highlight_for_sentiment(text, sentiment_id) should return text highlighted with
+        highlight_text_for_sentiment() if sentiment_id is 0
+        Otherwise it should return text highlighted with highlight_for_custom_sentiment()
+        """
+
+        text = 'Hamburger kevin turducken'
+
+        # highlight_for_sentiment(text, sentiment_id) should return text highlighted with
+        # highlight_text_for_sentiment() if sentiment_id is 0
+        highlight_for_sentiment(text, 0)
+
+        args, kwargs = mock_highlight_text_for_sentiment.call_args
+        self.assertEqual(args[0], text,
+                    'highlight_for_sentiment() should call highlight_text_for_sentiment() if sentiment_id is 0')
+        self.assertEqual(mock_highlight_for_custom_sentiment.call_count, 0,
+                    "highlight_for_sentiment() shouldn't call highlight_for_custom_sentiment() if sentiment_id is 0")
+        mock_highlight_text_for_sentiment.reset_mock()
+
+        # highlight_for_sentiment(text, sentiment_id) should return text highlighted with
+        # highlight_for_custom_sentiment() if sentiment_id is not 0
+        highlight_for_sentiment(text, 1)
+
+        args, kwargs = mock_highlight_for_custom_sentiment.call_args
+        self.assertEqual(args[0], text,
+                    "highlight_for_sentiment() should call highlight_for_custom_sentiment() if sentiment_id isn't 0")
+        self.assertEqual(mock_highlight_text_for_sentiment.call_count, 0,
+                    "highlight_for_sentiment() shouldn't call mock_highlight_text_for_sentiment() if sentiment_id isn't 0")
+        mock_highlight_for_custom_sentiment.reset_mock()

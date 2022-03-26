@@ -247,8 +247,11 @@ def highlight_letter_for_sentiment(letter, sentiment_id):
     return highlighted_letters
 
 
-# view to show one letter by id, with highlights for selected sentiment
 def text_sentiment_view(request):
+    """
+    View to get a piece of text for analysis using the chosen sentiment(s)
+    """
+
     assert isinstance(request, HttpRequest)
     filter_values = letters_filter.get_initial_filter_values()
     return render(request, 'text_sentiment.html', {'title': 'Text sentiment', 'nbar': 'sentiment',

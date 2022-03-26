@@ -57,4 +57,4 @@ The name comes from an early office technology which people used to duplicate do
 ### Credits ###
 Photograph of copy press from [Letterpress Commons](https://letterpresscommons.com), 
 map marker from [Maps Icons Collection](https://mapicons.mapsmarker.com), other images public domain.
-Thanks to [Hipster Ipsum](https://hipsum.co/) for some of the gibberish text in my unit tests.
+Thanks to [Hipster Ipsum](https://hipsum.co/) and [Bacon Ipsum](https://baconipsum.com/) for some of the gibberish text in my unit tests.
