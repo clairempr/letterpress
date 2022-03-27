@@ -1,7 +1,7 @@
 Letterpress
 ===========
 
-[![CircleCI](https://circleci.com/gh/clairempr/letterpress/tree/unit-tests.svg?style=svg)](https://circleci.com/gh/clairempr/letterpress/tree/unit-tests)
+[![CircleCI](https://circleci.com/gh/clairempr/letterpress/tree/main.svg?style=svg)](https://circleci.com/gh/clairempr/letterpress/tree/main)
 [![Coverage Status](https://coveralls.io/repos/github/clairempr/letterpress/badge.svg)](https://coveralls.io/github/clairempr/letterpress)
 ![Screenshot](screenshots/home.png) 
 *Claire Pritchard*  
