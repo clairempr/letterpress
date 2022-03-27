@@ -7,13 +7,15 @@ from matplotlib.colors import LinearSegmentedColormap
 from unittest.mock import MagicMock, patch
 from wordcloud import WordCloud
 
+from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
-from letters.models import Letter
+from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory
-from letters.views import get_stats, get_text_sentiment, get_wordcloud, highlight_for_sentiment, \
-    highlight_letter_for_sentiment, letters_view, show_letter_sentiment
+from letters.views import export, export_csv, export_text, get_stats, get_text_sentiment, get_wordcloud, \
+    highlight_for_sentiment, highlight_letter_for_sentiment, letters_view, search, show_letter_content, \
+    show_letter_sentiment, object_not_found
 
 
 class HomeTestCase(SimpleTestCase):
@@ -535,3 +537,246 @@ class HighlightForSentimentTestCase(SimpleTestCase):
         self.assertEqual(mock_highlight_text_for_sentiment.call_count, 0,
                     "highlight_for_sentiment() shouldn't call mock_highlight_text_for_sentiment() if sentiment_id isn't 0")
         mock_highlight_for_custom_sentiment.reset_mock()
+
+
+class SearchTestCase(TestCase):
+    """
+    Test search()
+    """
+
+    @patch('letters.views.letter_search.do_letter_search')
+    def test_search(self, mock_do_letter_search):
+        """
+        search() should return list of letters containing search text
+        """
+
+        # GET request should raise ValueError
+        with self.assertRaises(ValueError):
+            self.client.get(reverse('search'), follow=True)
+
+        letter = LetterFactory()
+
+        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        search_results = [(letter, 'highlight', [('1', 'sentiment')], 'score')]
+        es_result = ES_Result(search_results=search_results, total=42, pages=4)
+
+        mock_do_letter_search.return_value = es_result
+
+        # POST
+        # For some reason, it's impossible to request a POST request via the Django test client,
+        # so manually create one and call the view directly
+        request = RequestFactory().post(reverse('search'), follow=True)
+
+        # If search_text is supplied, the size passed to do_letter_search() should be 5
+        request.POST = {'page_number': '1', 'search_text': 'Bacon ipsum dolor amet ball tip salami kielbasa'}
+        search(request)
+
+        args, kwargs = mock_do_letter_search.call_args
+        self.assertEqual(args, (request, 5, 1),
+                         'If search_text supplied to search(), the size passed to do_letter_search() should be 5')
+        mock_do_letter_search.reset_mock()
+
+        # If search_text not supplied, the size passed to do_letter_search() should be 10
+        request.POST = {'page_number': '1'}
+        response = search(request)
+
+        args, kwargs = mock_do_letter_search.call_args
+        self.assertEqual(args, (request, 10, 1),
+                         'If search_text not supplied to search(), the size passed to do_letter_search() should be 10')
+        mock_do_letter_search.reset_mock()
+
+        # response content['pages'] should contain do_letter_search() result.pages
+        # and response content['letters'] should contain letter from do_letter_search() result.search_results
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content['pages'], mock_do_letter_search.return_value.pages,
+                        "search() response content['pages'] should contain do_letter_search() result.pages")
+        self.assertTrue(str(letter.writer) in content['letters'],
+                        "search() response content['letters'] should contain letter found by do_letter_search()")
+
+        # If page_number isn't 0, response content['pagination'] should be empty string
+        self.assertEqual(content['pagination'], '',
+                        "search() response content['pagination'] should be empty string if page_number isn't 0")
+
+        # If page_number is 0, response content['pagination'] shouldn't be empty string
+        request.POST = {'page_number': '0'}
+        response = search(request)
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertNotEqual(content['pagination'], '',
+                            "search() response content['pagination'] shouldn't be empty string if page_number is 0")
+
+
+class LetterByIdTestCase(TestCase):
+    """
+    Test letter_by_id()
+    """
+
+    def test_letter_by_id(self):
+        """
+        letter_by_id() should call show_letter_content() if letter with id found
+
+        For some reason, object_not_found() can't be successfully mocked, so actually call it
+        """
+
+        # If Letter with letter_id not found, letter_by_id() should return object_not_found()
+        response = self.client.get(reverse('letter_by_id', kwargs={'letter_id': '1'}), follow=True)
+
+        expected = {'title': 'Letter not found', 'object_id': '1', 'object_type': 'Letter'}
+        for key in expected.keys():
+            self.assertEqual(response.context[key], expected[key],
+                "letter_by_id() context '{}' should be '{}', if letter not found".format(key, expected[key]))
+
+        # If Letter with letter_id found, letter_by_id() should return show_letter_content()
+        letter = LetterFactory()
+        response = self.client.get(reverse('letter_by_id', kwargs={'letter_id': letter.pk}), follow=True)
+        self.assertTemplateUsed(response, 'letter.html')
+
+        expected = {'title': 'Letter', 'nbar': 'letters_view'}
+        for key in expected.keys():
+            self.assertEqual(response.context[key], expected[key],
+                "letter_by_id() context '{}' should be '{}', if letter found".format(key, expected[key]))
+
+
+class ObjectNotFoundTestCase(SimpleTestCase):
+    """
+    Test object_not_found()
+    """
+
+    def test_object_not_found(self):
+        """
+        object_not_found() should return rendered html giving details about the object that wasn't found
+        """
+
+        request = RequestFactory()
+        response = object_not_found(request, object_id=1, object_type='Letter')
+        content = str(response.content)
+
+        self.assertTrue('<title>Letter not found</title>' in content,
+                        "object_not_found() response content should include '<object_type> not found'")
+        self.assertTrue('ID 1' in content,
+                        "object_not_found() response content should include 'ID <object_id>' if it's for a letter")
+
+
+class ShowLetterContentTestCase(TestCase):
+    """
+    Test show_letter_content()
+    """
+
+    def test_show_letter_content(self):
+        """
+        show_letter_content(request, letter, title, nbar) should return rendered html
+        showing content of letter
+        """
+
+        letter = LetterFactory()
+
+        request = RequestFactory()
+        response = show_letter_content(request, letter, title='The Title', nbar='nbar')
+        content = str(response.content)
+
+        self.assertTrue('<title>The Title</title>' in content,
+                        'show_letter_content() response content should contain title')
+        self.assertTrue(str(letter) in content,
+                        'show_letter_content() response content should contain str(letter)')
+
+
+class ExportTestCase(TestCase):
+    """
+    Test export()
+    """
+
+    @patch('letters.views.letter_search.do_letter_search', autospec=True)
+    @patch('letters.views.export_text', autospec=True)
+    @patch('letters.views.export_csv', autospec=True)
+    def test_export(self, mock_export_csv, mock_export_text, mock_do_letter_search):
+        """
+        export() should export letters that meet search criteria to text or csv file
+        """
+
+        letter = LetterFactory()
+
+        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        search_results = [(letter, 'highlight', [('1', 'sentiment')], 'score')]
+        es_result = ES_Result(search_results=search_results, total=42, pages=4)
+
+        mock_do_letter_search.return_value = es_result
+
+        # POST
+        # For some reason, it's impossible to request a POST request via the Django test client,
+        # so manually create one and call the view directly
+        request = RequestFactory().post(reverse('export'), follow=True)
+
+        # If export_text is in POST parameters, export_text() should get called
+        request.POST = {'export_text': True}
+        export(request)
+
+        args, kwargs = mock_export_text.call_args
+        self.assertEqual(args[0], [letter],
+                         "export() should call export_text(letters) if 'export_text' in POST parameters")
+        self.assertEqual(mock_export_csv.call_count, 0,
+                         "export() shouldn't call export_csv() if 'export_text' in POST parameters")
+        mock_export_text.reset_mock()
+
+        # If export_text not in POST parameters, export_csv() should get called
+        request.POST = {'export_csv': True}
+        export(request)
+
+        args, kwargs = mock_export_csv.call_args
+        self.assertEqual(args[0], [letter],
+                         "export() should call mock_export_csv(letters) if 'export_text' not in POST parameters")
+        self.assertEqual(mock_export_text.call_count, 0,
+                         "export() shouldn't call export_text() if 'export_text' not in POST parameters")
+        mock_export_csv.reset_mock()
+
+
+class ExportCsvTestCase(TestCase):
+    """
+    Test export_csv()
+    """
+
+    @patch('io.StringIO', autospec=True)
+    @patch('csv.writer', autospec=True)
+    @patch.object(Letter, 'sort_date', autospec=True)
+    @patch.object(Correspondent, 'to_export_string', autospec=True)
+    @patch.object(Letter, 'contents', autospec=True)
+    def test_export_csv(self, mock_letter_contents, mock_correspondent_to_export_string, mock_sort_date,
+                        mock_csv_writer, mock_StringIO):
+        """
+        export_csv(letters) should write content of letters to a csv file and return it in a response
+        """
+
+        letter = LetterFactory()
+
+        response = export_csv([letter])
+
+        self.assertEqual(mock_csv_writer.call_count, 1, 'export_csv() should call csv.writer()')
+        self.assertEqual(mock_sort_date.call_count, 1, 'export_csv() should call Letter.sort_date()')
+        self.assertEqual(mock_correspondent_to_export_string.call_count, 2,
+                         'export_csv() should call Correspondent.to_export_string() twice')
+        self.assertEqual(mock_letter_contents.call_count, 1, 'export_csv() should call Letter.contents()')
+
+        self.assertEqual(response['content-type'],
+                         'text/csv', "export_csv() should return response with content_type 'text/csv'")
+
+
+class ExportTextTestCase(TestCase):
+    """
+    Test export_text()
+    """
+
+    @patch('letters.views.get_letter_export_text', autospec=True)
+    def test_export_text(self, mock_get_letter_export_text):
+        """
+        export_text() should write content of letters to a csv file and return it in a response
+        """
+
+        letter = LetterFactory()
+
+        response = export_text([letter])
+
+        args, kwargs = mock_get_letter_export_text.call_args
+        self.assertEqual(args[0], letter,
+                         'export_text(letters) should call get_letter_export_text(letter for each letter)')
+
+        self.assertEqual(type(response), HttpResponse, 'export_text() should return HttpResponse')
+        self.assertEqual(response['content-type'],
+                         'text/plain', "export_text() should return response with content_type 'text/plain'")
