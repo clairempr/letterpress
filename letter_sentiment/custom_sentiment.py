@@ -73,31 +73,18 @@ def get_token_offsets(token):
     return start_offset, end_offset, position
 
 
-def insert_highlight(highlighted_text, original_text, ss_start, ss_end,
-                     highlight_start, highlight_end):
-    highlighted_term = str.format('{0}{1}{2}',
-                                  highlight_start, original_text, highlight_end)
-
-    # is term already surrounded by highlight markers?
-    prev_highlight_start = highlighted_text.rfind(highlight_start, 0, ss_start)
-    prev_highlight_end = highlighted_text.rfind(highlight_end, 0, ss_start)
-    if prev_highlight_end > prev_highlight_start or prev_highlight_start == -1 \
-            or prev_highlight_end == -1:
-        # not already surrounded, so insert them
-        highlighted_text \
-            = do_highlight_replacement(highlighted_text, highlighted_term, ss_start, ss_end)
-
-    return highlighted_text
-
-
-def do_highlight_replacement(highlighted_text, highlighted_term, ss_start, ss_end):
-    return str.format('{0}{1}{2}',
-                      highlighted_text[:ss_start],
-                      highlighted_term,
-                      highlighted_text[ss_end:])
-
-
 def update_tokens_in_termvector(termvector, term, token):
+    """
+    Do something-or-other with termvector
+
+    If an n-gram of the term is inside the token, remove that n-gram's token,
+    because we're interested in the most complete occurrence of the term
+    At least, I think that's what this does
+
+    Because termvector is a dict, it gets passed in by reference and is updated in place, so
+    the return value is kinda pointless
+    """
+
     words = term.analyzed_text.split(' ')
     start, end, position = get_token_offsets(token)
 

@@ -4,8 +4,19 @@ Django settings for letterpress project.
 For use with Django 10.6 and 1.11
 """
 
-import os, platform
-from letterpress.firstrun import settings_secret
+import environ
+import os
+import platform
+
+env = environ.Env(
+    # set casting, default value
+    CIRCLECI=(bool, False)
+)
+
+# If this is running under CircleCI, then settings_secret won't be available
+CIRCLECI = env('CIRCLECI')
+if not CIRCLECI:
+    from letterpress.firstrun import settings_secret
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -21,8 +32,12 @@ DB_DIR = './'
 
 # Settings stored in settings_secret
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = settings_secret.SECRET_KEY
-ALLOWED_HOSTS = settings_secret.ALLOWED_HOSTS
+if CIRCLECI:
+    SECRET_KEY = 'super-duper-secret-key-for-circleci'
+    ALLOWED_HOSTS = []
+else:
+    SECRET_KEY = settings_secret.SECRET_KEY
+    ALLOWED_HOSTS = settings_secret.ALLOWED_HOSTS
 
 # Application definition
 INSTALLED_APPS = [
@@ -75,6 +90,7 @@ TEMPLATES = [
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
             ],
+        'debug': True,
         },
     },
 ]
@@ -180,4 +196,7 @@ X_FRAME_OPTIONS = "DENY"
 
 # Elasticsearch URL: If using Docker, host needs to be the name of the service in the docker-compose file,
 # otherwise it should be localhost if running locally
-ELASTICSEARCH_URL = 'http://elasticsearch:9200/'
+if CIRCLECI:
+    ELASTICSEARCH_URL = 'http://localhost:9200/'
+else:
+    ELASTICSEARCH_URL = 'http://elasticsearch:9200/'

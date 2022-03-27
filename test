@@ -1,0 +1,2 @@
+# Run tests, with optional parameter for specifying which tests to run
+docker-compose -f docker-compose.yml run django ./manage.py test $@

@@ -83,10 +83,19 @@ class MonthFilter(SimpleListFilter):
     parameter_name = 'month'
 
     def lookups(self, request, model_admin):
+        """
+        Lookups are all the months for which a dated model object exists
+        """
+
         months = set([doc.date.month for doc in get_objects_with_date(model_admin.model)])
         return [(month, calendar.month_name[month]) for month in months]
 
     def queryset(self, request, queryset):
+        """
+        Return all the objects that have a date in the given month, if specified
+        Otherwise return all the objects
+        """
+
         if self.value():
             month = int(self.value())
             doc_ids = [doc.id for doc in get_objects_with_date(queryset.model) if doc.date.month == month]

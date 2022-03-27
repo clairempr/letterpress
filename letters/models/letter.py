@@ -80,6 +80,13 @@ class Letter(Document):
         }
 
     def es_repr(self):
+        """
+        Serialize letter fields for Elasticsearch indexing by getting mapping from Meta
+        and generating a representation of each field with field_es_repr
+
+        See https://qbox.io/blog/elasticsearch-and-django-bulk-index/
+        """
+
         data = {}
         mapping = self._meta.es_mapping
         data['_id'] = self.pk
@@ -88,6 +95,16 @@ class Letter(Document):
         return data
 
     def field_es_repr(self, field_name):
+        """
+        Serialize letter field for Elasticsearch indexing:
+        Get field description from mapping
+        If there's a method named get_es_{field name} – use it to get field's value
+        If it's an object, populate a dictionary directly from attributes of the related object
+        If it's not an object, and there's no special method with special name, get an attribute from the model
+
+        See https://qbox.io/blog/elasticsearch-and-django-bulk-index/
+        """
+
         config = self._meta.es_mapping['properties'][field_name]
         if hasattr(self, 'get_es_%s' % field_name):
             field_es_value = getattr(self, 'get_es_%s' % field_name)()
@@ -115,9 +132,22 @@ class Letter(Document):
         return self.source_id
 
     def save(self, *args, **kwargs):
-        es = es_settings.ES_CLIENT
         is_new = self.pk
         super(Letter, self).save(*args, **kwargs)
+        self.create_or_update_in_elasticsearch(is_new=is_new)
+
+    def create_or_update_in_elasticsearch(self, is_new):
+        """
+        If this is a newly-created Letter that hasn't been assigned a pk yet,
+        index it in Elasticsearch
+
+        If it's an existing Letter, update the Elasticsearch index
+
+        Calling create() or update() with refresh as arg causes TypeError: got an unexpected keyword argument 'refresh',
+        at least in a unit test, so it's commented out
+        """
+
+        es = es_settings.ES_CLIENT
         payload = self.es_repr()
         del payload['_id']
         if is_new is None:
@@ -125,7 +155,7 @@ class Letter(Document):
                 index=self._meta.es_index_name,
                 doc_type=self._meta.es_type_name,
                 id=self.pk,
-                refresh=True,
+                # refresh=True,
                 body=payload
             )
         else:
@@ -133,7 +163,7 @@ class Letter(Document):
                 index=self._meta.es_index_name,
                 doc_type=self._meta.es_type_name,
                 id=self.pk,
-                refresh=True,
+                # refresh=True,
                 body={
                     "doc": payload
                 }
@@ -145,10 +175,15 @@ class Letter(Document):
         self.delete_from_elasticsearch(pk)
 
     def delete_from_elasticsearch(self, pk):
+        """
+        Calling create() or update() with refresh as arg causes TypeError: got an unexpected keyword argument 'refresh',
+        at least in a unit test, so it's commented out
+        """
+
         es = es_settings.ES_CLIENT
         es.delete(
             index=self._meta.es_index_name,
             doc_type=self._meta.es_type_name,
             id=pk,
-            refresh=True,
+            # refresh=True,
         )

@@ -36,6 +36,10 @@ class Term(models.Model):
         return self.text.count(' ') + 1
 
     def save(self, *args, **kwargs):
+        """
+        If Term.text is changed, it should be analyzed again
+        """
+
         if (self.text != self.__original_text) or not self.analyzed_text:
             self.analyzed_text = analyze_text(self.text)
         super(Term, self).save(*args, **kwargs);

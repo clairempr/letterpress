@@ -17,4 +17,4 @@ class Envelope(Document):
         return str.format('{writer} to {recipient}{date}',
                           writer=self.writer,
                           recipient=self.recipient,
-                          date=', ' + self.date if self.date else '')
+                          date=', ' + str(self.date) if self.date else '')

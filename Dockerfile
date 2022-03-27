@@ -1,4 +1,5 @@
 FROM python:3.5
+#FROM python:3.7
 
 ENV PYTHONUNBUFFERED 1
 
@@ -15,6 +16,7 @@ RUN pip install -r requirements.txt
 # Modify libgeos.py to avoid the error
 # django.contrib.gis.geos.error.GEOSException: Could not parse version info string "3.7.1-CAPI-1.11.1 27a5e771"
 RUN sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /usr/local/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
+#RUN sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /usr/local/lib/python3.7/site-packages/django/contrib/gis/geos/libgeos.py
 
 # Some of the sentiment analysis uses textblob, which requires that data be downloaded
 RUN python -m textblob.download_corpora

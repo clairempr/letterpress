@@ -1,7 +1,7 @@
 """ Elasticsearch-specific functionality for custom sentiment calculations """
 import json
 
-import letter_sentiment.custom_sentiment
+from letter_sentiment.models import CustomSentiment
 from letters.elasticsearch import do_es_search
 
 
@@ -65,8 +65,11 @@ def get_sentiment_function_score_query(bool_query):
 def get_sentiment_match_query(sentiment_id):
     sentiment_match_query = []
 
-    my_custom_sentiment = letter_sentiment.custom_sentiment.get_custom_sentiment(sentiment_id) \
-        if sentiment_id else None
+    try:
+        my_custom_sentiment = CustomSentiment.objects.get(pk=sentiment_id)
+    except CustomSentiment.DoesNotExist:
+        my_custom_sentiment = None
+
     if my_custom_sentiment:
         max_weight = my_custom_sentiment.max_weight
         terms = my_custom_sentiment.get_terms()

@@ -1,0 +1,35 @@
+version: 2.1
+jobs:
+  build:
+    working_directory: ~/letterpress
+    docker:
+      - image: circleci/python:3.5.10 # every job must define an image for the docker executor and subsequent jobs may define a different image.
+      - image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2 # an example of how to specify a service container
+    steps:
+    - checkout  # checkout source code to working directory
+    - run:
+        command: |
+          sudo chown -R circleci:circleci /usr/local/bin
+          sudo chown -R circleci:circleci /usr/local/lib/python3.5/site-packages
+    - restore_cache: # restore cached dependencies
+        key: pip-env-{{ checksum "requirements.txt" }}
+    - run:
+        command: |
+          sudo apt-get update --allow-releaseinfo-change
+          sudo apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
+          sudo apt-get install -y libsqlite3-mod-spatialite gdal-bin
+          sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
+    - run: pip install -r requirements.txt
+    - run: python -m textblob.download_corpora
+    - run: sudo sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /usr/local/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
+    - run: pip install coveralls
+    - run: touch letterpress/settings_secret.py
+    - save_cache: # cache installed dependencies
+        key: pip-env-{{ checksum "requirements.txt" }}
+        paths:
+          - '/home/circleci/.cache/pip'
+          - '/usr/local/bin'
+          - '/usr/local/lib/python3.5/site-packages'
+    - run: coverage run manage.py test
+
+    - run: coveralls

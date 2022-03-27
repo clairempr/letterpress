@@ -13,9 +13,12 @@ from letter_sentiment.elasticsearch import get_sentiment_function_score_query, \
 from letter_sentiment.sentiment import format_sentiment
 
 
-# Based on search criteria in request, query elasticsearch and
-# return list of tuples containing letter and highlight
 def do_letter_search(request, size, page_number):
+    """
+    Based on search criteria in request, query elasticsearch and
+    return list of tuples containing letter and highlight
+    """
+
     filter_values = letters_filter.get_filter_values_from_request(request)
 
     if page_number > 0:
@@ -89,6 +92,10 @@ def do_letter_search(request, size, page_number):
 
 
 def get_doc_highlights(doc):
+    """
+    Return a <br>-separated list of Elasticsearch highlights
+    """
+
     if 'highlight' in doc:
         if 'contents' in doc['highlight']:
             return '<br>'.join(doc['highlight']['contents'])
@@ -98,8 +105,12 @@ def get_doc_highlights(doc):
     return ''
 
 
-# sentiments is a list of (id, name/result)
 def get_letter_sentiments(letter, sentiment_ids):
+    """
+    Return a list of (id, name/result) consisting of sentiments with sentiment_ids
+    for letter
+    """
+
     if not sentiment_ids:
         return []
 
@@ -119,16 +130,22 @@ def get_letter_sentiments(letter, sentiment_ids):
     return sentiments
 
 
-# get word_count from doc already returned from elasticsearch query
 def get_doc_word_count(doc):
+    """
+    Get word_count from doc already returned from Elasticsearch query
+    """
+
     if 'fields' in doc and 'contents.word_count' in doc['fields']:
         return doc['fields']['contents.word_count'][0]
 
     return 0
 
 
-# get word_count for letter with letter_id using elasticsearch query
 def get_letter_word_count(letter_id):
+    """
+    Get word_count for letter with letter_id using Elasticsearch query
+    """
+
     stored_fields = ['contents.word_count']
     result = get_stored_fields_for_letter(letter_id, stored_fields)
     word_count = get_doc_word_count(result)
@@ -136,6 +153,10 @@ def get_letter_word_count(letter_id):
 
 
 def get_multiple_word_frequencies(filter_values):
+    """
+    Get term frequencies for mtermvectors returned by Elasticsearch using the given filters
+    """
+
     words = filter_values.words
     query = json.dumps({
         '_source': ['date'],
@@ -176,13 +197,23 @@ def get_multiple_word_frequencies(filter_values):
 
 
 def get_year_month_from_date(date_string):
+    """
+    Extract year/month/day from date_string and return YYYY-MM formatted date,
+    with '0000' for year if date_string empty and '00' for month if none in date_string
+    """
+
     components = date_string.split('-')
     return str.format('{year}-{month}',
-                      year=components[0] if components else '0000',
+                      year=components[0] if components and components[0] else '0000',
                       month=components[1] if len(components) > 1 else '00')
 
 
 def get_word_counts_per_month(filter_values):
+    """
+    Use Elasticsearch query with aggregations to retrieve counts in letters written in a given month
+    for words given in filter_values, and return them
+    """
+
     filter_conditions = get_filter_conditions_for_query(filter_values)
 
     aggs = {
@@ -231,9 +262,14 @@ def get_word_counts_per_month(filter_values):
 
 
 def get_letter_match_query(filter_values):
+    """
+    Take search_text from filter_values and return a query for contents
+    """
+
     contents_query = ''
     search_text = filter_values.search_text
-    if search_text and not contents_query:
+    if search_text:
+        # If search_text contains quotes, an entire phrase needs to be matched
         if '"' in search_text:
             contents_query = {'match_phrase': {'contents':
                                                    {'query': search_text, 'analyzer': 'standard'}}}
@@ -244,10 +280,19 @@ def get_letter_match_query(filter_values):
 
 
 def get_date_query(filter_values):
+    """
+    Return date query for Elasticsearch based on date range in filter_values
+    """
+
     return {'range': {'date': {'gte': filter_values.start_date, 'lte': filter_values.end_date}}}
 
 
 def get_filter_conditions_for_query(filter_values):
+    """
+    Get a date_query for Elasticsearch based on filter_values,
+    and add 'terms' with source_ids and writer_ids if they're present in filter_values
+    """
+
     filter_conditions = [get_date_query(filter_values)]
     source_ids = filter_values.source_ids
     writer_ids = filter_values.writer_ids
@@ -260,6 +305,11 @@ def get_filter_conditions_for_query(filter_values):
 
 
 def get_highlight_options(filter_values):
+    """
+    Return something something to do with highlighting for an Elasticsearch query,
+    depending on whether it's a custom sentiment
+    """
+
     if filter_values.sort_by and filter_values.sort_by.startswith(SENTIMENT):
         return {
             # 'tags_schema': 'styled',
@@ -279,6 +329,11 @@ def get_highlight_options(filter_values):
 
 
 def get_sort_conditions(sort_by):
+    """
+    Return field/order to use for sorting in Elasticsearch query,
+    depending on type of sorting
+    """
+
     if sort_by == DATE or sort_by == '':
         sort_field = 'date'
         sort_order = 'asc'

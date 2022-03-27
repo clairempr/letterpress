@@ -34,9 +34,13 @@ def get_image_preview(obj):
 
 
 def html_to_text(html):
-    # Convert the html content into a beautiful soup object
-    soup = BeautifulSoup(html,
-                         'lxml')  # use 'lxml' instead of 'html.parser' for speed  # make sure we don't lose our line breaks
+    """
+    Convert the html content into a beautiful soup object
+    """
+
+    # use 'lxml' instead of 'html.parser' for speed
+    soup = BeautifulSoup(html, 'lxml')
+    # make sure we don't lose our line breaks
     for br in soup.find_all('br'):
         br.replace_with('\n')
     # Get plain text
