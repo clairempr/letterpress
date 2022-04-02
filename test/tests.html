@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Javascript tests</title>
+  <link rel="stylesheet" href="qunit-2.18.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture">
+    <form>
+      <input name="text" />
+      <div class="has-error">Error text</div>
+    </form>
+  </div>
+
+  <script src="jquery-2.1.3.min.js"></script>
+  <script src="qunit-2.18.0.js"></script>
+  <script type="text/javascript" src="sinon-13.0.1.js"></script>
+
+  <script src="../letters/static/js/letter_search.js"></script>
+  <script src="../letters/static/js/letterpress.js"></script>
+
+  <script src="letter_search.test.js"></script>
+</body>
+</html>
