@@ -8,7 +8,7 @@
             </li>
             {% for page in pages %}
                 <li name="page{{ forloop.counter }}">
-                    <a href="#" onclick="return do_search({{ forloop.counter }});">{{ forloop.counter }}</a>
+                    <a href="#" onclick="return search.do_search({{ forloop.counter }});">{{ forloop.counter }}</a>
                 </li>
             {% endfor %}
             <li>

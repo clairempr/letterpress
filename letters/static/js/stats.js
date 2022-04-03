@@ -5,7 +5,7 @@ jQuery(document).ready(function ($) {
 });
 
 function get_stats() {
-    var filter_values = get_filter_values();
+    var filter_values = filter_values.get();
 
     $.ajax({
         type: "POST",

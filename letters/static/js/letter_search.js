@@ -14,7 +14,6 @@ jQuery(document).ready(function ($) {
     }, false);
 
     $("#search_button").click(function () {
-        alert('clicked');
         search.do_search(0);
     });
 });
@@ -23,19 +22,18 @@ let search = {
 
     do_search(page_number) {
         active_page.clear();
-        var filter_values = get_filter_values();
-
+        const the_filter_values = filter_values.get();
         $.ajax({
             type: "POST",
             dataType: "json",
             data: {
-                search_text: filter_values.search_text,
-                sources: filter_values.sources,
-                writers: filter_values.writers,
-                start_date: filter_values.start_date,
-                end_date: filter_values.end_date,
-                sentiments: filter_values.sentiments,
-                sort_by: filter_values.sort_by,
+                search_text: the_filter_values.search_text,
+                sources: the_filter_values.sources,
+                writers: the_filter_values.writers,
+                start_date: the_filter_values.start_date,
+                end_date: the_filter_values.end_date,
+                sentiments: the_filter_values.sentiments,
+                sort_by: the_filter_values.sort_by,
                 page_number: page_number,
             },
             url: "/search/",

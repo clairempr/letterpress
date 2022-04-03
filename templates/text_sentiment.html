@@ -39,7 +39,7 @@
     <script type="text/javascript">
         jQuery(document).ready(function ($) {
             $("#submit_button").click(function () {
-                var sentiments = get_selected_sentiments();
+                var sentiments = selected_sentiments.get();
                 do_text_sentiment(sentiments);
             });
         });

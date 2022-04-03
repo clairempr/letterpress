@@ -7,7 +7,7 @@ jQuery(document).ready(function ($) {
 });
 
 function get_wordcloud() {
-    var filter_values = get_filter_values();
+    var filter_values = filter_values.get();
     $('#message').text("");
     $('#wordcloud').attr("src", "");
 
