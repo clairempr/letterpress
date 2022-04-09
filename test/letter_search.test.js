@@ -1,16 +1,11 @@
 /* global QUnit, letter_search */
 'use strict';
 
-if (typeof (require) !== 'undefined') {
-  const jsdom = require("jsdom");
-  const {JSDOM} = jsdom;
-  const {window} = new JSDOM(`<!DOCTYPE html>`);
-  const $ = require('jQuery')(window);
-  const jQuery = require('jquery')(window);
-  const sinon = require('sinon');
-}
-
 QUnit.module("letter_search", function (hooks) {
+  hooks.before(function (assert) {
+    last_page = 0;
+  });
+
   hooks.beforeEach(function (assert) {
     // Search results will get put in "letters" div
     $('<div id="pagination-top"></div>').appendTo('#qunit-fixture');
@@ -20,20 +15,9 @@ QUnit.module("letter_search", function (hooks) {
     this.active_page = 3;
   });
 
-  //QUnit.module('search_button');
-
-  //QUnit.test("click", function (assert) {
-  //  let search_button = $("#search_button");
-  //  search_button.appendTo('#qunit-fixture');
-
-  //  let fake_do_search = sinon.replace(search, "do_search", sinon.fake());
-
-  //  search_button.click(fake_do_search);
-
-  //  assert.ok(search.do_search.called, "search.do_search() has been called");
-
-  //  sinon.restore();
-  //});
+  hooks.afterEach(function (assert) {
+    sinon.restore();
+  });
 
   QUnit.module('pagination');
 

@@ -4,182 +4,189 @@ var map = {};
 var EPSG3857Extent = ol.proj.get('EPSG:3857').getExtent();
 
 function map_init(features, marker_image, plain_marker_image, popups) {
-    MAX_ZOOM = 9;
+  MAX_ZOOM = 9;
 
-    var iconStyle = create_icon_style(marker_image, '');
+  var iconStyle = icon_style.create(marker_image, '');
 
-    var styleCache = {};
-    styleCache[1] = iconStyle;
+  var styleCache = {};
+  styleCache[1] = iconStyle;
 
-    var vectorSource = new ol.source.Vector({
-        features: features
-    });
+  var vectorSource = new ol.source.Vector({
+    features: features
+  });
 
-    var vectorLayer = new ol.layer.Vector({
-       source: vectorSource,
-        style: iconStyle
-    });
+  var vectorLayer = new ol.layer.Vector({
+    source: vectorSource,
+    style: iconStyle
+  });
 
-    var clusterSource = new ol.source.Cluster({
-        distance: 10,
-        source: vectorSource
-    });
+  var clusterSource = new ol.source.Cluster({
+    distance: 10,
+    source: vectorSource
+  });
 
-    var clusters = new ol.layer.Vector({
-        source: clusterSource,
-        style: function (feature) {
-            var size = feature.get('features').length;
-            var style = styleCache[size];
-            if (!style) {
-                style = create_icon_style(plain_marker_image, size.toString());
-                styleCache[size] = style;
-            }
-            return style;
-        }
-    });
-
-    map = new ol.Map({
-        target: document.getElementById('mapdiv'),
-        view: new ol.View({
-            projection: 'EPSG:3857',
-            // Center map on Null Island by default, in case no places found
-            center: [0, 0],
-            zoom: 2
-        }),
-        layers: [
-            new ol.layer.Tile({
-                source: new ol.source.OSM()
-            }),
-            // vectorLayer
-            clusters
-        ]
-    });
-
-    // Center and zoom map according to places shown
-    var view = map.getView();
-    view.fit(vectorSource.getExtent(), {size: map.getSize()});
-
-    // Make sure map isn't zoomed in too far, if there's only one point
-    if (view.getZoom() > MAX_ZOOM) {
-        view.setZoom(MAX_ZOOM);
+  var clusters = new ol.layer.Vector({
+    source: clusterSource,
+    style: function (feature) {
+      var size = feature.get('features').length;
+      var style = styleCache[size];
+      if (!style) {
+        style = icon_style.create(plain_marker_image, size.toString());
+        styleCache[size] = style;
+      }
+      return style;
     }
+  });
 
-    if (popups) {
-        popup_init();
-    }
+  map = new ol.Map({
+    target: document.getElementById('mapdiv'),
+    view: new ol.View({
+      projection: 'EPSG:3857',
+      // Center map on Null Island by default, in case no places found
+      center: [0, 0],
+      zoom: 2
+    }),
+    layers: [
+      new ol.layer.Tile({
+        source: new ol.source.OSM()
+      }),
+      // vectorLayer
+      clusters
+    ]
+  });
+
+  // Center and zoom map according to places shown
+  var view = map.getView();
+  view.fit(vectorSource.getExtent(), {size: map.getSize()});
+
+  // Make sure map isn't zoomed in too far, if there's only one point
+  if (view.getZoom() > MAX_ZOOM) {
+    view.setZoom(MAX_ZOOM);
+  }
+
+  if (popups) {
+    popup.init();
+  }
 }
 
-function popup_init() {
+let popup = {
+
+  init() {
     var popup_element = document.getElementById('popup');
 
     var popup = new ol.Overlay({
-        element: popup_element,
-        positioning: 'bottom-center',
-        stopEvent: false,
-        offset: [0, -50]
+      element: popup_element,
+      positioning: 'bottom-center',
+      stopEvent: false,
+      offset: [0, -50]
     });
 
     map.addOverlay(popup);
 
-// display popup on click
+    // display popup on click
     map.on('click', function (evt) {
 
-        var feature = map.forEachFeatureAtPixel(evt.pixel,
-            function (feature) {
-                return feature;
-            });
+      var feature = map.forEachFeatureAtPixel(evt.pixel,
+        function (feature) {
+          return feature;
+        });
 
-        if (!feature) {
-            $(popup_element).popover('hide');
-            return;
-        }
+      if (!feature) {
+        $(popup_element).popover('hide');
+        return;
+      }
 
-        // Only show popup for unclustered feature
-        var cfeatures = feature.get('features');
-        if (cfeatures.length == 1) {
-            feature = cfeatures[0];
-            var name = feature.get('name');
-            $(popup_element).popover({
-                'placement': 'top',
-                'html': true
-            });
-            // Make sure content gets updated each time a new feature is clicked
-            $(popup_element).attr('data-content', name);
-            var coordinates = feature.getGeometry().getCoordinates();
-            popup.setPosition(coordinates);
-            $(popup_element).popover('show');
-        }
-        else {
-            $(popup_element).popover('hide');
-        }
+      // Only show popup for unclustered feature
+      var cfeatures = feature.get('features');
+      if (cfeatures.length == 1) {
+        feature = cfeatures[0];
+        var name = feature.get('name');
+        $(popup_element).popover({
+          'placement': 'top',
+          'html': true
+        });
+        // Make sure content gets updated each time a new feature is clicked
+        $(popup_element).attr('data-content', name);
+        var coordinates = feature.getGeometry().getCoordinates();
+        popup.setPosition(coordinates);
+        $(popup_element).popover('show');
+      } else {
+        $(popup_element).popover('hide');
+      }
     });
+  }
+
 }
 
 function create_feature(point, name) {
-    return new ol.Feature({
-        geometry: point,
-        name: name
-    });
+  return new ol.Feature({
+    geometry: point,
+    name: name
+  });
 }
 
 function create_point(x, y) {
-    // Define markers as "features" of the vector layer:
-    var point = new ol.geom.Point([x, y]);
+  // Define markers as "features" of the vector layer:
+  var point = new ol.geom.Point([x, y]);
 
-    // Transform from WGS 1984 projection to Spherical Mercator projection
-    point.transform("EPSG:4326", "EPSG:3857");
+  // Transform from WGS 1984 projection to Spherical Mercator projection
+  point.transform("EPSG:4326", "EPSG:3857");
 
-    // Make sure point's coordinates fit within extent of the projection
+  // Make sure point's coordinates fit within extent of the projection
 
-    return ol.extent.containsExtent(EPSG3857Extent, point.getExtent()) ? point : 0
+  return ol.extent.containsExtent(EPSG3857Extent, point.getExtent()) ? point : 0
 }
 
-function create_icon_style(image_file, text) {
+let icon_style = {
+
+  create(image_file, text) {
     var style = new ol.style.Style({
-        image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
-            anchor: [0.5, 42],
-            anchorXUnits: 'fraction',
-            anchorYUnits: 'pixels',
-            src: image_file
-        }))
+      image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+        anchor: [0.5, 42],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+        src: image_file
+      }))
     });
 
     if (text) {
-        var textStyle = new ol.style.Text({
-            text: text,
-            offsetY: -25,
-            fill: new ol.style.Fill({
-                color: '#fff',
-            })
-        });
-        style.setText(textStyle);
+      var textStyle = new ol.style.Text({
+        text: text,
+        offsetY: -25,
+        fill: new ol.style.Fill({
+          color: '#fff',
+        })
+      });
+      style.setText(textStyle);
     }
 
     return style;
+  }
+
 }
 
 function enable_place_search() {
-    // Use ol3-geocoder to search for place names in the map
-    var geocoder = new Geocoder('nominatim', {
-        provider: 'osm',
-        autoComplete: true,
-        lang: 'en-US',
-        placeholder: 'Search for ...',
-        targetType: 'glass-button',
-        limit: 8,
-        keepOpen: false,
-        preventDefault : true // don't automatically place feature on map
-    });
-    map.addControl(geocoder);
+  // Use ol3-geocoder to search for place names in the map
+  var geocoder = new Geocoder('nominatim', {
+    provider: 'osm',
+    autoComplete: true,
+    lang: 'en-US',
+    placeholder: 'Search for ...',
+    targetType: 'glass-button',
+    limit: 8,
+    keepOpen: false,
+    preventDefault: true // don't automatically place feature on map
+  });
+  map.addControl(geocoder);
 
-    geocoder.on('addresschosen', function (evt) {
-        var feature = evt.feature,
-            coord = evt.coordinate,
-            address = evt.address;
-        // Center and zoom in to chosen address
-        var view = map.getView();
-        view.setCenter(coord);
-        view.setZoom(MAX_ZOOM);
-    });
+  geocoder.on('addresschosen', function (evt) {
+    var feature = evt.feature,
+      coord = evt.coordinate,
+      address = evt.address;
+    // Center and zoom in to chosen address
+    var view = map.getView();
+    view.setCenter(coord);
+    view.setZoom(MAX_ZOOM);
+  });
 }
 
