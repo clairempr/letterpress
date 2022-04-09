@@ -1,4 +1,4 @@
-/* global QUnit, letter_search */
+/* global QUnit, sentiment */
 'use strict';
 
 QUnit.module("sentiment", function (hooks) {
