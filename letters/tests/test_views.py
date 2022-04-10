@@ -7,6 +7,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from unittest.mock import MagicMock, patch
 from wordcloud import WordCloud
 
+from django.contrib.gis.geos import Point
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
@@ -872,8 +873,7 @@ class PlacesViewTestCase(TestCase):
 
         mock_get_initial_filter_values.return_value = 'initial filter values'
 
-        from django.contrib.gis.geos import Point
-        barbecue = PlaceFactory(name='Barbecue', state='North Carolina', point=Point(0,0))
+        barbecue = PlaceFactory(name='Barbecue', state='North Carolina', point=Point(0, 0))
         bacon_level = PlaceFactory(name='Bacon Level', state='Alabama')
 
         response = self.client.get(reverse('places'), follow=True)

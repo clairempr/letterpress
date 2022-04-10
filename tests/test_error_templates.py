@@ -2,16 +2,15 @@ from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 
 
-class ErrorBaseTestCase(SimpleTestCase):
+class ErrorBaseTemplateTestCase(SimpleTestCase):
     """
     Test base error template
     """
 
-    def setUp(self):
-        self.template = 'error_base.html'
-
     def test_template_content(self):
-        rendered = render_to_string(self.template)
+        template = 'error_base.html'
+        rendered = render_to_string(template)
+
         self.assertIn('Oh dear! Error', rendered, "HTML should contain 'Oh dear! Error'")
         self.assertIn('spilled-ink.jpg', rendered, "HTML should contain 'spilled-ink.jpg'")
         self.assertIn('Your obedient servant', rendered, "HTML should contain 'Your obedient servant'")
@@ -33,7 +32,7 @@ class ErrorTemplateTestCase(object):
         self.assertTrue(rendered.count(self.code) == 2,
                         'Status code {} should appear twice in rendered HTML'.format(self.code))
         self.assertIn(self.description, rendered,
-                     'Status description {} should appear in rendered HTML'.format(self.description))
+                      'Status description {} should appear in rendered HTML'.format(self.description))
 
 
 class Error400TemplateTestCase(ErrorTemplateTestCase, SimpleTestCase):
