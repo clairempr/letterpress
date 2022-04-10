@@ -1,1 +1,1 @@
-docker-compose -f docker-compose.yml run  --rm django coverage run ./manage.py test; coverage html
+docker-compose -f docker-compose.yml run  --rm django /bin/bash -c "coverage run ./manage.py test; coverage html"
