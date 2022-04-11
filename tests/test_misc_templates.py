@@ -7,33 +7,40 @@ from django.test import SimpleTestCase, TestCase
 
 from letters.tests.factories import CorrespondentFactory, LetterFactory, PlaceFactory
 
+
 # These are used in more than one place
-FilterValues = namedtuple('FilterValues',
-                          ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date',
-                           'words', 'sentiment_ids', 'sort_by'])
-filter_values = FilterValues(
-    search_text='This is the search text',
-    source_ids=[1, 2, 3],
-    writer_ids=[1, 2, 3],
-    start_date='1863-01-01',
-    end_date='1863-12-31',
-    words=['oddment', 'tweak'],
-    sentiment_ids=[1, 2, 3],
-    sort_by='sort_by'
-)
-place = PlaceFactory(name='Manassas Junction', state='Virginia', point=Point(12.34, 56.78),
-                     notes='https://en.wikipedia.org/wiki/Manassas,_Virginia')
-letter = LetterFactory(date=ApproximateDate(1862, 1, 1),
-                       writer=CorrespondentFactory(first_names='Francis P.', last_name='Black'),
-                       recipient=CorrespondentFactory(first_names='Eveline', last_name='Johnston'),
-                       heading='Januery the 1st / 62',
-                       greeting='Miss Evey',
-                       body='As this is the beginin of a new year I thought as I was a lone to night I would write you '
-                            'a few lines to let you know that we are not all ded yet.',
-                       closing='your friend as every',
-                       signature='F.P. Black',
-                       ps='p.s. remember me to all',
-                       place=place)
+def create_test_letter():
+    letter = LetterFactory(date=ApproximateDate(1862, 1, 1),
+                           writer=CorrespondentFactory(first_names='Francis P.', last_name='Black'),
+                           recipient=CorrespondentFactory(first_names='Eveline', last_name='Johnston'),
+                           heading='Januery the 1st / 62',
+                           greeting='Miss Evey',
+                           body='As this is the beginin of a new year I thought as I was a lone to night I would write you '
+                                'a few lines to let you know that we are not all ded yet.',
+                           closing='your friend as every',
+                           signature='F.P. Black',
+                           ps='p.s. remember me to all')
+    return letter
+
+
+def create_test_place():
+    place = PlaceFactory(name='Manassas Junction', state='Virginia', point=Point(12.34, 56.78),
+                         notes='https://en.wikipedia.org/wiki/Manassas,_Virginia')
+    return place
+
+
+def get_initial_filter_values():
+    Sentiment = namedtuple('Sentiment', ['id', 'name'])
+    sentiments = [Sentiment(id=0, name='Positive/negative')]
+    initial_filter_values = {
+        'sources': [],
+        'writers': [],
+        'start_date': '1863-01-01',
+        'end_date': '1863-12-31',
+        'words': ['oddment', 'tweak'],
+        'sentiments': sentiments
+    }
+    return initial_filter_values
 
 
 class BaseTemplateTestCase(SimpleTestCase):
@@ -49,7 +56,7 @@ class BaseTemplateTestCase(SimpleTestCase):
         self.assertIn('<title>{}</title>'.format(title), rendered, "HTML should contain title")
 
 
-class LetterTemplateTestCase(SimpleTestCase):
+class LetterTemplateTestCase(TestCase):
     """
     Test letter template
     """
@@ -57,6 +64,7 @@ class LetterTemplateTestCase(SimpleTestCase):
     def test_template_content(self):
         template = 'letter.html'
         description = 'This is the description'
+        letter = create_test_letter()
 
         rendered = render_to_string(template, context={'description': description, 'letter': letter})
 
@@ -65,7 +73,7 @@ class LetterTemplateTestCase(SimpleTestCase):
         self.assertIn(letter.body, rendered, 'HTML should contain body')
 
 
-class LetterSentimentTemplateTestCase(SimpleTestCase):
+class LetterSentimentTemplateTestCase(TestCase):
     """
     Test letter sentiment template
     """
@@ -74,6 +82,7 @@ class LetterSentimentTemplateTestCase(SimpleTestCase):
         template = 'letter_sentiment.html'
         description = 'This is the description'
         sentiment = 'This is the sentiment'
+        letter = create_test_letter()
         results = {(sentiment, letter)}
         image = 'This is an image'
 
@@ -106,11 +115,12 @@ class LettersTemplateTestCase(SimpleTestCase):
 
     def test_template_content(self):
         template = 'letters.html'
+        initial_filter_values = get_initial_filter_values()
 
         # Most of the page logic is in filter.html, so just spot-check here to see if it's used
-        rendered = render_to_string(template, context={'filter_values': filter_values})
+        rendered = render_to_string(template, context={'filter_values': initial_filter_values})
         self.assertIn('Start date', rendered, "'Start date' should be in HTML")
-        self.assertIn(filter_values.start_date, rendered, "'Start date' should be in HTML")
+        self.assertIn(initial_filter_values.get('start_date'), rendered, "'Start date' should be in HTML")
 
 
 class ObjNotFoundTemplateTestCase(SimpleTestCase):
@@ -129,13 +139,15 @@ class ObjNotFoundTemplateTestCase(SimpleTestCase):
         self.assertIn(str(object_id), rendered, 'Object ID should appear in rendered HTML')
 
 
-class PlaceTemplateTestCase(SimpleTestCase):
+class PlaceTemplateTestCase(TestCase):
     """
     Test place template
     """
 
     def test_template_content(self):
         template = 'place.html'
+        letter = create_test_letter()
+        place = create_test_place()
 
         rendered = render_to_string(template, context={'place': place})
 
@@ -171,11 +183,12 @@ class PlacesTemplateTestCase(SimpleTestCase):
 
     def test_template_content(self):
         template = 'places.html'
+        initial_filter_values = get_initial_filter_values()
 
         # Most of the page logic is in filter.html, so just spot-check here to see if it's used
-        rendered = render_to_string(template, context={'filter_values': filter_values})
+        rendered = render_to_string(template, context={'filter_values': initial_filter_values})
         self.assertIn('Start date', rendered, "'Start date' should be in HTML")
-        self.assertIn(filter_values.start_date, rendered, "'Start date' should be in HTML")
+        self.assertIn(initial_filter_values.get('start_date'), rendered, "'Start date' should be in HTML")
 
 
 class SentimentTemplateTestCase(SimpleTestCase):
@@ -185,11 +198,12 @@ class SentimentTemplateTestCase(SimpleTestCase):
 
     def test_template_content(self):
         template = 'sentiment.html'
+        initial_filter_values = get_initial_filter_values()
 
         # Most of the page logic is in filter.html, so just spot-check here to see if it's used
-        rendered = render_to_string(template, context={'filter_values': filter_values})
+        rendered = render_to_string(template, context={'filter_values': initial_filter_values})
         self.assertIn('Start date', rendered, "'Start date' should be in HTML")
-        self.assertIn(filter_values.start_date, rendered, "'Start date' should be in HTML")
+        self.assertIn(initial_filter_values.get('start_date'), rendered, "'Start date' should be in HTML")
 
 
 class StatsTemplateTestCase(SimpleTestCase):
@@ -201,15 +215,17 @@ class StatsTemplateTestCase(SimpleTestCase):
         template = 'stats.html'
         chart = 'This is the chart'
         stats = 'These are the stats'
+        initial_filter_values = get_initial_filter_values()
 
-        rendered = render_to_string(template, context={'filter_values': filter_values, 'chart': chart, 'stats': stats})
+        rendered = render_to_string(template, context={'filter_values': initial_filter_values,
+                                                       'chart': chart, 'stats': stats})
 
         self.assertIn(chart, rendered, "Chart should be in HTML")
         self.assertIn(stats, rendered, "Stats should be in HTML")
 
         # Some of the page logic is in filter.html, so just spot-check here to see if it's used
         self.assertIn('Start date', rendered, "'Start date' should be in HTML")
-        self.assertIn(filter_values.start_date, rendered, "'Start date' should be in HTML")
+        self.assertIn(initial_filter_values.get('start_date'), rendered, "'Start date' should be in HTML")
 
 
 class TextSentimentTemplateTestCase(SimpleTestCase):
@@ -219,24 +235,14 @@ class TextSentimentTemplateTestCase(SimpleTestCase):
 
     def test_template_content(self):
         template = 'text_sentiment.html'
-
-        Sentiment = namedtuple('Sentiment', ['id', 'name'])
-        sentiments = [Sentiment(id=0, name='Positive/negative')]
-        initial_filter_values = {
-            'sources': [],
-            'writers': [],
-            'start_date': '1863-01-01',
-            'end_date': '1863-12-31',
-            'words': ['oddment', 'tweak'],
-            'sentiments': sentiments
-        }
+        initial_filter_values = get_initial_filter_values()
 
         rendered = render_to_string(template, context={'filter_values': initial_filter_values})
 
         self.assertIn('Text to analyze', rendered, "'Text to analyze' should be in HTML")
 
         # Some of the page logic is in sentiment_dropdown.html, so just spot-check here to see if it's used
-        self.assertIn('Positive/negative', rendered, "'Positive/negative' should be in HTML")
+        self.assertIn('Positive/negative', rendered, 'Sentiment name should be in HTML')
 
 
 class WordCloudTemplateTestCase(SimpleTestCase):
@@ -247,11 +253,12 @@ class WordCloudTemplateTestCase(SimpleTestCase):
     def test_template_content(self):
         template = 'wordcloud.html'
         wordcloud = 'This is the wordcloud'
+        initial_filter_values = get_initial_filter_values()
 
-        rendered = render_to_string(template, context={'filter_values': filter_values, 'wordcloud': wordcloud})
+        rendered = render_to_string(template, context={'filter_values': initial_filter_values, 'wordcloud': wordcloud})
 
         self.assertIn('<img id="wordcloud"', rendered, "WordCloud image placeholder should be in HTML")
 
         # Some of the page logic is in filter.html, so just spot-check here to see if it's used
         self.assertIn('Start date', rendered, "'Start date' should be in HTML")
-        self.assertIn(filter_values.start_date, rendered, "'Start date' should be in HTML")
+        self.assertIn(initial_filter_values.get('start_date'), rendered, "'Start date' should be in HTML")

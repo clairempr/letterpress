@@ -33,7 +33,7 @@ The name comes from an early office technology which people used to duplicate do
 ### Notes ###
  - Make sure you have write access to the SQLite database file `db.sqlite3`
  - Set up a Django Admin user with the command ```shell python manage.py createsuperuser ```.
- - Elasticsearch index can be created or updated manually with the Django management command push_to_index, otherwise updates are automatic when the model is saved.
+ - Elasticsearch index can be created or updated manually with the Django management command `push_to_index`, otherwise updates are automatic when the model is saved.
  - Text searches are fuzzy by default. For exact match, enclose search terms in quotes.
 
 ### Setup with Docker ### 
