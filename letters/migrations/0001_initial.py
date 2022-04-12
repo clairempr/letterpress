@@ -100,42 +100,42 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='miscdocument',
             name='place',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='letters.Place'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='letters.Place'),
         ),
         migrations.AddField(
             model_name='miscdocument',
             name='source',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='letters.DocumentSource'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='letters.DocumentSource'),
         ),
         migrations.AddField(
             model_name='miscdocument',
             name='writer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='miscdoc_writer', to='letters.Correspondent'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='miscdoc_writer', to='letters.Correspondent'),
         ),
         migrations.AddField(
             model_name='letter',
             name='place',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='letters.Place'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='letters.Place'),
         ),
         migrations.AddField(
             model_name='letter',
             name='recipient',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recipient', to='letters.Correspondent'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='recipient', to='letters.Correspondent'),
         ),
         migrations.AddField(
             model_name='letter',
             name='source',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='letters.DocumentSource'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='letters.DocumentSource'),
         ),
         migrations.AddField(
             model_name='letter',
             name='writer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='writer', to='letters.Correspondent'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='writer', to='letters.Correspondent'),
         ),
         migrations.AddField(
             model_name='envelope',
             name='destination',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='destination', to='letters.Place'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='destination', to='letters.Place'),
         ),
         migrations.AddField(
             model_name='envelope',
@@ -145,22 +145,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='envelope',
             name='origin',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='origin', to='letters.Place'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='origin', to='letters.Place'),
         ),
         migrations.AddField(
             model_name='envelope',
             name='recipient',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='envelope_recipient', to='letters.Correspondent'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='envelope_recipient', to='letters.Correspondent'),
         ),
         migrations.AddField(
             model_name='envelope',
             name='source',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='letters.DocumentSource'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='letters.DocumentSource'),
         ),
         migrations.AddField(
             model_name='envelope',
             name='writer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='envelope_writer', to='letters.Correspondent'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='envelope_writer', to='letters.Correspondent'),
         ),
         migrations.AddField(
             model_name='correspondent',

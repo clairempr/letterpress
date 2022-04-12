@@ -5,9 +5,9 @@ from letters.models import Correspondent, Document, Place
 
 class Envelope(Document):
     description = models.CharField(max_length=75, blank=True)
-    origin = models.ForeignKey(Place, related_name='origin')
-    recipient = models.ForeignKey(Correspondent, related_name='envelope_recipient')
-    destination = models.ForeignKey(Place, related_name='destination')
+    origin = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='origin')
+    recipient = models.ForeignKey(Correspondent, on_delete=models.CASCADE, related_name='envelope_recipient')
+    destination = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='destination')
     contents = tinymce_models.HTMLField(null=True, blank=True)
 
     def get_display_string(self):

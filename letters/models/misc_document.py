@@ -6,7 +6,7 @@ from letters.models.util import get_envelope_preview
 
 class MiscDocument(Document):
     description = models.CharField(max_length=75)
-    place = models.ForeignKey(Place)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
     contents = tinymce_models.HTMLField(null=True, blank=True)
     envelopes = models.ManyToManyField(Envelope, blank=True)
 
