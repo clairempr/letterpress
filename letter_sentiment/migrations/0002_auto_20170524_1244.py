@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='term',
             name='custom_sentiment',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='letter_sentiment.CustomSentiment'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='letter_sentiment.CustomSentiment'),
         ),
     ]
