@@ -7,7 +7,7 @@ jQuery(document).ready(function ($) {
 });
 
 function get_wordcloud() {
-    var filter_values = filter_values.get();
+    var inital_filter_values = filter_values.get();
     $('#message').text("");
     $('#wordcloud').attr("src", "");
 
@@ -15,11 +15,11 @@ function get_wordcloud() {
         type: "GET",
         dataType: "json",
         data: {
-            sources: filter_values.sources,
-            writers: filter_values.writers,
-            start_date: filter_values.start_date,
-            end_date: filter_values.end_date,
-            search_text: filter_values.search_text,
+            sources: inital_filter_values.sources,
+            writers: inital_filter_values.writers,
+            start_date: inital_filter_values.start_date,
+            end_date: inital_filter_values.end_date,
+            search_text: inital_filter_values.search_text,
         },
         url: "/wordcloud_image.png",
         success: function (result) {
