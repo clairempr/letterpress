@@ -1,4 +1,4 @@
-from factory import Faker, SubFactory
+from factory import BUILD_STRATEGY, Faker, SubFactory
 from factory.django import DjangoModelFactory
 from unittest.mock import patch
 
@@ -102,3 +102,13 @@ class DocumentImageFactory(DjangoModelFactory):
 
     class Meta:
         model = DocumentImage
+
+
+class BuildOnlyDocumentImageFactory(DjangoModelFactory):
+    """
+    Base DocumentImage factory using build strategy - not persisted to test database
+    """
+
+    class Meta:
+        model = DocumentImage
+        strategy = BUILD_STRATEGY

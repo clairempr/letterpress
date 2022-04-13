@@ -6,7 +6,7 @@ from django.core.files.storage import Storage
 from django.test import TestCase
 
 from letters.models import DocumentImage
-from letters.tests.factories import DocumentImageFactory
+from letters.tests.factories import BuildOnlyDocumentImageFactory, DocumentImageFactory
 
 
 class DocumentImageTestCase(TestCase):
@@ -34,7 +34,9 @@ class DocumentImageTestCase(TestCase):
         # Mock storage system is used so we don't touch the filesystem
         with patch('django.core.files.storage.default_storage._wrapped', self.storage_mock):
             # If there's no description, str should contain the filename
-            document_image = DocumentImageFactory(image_file=self.file_mock)
+            # Use a factory object that won't be persisted to test database because that causes the error
+            # "TypeError: __str__ returned non-string (type MagicMock)", starting with Django 2.0
+            document_image = BuildOnlyDocumentImageFactory(image_file=self.file_mock)
             self.assertIn(self.filename, str(document_image),
                           "If there's no description, DocumentImage str should contain the filename")
 
@@ -50,7 +52,9 @@ class DocumentImageTestCase(TestCase):
 
         # Mock storage system is used so we don't touch the filesystem
         with patch('django.core.files.storage.default_storage._wrapped', self.storage_mock):
-            document_image = DocumentImageFactory(image_file=self.file_mock)
+            # Use a factory object that won't be persisted to test database because that causes the error
+            # "TypeError: __str__ returned non-string (type MagicMock)", starting with Django 2.0
+            document_image = BuildOnlyDocumentImageFactory(image_file=self.file_mock)
             url = document_image.get_url()
             self.assertIn(settings.MEDIA_URL, url, 'DocumentImage.get_url() should include settings.MEDIA_URL')
             self.assertIn(document_image.image_file.name, url, 'DocumentImage.get_url() should include image_file.name')
@@ -91,7 +95,9 @@ class DocumentImageTestCase(TestCase):
         # Mock storage system is used so we don't touch the filesystem
         with patch('django.core.files.storage.default_storage._wrapped', self.storage_mock):
             # If there's an image file, image_preview_with_link() should include get_url()
-            document_image = DocumentImageFactory(image_file=self.file_mock)
+            # Use a factory object that won't be persisted to test database because that causes the error
+            # "TypeError: __str__ returned non-string (type MagicMock)", starting with Django 2.0
+            document_image = BuildOnlyDocumentImageFactory(image_file=self.file_mock)
             image_preview_with_link = document_image.image_preview_with_link(100)
             self.assertEqual(mock_get_url.call_count, 2,
                              'DocumentImage.image_preview_with_link() should call DocumentImage.get_url() twice')
