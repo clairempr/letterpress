@@ -10,7 +10,7 @@ jobs:
     - run:
         command: |
           sudo chown -R circleci:circleci /usr/local/bin
-          sudo chown -R circleci:circleci /usr/local/lib/python3.5/site-packages
+          sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
     - restore_cache: # restore cached dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
     - run:
@@ -21,7 +21,6 @@ jobs:
           sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
     - run: pip install -r requirements.txt
     - run: python -m textblob.download_corpora
-    - run: sudo sed -i 's/ver = geos_version().decode()/ver = geos_version().decode().split(" ")[0]/' /usr/local/lib/python3.5/site-packages/django/contrib/gis/geos/libgeos.py
     - run: pip install coveralls
     - run: touch letterpress/settings_secret.py
     - save_cache: # cache installed dependencies
@@ -29,7 +28,7 @@ jobs:
         paths:
           - '/home/circleci/.cache/pip'
           - '/usr/local/bin'
-          - '/usr/local/lib/python3.5/site-packages'
+          - '/usr/local/lib/python3.7/site-packages'
     - run: coverage run manage.py test
 
     - run: coveralls
