@@ -18,7 +18,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.html import mark_safe
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 from letter_sentiment.custom_sentiment import get_custom_sentiment_for_text, highlight_for_custom_sentiment
 from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentiment
 
@@ -31,7 +31,7 @@ from letters.sort_by import DATE, RELEVANCE, get_sentiments_for_sort_by_list
 
 class LettersView(TemplateView):
     """
-    Show letters, with filters
+    Show page for searching for letters, with filters
     """
 
     template_name = 'letters.html'
@@ -70,65 +70,65 @@ class StatsView(TemplateView):
         return context
 
 
-# Show stats for requested words/months, based on filter
-def get_stats(request):
-    assert isinstance(request, HttpRequest)
-    if request.method != 'POST':
-        return
+class GetStatsView(View):
+    """
+    Retrieve stats for requested words/months, based on filter
+    """
 
-    filter_values = letters_filter.get_filter_values_from_request(request)
-    es_word_counts = letter_search.get_word_counts_per_month(filter_values)
-    words = filter_values.words
-    es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
+    def post(self, request, *args, **kwargs):
+        filter_values = letters_filter.get_filter_values_from_request(request)
+        es_word_counts = letter_search.get_word_counts_per_month(filter_values)
+        words = filter_values.words
+        es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
 
-    if len(words) == 2:
-        show_proportion = 'true'
-    else:
-        show_proportion = ''
+        if len(words) == 2:
+            show_proportion = 'true'
+        else:
+            show_proportion = ''
 
-    months = sorted(list(es_word_counts.keys()))
-    results = []
+        months = sorted(list(es_word_counts.keys()))
+        results = []
 
-    proportions = []
-    chart_word_freqs = []
-    chart_totals = [es_word_counts[month]['total_words'] for month in months]
-    chart_averages = [es_word_counts[month]['avg_words'] for month in months]
-    chart_doc_counts = [es_word_counts[month]['doc_count'] for month in months]
-    show_charts = False
+        proportions = []
+        chart_word_freqs = []
+        chart_totals = [es_word_counts[month]['total_words'] for month in months]
+        chart_averages = [es_word_counts[month]['avg_words'] for month in months]
+        chart_doc_counts = [es_word_counts[month]['doc_count'] for month in months]
+        show_charts = False
 
-    for month in months:
-        proportion = 0
-        total = 0
-        freqs = []
+        for month in months:
+            proportion = 0
+            total = 0
+            freqs = []
 
-        for word in words:
-            if month in es_word_freqs:
-                freq = es_word_freqs[month][word]
-                show_charts = True
-            else:
-                freq = 0
-            total += freq
-            freqs.append(freq)
+            for word in words:
+                if month in es_word_freqs:
+                    freq = es_word_freqs[month][word]
+                    show_charts = True
+                else:
+                    freq = 0
+                total += freq
+                freqs.append(freq)
 
-        if show_proportion and (total - freqs[0] != 0):
-            proportion = freqs[0] / (total - freqs[0])
+            if show_proportion and (total - freqs[0] != 0):
+                proportion = freqs[0] / (total - freqs[0])
 
-        results.append((month, freqs, proportion,
-                        es_word_counts[month]['avg_words'],
-                        es_word_counts[month]['total_words'],
-                        es_word_counts[month]['doc_count']))
+            results.append((month, freqs, proportion,
+                            es_word_counts[month]['avg_words'],
+                            es_word_counts[month]['total_words'],
+                            es_word_counts[month]['doc_count']))
 
-        proportions.append(proportion)
-        chart_word_freqs.extend(freqs)
+            proportions.append(proportion)
+            chart_word_freqs.extend(freqs)
 
-    stats_html = render_to_string('snippets/stats_table.html', {'words': words, 'show_proportion': show_proportion, 'results': results})
-    if show_charts:
-        chart = make_charts(words, months, proportions, chart_word_freqs, chart_totals, chart_averages, chart_doc_counts)
-    else:
-        chart = ''
+        stats_html = render_to_string('snippets/stats_table.html', {'words': words, 'show_proportion': show_proportion, 'results': results})
+        if show_charts:
+            chart = make_charts(words, months, proportions, chart_word_freqs, chart_totals, chart_averages, chart_doc_counts)
+        else:
+            chart = ''
 
-    # This was Ajax
-    return HttpResponse(json.dumps({'stats': stats_html, 'chart': chart}), content_type="application/json")
+        # This was Ajax
+        return HttpResponse(json.dumps({'stats': stats_html, 'chart': chart}), content_type="application/json")
 
 
 # Show page for generating word clouds

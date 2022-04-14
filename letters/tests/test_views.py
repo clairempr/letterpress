@@ -14,7 +14,7 @@ from django.urls import reverse
 
 from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
-from letters.views import export, export_csv, export_text, get_letter_export_text, get_stats, get_text_sentiment, \
+from letters.views import export, export_csv, export_text, get_letter_export_text, GetStatsView, get_text_sentiment, \
     get_wordcloud, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
     random_letter, search, search_places, show_letter_content, show_letter_sentiment
 
@@ -42,7 +42,7 @@ class LettersViewTestCase(SimpleTestCase):
         # so manually create one and call the view directly
         request = RequestFactory().post(reverse('letters_view'))
         response = LettersView().dispatch(request)
-        self.assertEqual(response, mock_export.return_value, "letters_view() should call export() if POST request")
+        self.assertEqual(response, mock_export.return_value, "LettersView should call export() if POST request")
 
         # GET
         response = self.client.get(reverse('letters_view'), follow=True)
@@ -53,9 +53,9 @@ class LettersViewTestCase(SimpleTestCase):
                     'show_search_text': 'true', 'show_export_button': 'true'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                             "letters_view() context '{}' should be '{}' if GET request".format(key, expected[key]))
+                             "LettersView context '{}' should be '{}' if GET request".format(key, expected[key]))
         self.assertIn('sort_by', response.context,
-                      "letters_view() context should contain 'sort_by' if GET request".format(key))
+                      "LettersView context should contain 'sort_by' if GET request".format(key))
 
 
 class StatsViewTestCase(SimpleTestCase):
@@ -75,14 +75,14 @@ class StatsViewTestCase(SimpleTestCase):
                     'filter_values': mock_get_initial_filter_values.return_value, 'show_words': 'true'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                             "stats_view() context '{}' should be '{}' if GET request".format(key, expected[key]))
+                             "StatsView context '{}' should be '{}' if GET request".format(key, expected[key]))
 
 
-class GetStatsTestCase(SimpleTestCase):
+class GetStatsViewTestCase(SimpleTestCase):
     """
-    Test get_stats()
+    Test GetStatsView
 
-    get_stats() should show stats for requested words/months, based on filter
+    GetStatsView should retrieve stats for requested words/months, based on filter
     """
 
     def setUp(self):
@@ -107,12 +107,13 @@ class GetStatsTestCase(SimpleTestCase):
     @patch('letters.views.letter_search.get_multiple_word_frequencies', autospec=True)
     @patch('letters.views.render_to_string', autospec=True)
     @patch('letters.views.make_charts', autospec=True)
-    def test_get_stats(self, mock_make_charts, mock_render_to_string, mock_get_multiple_word_frequencies,
+    def test_get_stats_view(self, mock_make_charts, mock_render_to_string, mock_get_multiple_word_frequencies,
                        mock_get_word_counts_per_month, mock_get_filter_values_from_request):
-        # GET request should raise ValueError
-        with self.assertRaises(ValueError):
-            self.client.get(reverse('get_stats'), follow=True)
 
+        # GET request should return HttpResponseNotAllowed
+        response = self.client.get(reverse('get_stats'), follow=True)
+        self.assertEqual(response.status_code, 405,
+                         'Making a GET request to GetStatsView should return HttpResponseNotAllowed')
 
         # POST request
         mock_get_filter_values_from_request.return_value = self.filter_values
@@ -124,33 +125,33 @@ class GetStatsTestCase(SimpleTestCase):
 
         # For some reason, it's impossible to request a POST request via the Django test client,
         # so manually create one and call the view directly
-        response = get_stats(self.request)
+        response = GetStatsView().post(self.request)
 
         # render_to_string() should get called with certain args
         args, kwargs = mock_render_to_string.call_args
         self.assertEqual(args[1]['words'], self.filter_values.words,
-                         "get_stats() should call render_to_string() with 'words' as arg")
+                         "GetStatsView should call render_to_string() with 'words' as arg")
 
         # If 2 words, render_to_string() should be called with 'show_proportion' True
         self.assertTrue(args[1]['show_proportion'],
-                        "If 2 words, get_stats() should call render_to_string() with 'show_proportion' True")
+                        "If 2 words, GetStatsView should call render_to_string() with 'show_proportion' True")
 
         # make_charts() should get called with certain args
         args, kwargs = mock_make_charts.call_args
         self.assertEqual(args[0], self.filter_values.words,
-                         'get_stats() should call make_charts() with filter_values.words as arg')
+                         'GetStatsView should call make_charts() with filter_values.words as arg')
         self.assertEqual(args[1], ['1862-01', '1862-02'],
-                         'get_stats() should call make_charts() with months as arg')
+                         'GetStatsView should call make_charts() with months as arg')
 
         # If 2 words in filter_values, make_charts() should be called with proportions != 0 for each month
         self.assertNotEqual(args[2], [0, 0],
-            'If 2 words in filter_values, get_stats() should call make_charts() with proportions != 0 for each month')
+            'If 2 words in filter_values, GetStatsView should call make_charts() with proportions != 0 for each month')
 
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['stats'], mock_render_to_string.return_value,
-                         "get_stats() content['stats'] should be return value of render_to_string()")
+                         "GetStatsView content['stats'] should be return value of render_to_string()")
         self.assertEqual(content['chart'], mock_make_charts.return_value,
-                         "get_stats() content['charts'] should be return value of make_charts() if show_charts is true")
+                         "GetStatsView content['charts'] should be return value of make_charts() if show_charts is true")
 
         # If 1 word in filter_values, make_charts() should be called with proportions == [0, 0] (0 for each month)
         mock_make_charts.reset_mock()
@@ -167,20 +168,20 @@ class GetStatsTestCase(SimpleTestCase):
         )
         mock_get_filter_values_from_request.return_value = filter_values_one_word
 
-        get_stats(self.request)
+        GetStatsView().post(self.request)
 
         args, kwargs = mock_make_charts.call_args
         self.assertEqual(args[2], [0, 0],
-            'If 1 word in filter_values, get_stats() should call make_charts() with proportions == 0 for each month')
+            'If 1 word in filter_values, GetStatsView should call make_charts() with proportions == 0 for each month')
 
         # If months not in Elasticsearch word frequencies, 'chart' in response should be empty string
         mock_get_multiple_word_frequencies.return_value = {}
 
-        response = get_stats(self.request)
+        response = GetStatsView().post(self.request)
         content = json.loads(response.content.decode('utf-8'))
 
         self.assertEqual(content['chart'], '',
-            "If months not in Elasticsearch word frequencies, 'chart' in get_stats() response should be empty string")
+            "If months not in Elasticsearch word frequencies, 'chart' in GetStatsView response should be empty string")
 
 
 class WordcloudViewTestCase(SimpleTestCase):
