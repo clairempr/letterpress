@@ -18,7 +18,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.html import mark_safe
-
+from django.views.generic.base import TemplateView
 from letter_sentiment.custom_sentiment import get_custom_sentiment_for_text, highlight_for_custom_sentiment
 from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentiment
 
@@ -27,12 +27,6 @@ from letters import filter as letters_filter
 from letters.charts import make_charts
 from letters.models import Letter, Place
 from letters.sort_by import DATE, RELEVANCE, get_sentiments_for_sort_by_list
-
-
-def home(request):
-    """Renders the home page."""
-    assert isinstance(request, HttpRequest)
-    return render(request, 'letterpress.html', {'title': 'Letterpress', 'nbar': 'home'})
 
 
 # show letters, with filters
