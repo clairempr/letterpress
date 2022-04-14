@@ -21,7 +21,7 @@ from letters.views import export, export_csv, export_text, get_letter_export_tex
 
 class LettersViewTestCase(SimpleTestCase):
     """
-    Test letters_view
+    Test LettersView
     """
 
     @patch('letters.views.export', autospec=True)
@@ -60,7 +60,7 @@ class LettersViewTestCase(SimpleTestCase):
 
 class StatsViewTestCase(SimpleTestCase):
     """
-    Test stats_view
+    Test StatsView
     """
 
     @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)

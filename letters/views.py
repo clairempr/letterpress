@@ -52,12 +52,22 @@ class LettersView(TemplateView):
         return context
 
 
-# Show page for requesting various stats about word use over time
-def stats_view(request):
-    assert isinstance(request, HttpRequest)
-    filter_values = letters_filter.get_initial_filter_values()
-    return render(request, 'stats.html', {'title': 'Letter statistics', 'nbar': 'stats',
-                                          'filter_values': filter_values, 'show_words': 'true'})
+class StatsView(TemplateView):
+    """
+    Show page for requesting various stats about word use over time
+    """
+
+    template_name = 'stats.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = 'Letter statistics'
+        context['nbar'] = 'stats'
+        context['filter_values'] = letters_filter.get_initial_filter_values()
+        context['show_words'] = 'true'
+
+        return context
 
 
 # Show stats for requested words/months, based on filter
