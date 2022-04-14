@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
-from letters.views import letter_by_id, random_letter, export, letters_view, search, \
+from letters.views import letter_by_id, random_letter, export, LettersView, search, \
     logout_view, stats_view, get_stats, places_view, place_by_id, search_places, \
     sentiment_view, letter_sentiment_view, text_sentiment_view, get_text_sentiment, \
     wordcloud_view, get_wordcloud
@@ -23,7 +23,7 @@ urlpatterns = [
                   url(r'^letters/(?P<letter_id>[0-9]+)/sentiment/(?P<sentiment_id>[0-9]+)/$',
                         letter_sentiment_view, name='letter_sentiment_view'),
                   url(r'^letters/(?P<letter_id>[0-9]+)/$', letter_by_id, name='letter_by_id'),
-                  url(r'^letters/', letters_view, name='letters_view'),
+                  url(r'^letters/', LettersView.as_view(), name='letters_view'),
                   url(r'^search_places/', search_places, name='search_places'),
                   url(r'^search/', search, name='search'),
                   url(r'^random_letter/', random_letter, name='random_letter'),

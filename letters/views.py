@@ -29,17 +29,27 @@ from letters.models import Letter, Place
 from letters.sort_by import DATE, RELEVANCE, get_sentiments_for_sort_by_list
 
 
-# show letters, with filters
-def letters_view(request):
-    assert isinstance(request, HttpRequest)
-    if request.method == 'POST':
+class LettersView(TemplateView):
+    """
+    Show letters, with filters
+    """
+
+    template_name = 'letters.html'
+
+    def post(self, request, *args, **kwargs):
         return export(request)
-    filter_values = letters_filter.get_initial_filter_values()
-    sort_by = [(DATE, 'Date'), (RELEVANCE, 'Relevance')]
-    return render(request, 'letters.html', {'title': 'Letters', 'nbar': 'letters_view',
-                                            'filter_values': filter_values, 'show_search_text': 'true',
-                                            'sort_by': sort_by,
-                                            'show_export_button': 'true'})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = 'Letters'
+        context['nbar'] = 'letters_view'
+        context['filter_values'] = letters_filter.get_initial_filter_values()
+        context['show_search_text'] = 'true'
+        context['sort_by'] = [(DATE, 'Date'), (RELEVANCE, 'Relevance')]
+        context['show_export_button'] = 'true'
+
+        return context
 
 
 # Show page for requesting various stats about word use over time

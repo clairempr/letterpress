@@ -15,24 +15,8 @@ from django.urls import reverse
 from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
 from letters.views import export, export_csv, export_text, get_letter_export_text, get_stats, get_text_sentiment, \
-    get_wordcloud, highlight_for_sentiment, highlight_letter_for_sentiment, letters_view, object_not_found, \
+    get_wordcloud, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
     random_letter, search, search_places, show_letter_content, show_letter_sentiment
-
-
-class HomeTestCase(SimpleTestCase):
-    """
-    Test home view
-    """
-
-    def test_home(self):
-        """
-        Response context should contain 'title' and 'nbar'
-        """
-
-        response = self.client.get(reverse('home'), follow=True)
-        self.assertTemplateUsed(response, 'letterpress.html')
-        self.assertEqual(response.context['title'], 'Letterpress', "Home view context 'title' should be 'Letterpress'")
-        self.assertEqual(response.context['nbar'], 'home', "Home view context 'nbar' should be 'home'")
 
 
 class LettersViewTestCase(SimpleTestCase):
@@ -57,7 +41,7 @@ class LettersViewTestCase(SimpleTestCase):
         # For some reason, it's impossible to request a POST request via the Django test client,
         # so manually create one and call the view directly
         request = RequestFactory().post(reverse('letters_view'))
-        response = letters_view(request)
+        response = LettersView().dispatch(request)
         self.assertEqual(response, mock_export.return_value, "letters_view() should call export() if POST request")
 
         # GET
