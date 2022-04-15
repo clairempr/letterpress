@@ -19,6 +19,7 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 from django.views.generic.base import TemplateView, View
+from django.views.generic.detail import DetailView
 from letter_sentiment.custom_sentiment import get_custom_sentiment_for_text, highlight_for_custom_sentiment
 from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentiment
 
@@ -216,18 +217,22 @@ class SentimentView(TemplateView):
         return context
 
 
-# view to show one letter by id, with highlights for selected sentiment
-def letter_sentiment_view(request, letter_id, sentiment_id):
-    assert isinstance(request, HttpRequest)
-    try:
-        letter = Letter.objects.get(pk=letter_id)
-    except Letter.DoesNotExist:
-        return object_not_found(request, letter_id, 'Letter')
+class LetterSentimentView(View):
+    """
+    View to show one letter by id, with highlights for selected sentiment
+    """
 
-    # sentiments is a list of tuples (id, value)
-    sentiments = letter_search.get_letter_sentiments(letter, sentiment_id)
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs.get('letter_id')
+        try:
+            letter = Letter.objects.get(pk=pk)
+        except Letter.DoesNotExist:
+            return object_not_found(self.request, pk, 'Letter')
 
-    return show_letter_sentiment(request, letter, title='Letter Sentiment', nbar='sentiment', sentiments=sentiments)
+        # sentiments is a list of tuples (id, value)
+        sentiments = letter_search.get_letter_sentiments(letter, self.kwargs.get('sentiment_id'))
+
+        return show_letter_sentiment(request, letter, title='Letter Sentiment', nbar='sentiment', sentiments=sentiments)
 
 
 # show particular letter with sentiment highlights

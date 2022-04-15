@@ -279,27 +279,27 @@ class SentimentViewTestCase(SimpleTestCase):
 
 class LetterSentimentViewTestCase(TestCase):
     """
-    Test letter_sentiment_view()
+    Test LetterSentimentView
     """
 
     @patch('letters.views.letter_search.get_letter_sentiments', autospec=True)
     def test_letter_sentiment_view(self, mock_get_letter_sentiments):
         """
-        If letter exists, letter_sentiment_view() should return response with list of sentiments
+        If letter exists, LetterSentimentView should return response with list of sentiments
 
         For some reason, object_not_found() and show_letter_sentiment() can't be successfully mocked,
         so actually call them
         """
 
-        # If Letter with letter_id not found, letter_sentiment_view() should return object_not_found()
+        # If Letter with letter_id not found, LetterSentimentView should return object_not_found()
         response = self.client.get(reverse('letter_sentiment_view',
                                            kwargs={'letter_id': '1', 'sentiment_id': '1'}), follow=True)
         expected = {'title': 'Letter not found', 'object_id': '1', 'object_type': 'Letter'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                "letter_sentiment_view() context '{}' should be '{}', if letter not found".format(key, expected[key]))
+                "LetterSentimentView context '{}' should be '{}', if letter not found".format(key, expected[key]))
 
-        # If Letter with letter_id found, letter_sentiment_view() should return show_letter_sentiment()
+        # If Letter with letter_id found, LetterSentimentView should return show_letter_sentiment()
         response = self.client.get(reverse('letter_sentiment_view',
                                            kwargs={'letter_id': LetterFactory().pk, 'sentiment_id': '1'}), follow=True)
         self.assertTemplateUsed(response, 'letter_sentiment.html')
@@ -307,7 +307,7 @@ class LetterSentimentViewTestCase(TestCase):
         expected = {'title': 'Letter Sentiment', 'nbar': 'sentiment'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                "letter_sentiment_view() context '{}' should be '{}', if letter found".format(key, expected[key]))
+                "LetterSentimentView context '{}' should be '{}', if letter found".format(key, expected[key]))
 
 
 class ShowLetterSentimentTestCase(TestCase):
