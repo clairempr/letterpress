@@ -204,7 +204,7 @@ class WordCloudViewTestCase(SimpleTestCase):
                              "WordCloudView context '{}' should be '{}'".format(key, expected[key]))
 
 
-class GetWordcloudViewTestCase(TestCase):
+class GetWordCloudViewTestCase(TestCase):
     """
     Test GetWordCloudView
     """
@@ -250,14 +250,14 @@ class GetWordcloudViewTestCase(TestCase):
 
 class SentimentViewTestCase(SimpleTestCase):
     """
-    Test sentiment_view
+    Test SentimentView
     """
 
     @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
     @patch('letters.views.get_sentiments_for_sort_by_list', autospec=True)
     def test_sentiment_view(self, mock_get_sentiments_for_sort_by_list, mock_get_initial_filter_values):
         """
-        sentiment_view() should show a page for viewing sentiment letters, depending on filter_values
+        SentimentView should show a page for viewing sentiment letters, depending on filter_values
         """
 
         mock_get_initial_filter_values.return_value = 'initial filter values'
@@ -266,15 +266,15 @@ class SentimentViewTestCase(SimpleTestCase):
         self.assertTemplateUsed(response, 'sentiment.html')
 
         self.assertEqual(mock_get_sentiments_for_sort_by_list.call_count, 1,
-                         'sentiment_view() should call get_sentiments_for_sort_by_list()')
+                         'SentimentView should call get_sentiments_for_sort_by_list()')
 
         expected = {'title': 'Letter sentiment', 'nbar': 'sentiment',
                     'filter_values': mock_get_initial_filter_values.return_value,
                     'show_search_text': 'true', 'show_sentiment': 'true'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                             "sentiment_view() context '{}' should be '{}'".format(key, expected[key]))
-        self.assertIn('sort_by', response.context, "sentiment_view() context should contain 'sort_by'")
+                             "SentimentView context '{}' should be '{}'".format(key, expected[key]))
+        self.assertIn('sort_by', response.context, "SentimentView context should contain 'sort_by'")
 
 
 class LetterSentimentViewTestCase(TestCase):

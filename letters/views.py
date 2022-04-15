@@ -193,15 +193,27 @@ class GetWordCloudView(View):
         return HttpResponse(json_data, content_type="application/json")
 
 
-# Show page for viewing sentiment of letters
-def sentiment_view(request):
-    assert isinstance(request, HttpRequest)
-    filter_values = letters_filter.get_initial_filter_values()
-    sort_by = [(DATE, 'Date')]
-    sort_by.extend(get_sentiments_for_sort_by_list())
-    return render(request, 'sentiment.html', {'title': 'Letter sentiment', 'nbar': 'sentiment',
-                                              'filter_values': filter_values, 'show_search_text': 'true',
-                                              'sort_by': sort_by, 'show_sentiment': 'true'})
+class SentimentView(TemplateView):
+    """
+    Show page for viewing sentiment of letters
+    """
+
+    template_name = 'sentiment.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        sort_by = [(DATE, 'Date')]
+        sort_by.extend(get_sentiments_for_sort_by_list())
+
+        context['title'] = 'Letter sentiment'
+        context['nbar'] = 'sentiment'
+        context['filter_values'] = letters_filter.get_initial_filter_values()
+        context['show_search_text'] = 'true'
+        context['sort_by'] = sort_by
+        context['show_sentiment'] = 'true'
+
+        return context
 
 
 # view to show one letter by id, with highlights for selected sentiment
