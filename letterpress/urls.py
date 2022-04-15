@@ -4,9 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
-from letters.views import export, GetStatsView, get_text_sentiment, get_wordcloud, letter_by_id, \
+from letters.views import export, GetStatsView, get_text_sentiment, GetWordCloudView, letter_by_id, \
     letter_sentiment_view, LettersView, logout_view, place_by_id, places_view, random_letter, search, search_places, \
-    sentiment_view, StatsView, text_sentiment_view, wordcloud_view
+    sentiment_view, StatsView, text_sentiment_view, WordCloudView
 from letterpress.views import HomeView
 
 from django.contrib import admin
@@ -34,6 +34,6 @@ urlpatterns = [
                   url(r'^places/(?P<place_id>[0-9]+)/$', place_by_id, name='place_by_id'),
                   url(r'^places/', places_view, name='places'),
                   url(r'^tinymce/', include('tinymce.urls')),
-                  url(r'^wordcloud_image.png', get_wordcloud, name='get_wordcloud'),
-                  url(r'^wordcloud/', wordcloud_view, name='wordcloud_view'),
+                  url(r'^wordcloud_image.png', GetWordCloudView.as_view(), name='get_wordcloud'),
+                  url(r'^wordcloud/', WordCloudView.as_view(), name='wordcloud_view'),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -15,7 +15,7 @@ from django.urls import reverse
 from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
 from letters.views import export, export_csv, export_text, get_letter_export_text, GetStatsView, get_text_sentiment, \
-    get_wordcloud, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
+    GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
     random_letter, search, search_places, show_letter_content, show_letter_sentiment
 
 
@@ -184,9 +184,9 @@ class GetStatsViewTestCase(SimpleTestCase):
             "If months not in Elasticsearch word frequencies, 'chart' in GetStatsView response should be empty string")
 
 
-class WordcloudViewTestCase(SimpleTestCase):
+class WordCloudViewTestCase(SimpleTestCase):
     """
-    Test wordcloud_view()
+    Test WordCloudView
     """
 
     @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
@@ -201,12 +201,12 @@ class WordcloudViewTestCase(SimpleTestCase):
                     'filter_values': mock_get_initial_filter_values.return_value, 'show_search_text': 'true'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                             "wordcloud_view() context '{}' should be '{}'".format(key, expected[key]))
+                             "WordCloudView context '{}' should be '{}'".format(key, expected[key]))
 
 
-class GetWordcloudTestCase(TestCase):
+class GetWordcloudViewTestCase(TestCase):
     """
-    Test get_wordcloud()
+    Test GetWordCloudView
     """
 
     @patch('letters.views.letter_search.do_letter_search', autospec=True)
@@ -215,21 +215,22 @@ class GetWordcloudTestCase(TestCase):
     @patch('letters.views.LinearSegmentedColormap', autospec=True)
     @patch('letters.views.WordCloud', autospec=True)
     @patch.object(base64, 'b64encode', autospec=True)
-    def test_get_wordcloud(self, mock_b64encode, mock_WordCloud, mock_LinearSegmentedColormap, mock_numpy_array,
+    def test_get_wordcloud_view(self, mock_b64encode, mock_WordCloud, mock_LinearSegmentedColormap, mock_numpy_array,
                            mock_contents, mock_do_letter_search):
-        # POST
+        # POST request should return HttpResponseNotAllowed
         # For some reason, it's impossible to request a POST request via the Django test client,
         # so manually create one and call the view directly
         request = RequestFactory().post(reverse('get_wordcloud'))
-        response = get_wordcloud(request)
-        self.assertIsNone(response, 'get_wordcloud() should return None if not a GET request')
+        response = GetWordCloudView().dispatch(request)
+        self.assertEqual(response.status_code, 405,
+                         'Making a POST request to GetWordCloudView should return HttpResponseNotAllowed')
 
         # GET
         # If no letters returned by Elasticsearch, response content['wc'] should be empty string
         response = self.client.get(reverse('get_wordcloud'), follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['wc'], '',
-                    "get_wordcloud() should return '' in response content['wc'] if no letters found by Elasticsearch")
+                    "GetWordCloudView should return '' in response content['wc'] if no letters found by Elasticsearch")
 
         # If something returned by Elasticsearch, decoded WordCloud image should get returned in response content['wc']
         ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
@@ -244,7 +245,7 @@ class GetWordcloudTestCase(TestCase):
         response = self.client.get(reverse('get_wordcloud'), follow=True)
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['wc'], 'decoded image string',
-                         "get_wordcloud() should return decoded WordCloud image in response content['wc']")
+                         "GetWordCloudView should return decoded WordCloud image in response content['wc']")
 
 
 class SentimentViewTestCase(SimpleTestCase):

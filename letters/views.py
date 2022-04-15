@@ -131,56 +131,66 @@ class GetStatsView(View):
         return HttpResponse(json.dumps({'stats': stats_html, 'chart': chart}), content_type="application/json")
 
 
-# Show page for generating word clouds
-def wordcloud_view(request):
-    assert isinstance(request, HttpRequest)
-    filter_values = letters_filter.get_initial_filter_values()
-    return render(request, 'wordcloud.html', {'title': 'Word cloud', 'nbar': 'stats',
-                                          'filter_values': filter_values, 'show_search_text': 'true'})
+class WordCloudView(TemplateView):
+    """
+    Show page for generating word clouds
+    """
+
+    template_name = 'wordcloud.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = 'Word cloud'
+        context['nbar'] = 'stats'
+        context['filter_values'] = letters_filter.get_initial_filter_values()
+        context['show_search_text'] = 'true'
+
+        return context
 
 
-# Return wordcloud image, based on filter
-def get_wordcloud(request):
-    assert isinstance(request, HttpRequest)
-    if request.method != 'GET':
-        return
+class GetWordCloudView(View):
+    """
+    Return WordCloud image, based on filter
+    """
 
-    # return all matching records, within reason
-    es_result = letter_search.do_letter_search(request, size=10000, page_number=0)
-    letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
-    text = ' '.join([letter.contents() for letter in letters])
-    if text.rstrip() == '':
-        return HttpResponse(json.dumps({'wc': ''}), content_type="application/json")
+    def get(self, request, *args, **kwargs):
+        # return all matching records, within reason
+        es_result = letter_search.do_letter_search(request, size=10000, page_number=0)
+        letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
+        text = ' '.join([letter.contents() for letter in letters])
+        if text.rstrip() == '':
+            return HttpResponse(json.dumps({'wc': ''}), content_type="application/json")
 
-    stopwords = set(STOPWORDS)
+        stopwords = set(STOPWORDS)
 
-    mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/parchment_horiz.png')))
-    # mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/envelope.png')))
+        mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/parchment_horiz.png')))
+        # mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/envelope.png')))
 
-    cmap = LinearSegmentedColormap.from_list(name='letterpress_colormap',
-                                             colors=['#a1bdef', '#7da5ef', '#5c90ef'],
-                                             N=10)
-    wc = WordCloud(max_words=1000, mask=mask, stopwords=stopwords, margin=2,
-                   background_color='black', colormap=cmap, scale=0.95)\
-        .generate(text)
+        cmap = LinearSegmentedColormap.from_list(name='letterpress_colormap',
+                                                 colors=['#a1bdef', '#7da5ef', '#5c90ef'],
+                                                 N=10)
+        wc = WordCloud(max_words=1000, mask=mask, stopwords=stopwords, margin=2,
+                       background_color='black', colormap=cmap, scale=0.95)\
+            .generate(text)
 
-    # Save generated image as base64 and convert to string so it can
-    # be returned as json and used in the Ajax success function
-    # Just returning an image response doesn't force the browser to
-    # show the updated image, even with the @never_cache decorator
-    wc_image = wc.to_image()
+        # Save generated image as base64 and convert to string so it can
+        # be returned as json and used in the Ajax success function
+        # Just returning an image response doesn't force the browser to
+        # show the updated image, even with the @never_cache decorator
+        wc_image = wc.to_image()
 
-    with BytesIO() as byteImgIO:
-        wc_image.save(byteImgIO, 'PNG')
-        byteImgIO.seek(0)
-        wc_image = base64.b64encode(byteImgIO.read())
+        with BytesIO() as byteImgIO:
+            wc_image.save(byteImgIO, 'PNG')
+            byteImgIO.seek(0)
+            wc_image = base64.b64encode(byteImgIO.read())
 
-    # decode bytes to text
-    wc_string = wc_image.decode('utf-8')
-    json_data = json.dumps({'wc': wc_string}, indent=2)
+        # decode bytes to text
+        wc_string = wc_image.decode('utf-8')
+        json_data = json.dumps({'wc': wc_string}, indent=2)
 
-    # This was Ajax
-    return HttpResponse(json_data, content_type="application/json")
+        # This was Ajax
+        return HttpResponse(json_data, content_type="application/json")
 
 
 # Show page for viewing sentiment of letters
