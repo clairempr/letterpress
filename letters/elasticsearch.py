@@ -151,14 +151,11 @@ def index_temp_document(text):
     custom sentiment score for a piece of arbitrary text
     """
 
-    # refresh=True causes the error "TypeError: got an unexpected keyword argument 'refresh'"
-    # during unit test with Elasticsearch 5.6.2
-    # Works fine when actually run, but seems to work without it also
     ES_CLIENT.index(
         index=Letter._meta.es_index_name,
         doc_type=Letter._meta.es_type_name,
         id='temp',
-        # refresh=True,
+        refresh=True,
         body={'contents': text}
     )
 
@@ -169,12 +166,9 @@ def delete_temp_document():
     and was only used to get a score for sentiment
     """
 
-    # refresh=True causes the error "TypeError: got an unexpected keyword argument 'refresh'"
-    # during unit test with Elasticsearch 5.6.2
-    # Works fine when actually run, but seems to work without it also
     ES_CLIENT.delete(
         index=Letter._meta.es_index_name,
         doc_type=Letter._meta.es_type_name,
         id='temp',
-        # refresh=True,
+        refresh=True,
     )
