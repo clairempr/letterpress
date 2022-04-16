@@ -14,7 +14,7 @@ from django.urls import reverse
 
 from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
-from letters.views import export, export_csv, export_text, get_letter_export_text, GetStatsView, GetTextSentimentView, \
+from letters.views import ExportView, export_csv, export_text, get_letter_export_text, GetStatsView, GetTextSentimentView, \
     GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
     random_letter, SearchView, search_places, show_letter_content, get_highlighted_letter_sentiment
 
@@ -666,17 +666,17 @@ class ShowLetterContentTestCase(TestCase):
                         'show_letter_content() response content should contain str(letter)')
 
 
-class ExportTestCase(TestCase):
+class ExportViewTestCase(TestCase):
     """
-    Test export()
+    Test ExportView
     """
 
     @patch('letters.views.letter_search.do_letter_search', autospec=True)
     @patch('letters.views.export_text', autospec=True)
     @patch('letters.views.export_csv', autospec=True)
-    def test_export(self, mock_export_csv, mock_export_text, mock_do_letter_search):
+    def test_export_view(self, mock_export_csv, mock_export_text, mock_do_letter_search):
         """
-        export() should export letters that meet search criteria to text or csv file
+        ExportView should export letters that meet search criteria to text or csv file
         """
 
         letter = LetterFactory()
@@ -694,24 +694,24 @@ class ExportTestCase(TestCase):
 
         # If export_text is in POST parameters, export_text() should get called
         request.POST = {'export_text': True}
-        export(request)
+        ExportView().dispatch(request)
 
         args, kwargs = mock_export_text.call_args
         self.assertEqual(args[0], [letter],
-                         "export() should call export_text(letters) if 'export_text' in POST parameters")
+                         "ExportView should call export_text(letters) if 'export_text' in POST parameters")
         self.assertEqual(mock_export_csv.call_count, 0,
-                         "export() shouldn't call export_csv() if 'export_text' in POST parameters")
+                         "ExportView shouldn't call export_csv() if 'export_text' in POST parameters")
         mock_export_text.reset_mock()
 
         # If export_text not in POST parameters, export_csv() should get called
         request.POST = {'export_csv': True}
-        export(request)
+        ExportView().dispatch(request)
 
         args, kwargs = mock_export_csv.call_args
         self.assertEqual(args[0], [letter],
-                         "export() should call mock_export_csv(letters) if 'export_text' not in POST parameters")
+                         "ExportView should call mock_export_csv(letters) if 'export_text' not in POST parameters")
         self.assertEqual(mock_export_text.call_count, 0,
-                         "export() shouldn't call export_text() if 'export_text' not in POST parameters")
+                         "ExportView shouldn't call export_text() if 'export_text' not in POST parameters")
         mock_export_csv.reset_mock()
 
 

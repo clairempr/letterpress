@@ -396,6 +396,22 @@ def show_letter_content(request, letter, title, nbar):
                   {'title': title, 'nbar': nbar, 'letter': letter})
 
 
+class ExportView(View):
+    """
+    Export letters to output file
+    """
+
+    def post(self, request, *args, **kwargs):
+        # for export, return all matching records, within reason
+        size = 10000
+        es_result = letter_search.do_letter_search(request, size, page_number=0)
+        letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
+        if request.POST.get('export_text'):
+            return export_text(letters)
+        else:
+            return export_csv(letters)
+
+
 # exports letters to output file
 def export(request):
     assert isinstance(request, HttpRequest)
