@@ -6,7 +6,7 @@
 
     <div class="container">
 
-        <h5>{{ description }}</h5>
+        <h5>{{ letter }}</h5>
 
         <h5>Sentiment</h5>
         {% for sentiment, letter in results %}
@@ -15,7 +15,7 @@
         {% endfor %}
 
         <div class="row">
-            {% for image in images %}
+            {% for image in letter.image_tags %}
                 {% if forloop.counter == 3 %}
                     <br>
                 {% endif %}

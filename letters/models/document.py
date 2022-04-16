@@ -25,6 +25,9 @@ class Document(models.Model):
     def image_preview(self):
         return get_image_preview(self)
 
+    def image_tags(self):
+        return [image.image_tag() for image in self.images.all()]
+
     def list_date(self):
         """
         Return formatted date with separators and unknown elements filled with '?'

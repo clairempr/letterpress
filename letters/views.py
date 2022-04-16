@@ -232,13 +232,13 @@ class LetterSentimentView(View):
         # sentiments is a list of tuples (id, value)
         sentiments = letter_search.get_letter_sentiments(letter, self.kwargs.get('sentiment_id'))
 
-        return show_letter_sentiment(request, letter, title='Letter Sentiment', nbar='sentiment', sentiments=sentiments)
+        return get_highlighted_letter_sentiment(request, letter, sentiments=sentiments)
 
 
-# show particular letter with sentiment highlights
-def show_letter_sentiment(request, letter, title, nbar, sentiments):
-    description = letter.to_string()
-    image_tags = [image.image_tag() for image in letter.images.all()]
+def get_highlighted_letter_sentiment(request, letter, sentiments):
+    """
+    Show particular letter with sentiment highlights
+    """
 
     highlighted_letters = []
     sentiment_values = []
@@ -258,8 +258,8 @@ def show_letter_sentiment(request, letter, title, nbar, sentiments):
 
     results = zip(sentiment_values, highlighted_letters)
     return render(request, 'letter_sentiment.html',
-                  {'title': title, 'nbar': nbar, 'letter': letter, 'description': description,
-                   'images': image_tags, 'results': results})
+                  {'title': 'Letter Sentiment', 'nbar': 'sentiment', 'letter': letter,
+                   'results': results})
 
 
 def highlight_letter_for_sentiment(letter, sentiment_id):
@@ -377,11 +377,8 @@ def object_not_found(request, object_id, object_type):
 # show particular letter
 def show_letter_content(request, letter, title, nbar):
     letter.body = mark_safe(letter.body)
-    description = letter.to_string()
-    image_tags = [image.image_tag() for image in letter.images.all()]
     return render(request, 'letter.html',
-                  {'title': title, 'nbar': nbar, 'letter': letter, 'description': description,
-                   'images': image_tags})
+                  {'title': title, 'nbar': nbar, 'letter': letter})
 
 
 # exports letters to output file

@@ -16,7 +16,7 @@ from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
 from letters.views import export, export_csv, export_text, get_letter_export_text, GetStatsView, get_text_sentiment, \
     GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
-    random_letter, search, search_places, show_letter_content, show_letter_sentiment
+    random_letter, search, search_places, show_letter_content, get_highlighted_letter_sentiment
 
 
 class LettersViewTestCase(SimpleTestCase):
@@ -287,7 +287,7 @@ class LetterSentimentViewTestCase(TestCase):
         """
         If letter exists, LetterSentimentView should return response with list of sentiments
 
-        For some reason, object_not_found() and show_letter_sentiment() can't be successfully mocked,
+        For some reason, object_not_found() and get_highlighted_letter_sentiment() can't be successfully mocked,
         so actually call them
         """
 
@@ -299,7 +299,7 @@ class LetterSentimentViewTestCase(TestCase):
             self.assertEqual(response.context[key], expected[key],
                 "LetterSentimentView context '{}' should be '{}', if letter not found".format(key, expected[key]))
 
-        # If Letter with letter_id found, LetterSentimentView should return show_letter_sentiment()
+        # If Letter with letter_id found, LetterSentimentView should return get_highlighted_letter_sentiment()
         response = self.client.get(reverse('letter_sentiment_view',
                                            kwargs={'letter_id': LetterFactory().pk, 'sentiment_id': '1'}), follow=True)
         self.assertTemplateUsed(response, 'letter_sentiment.html')
@@ -310,15 +310,15 @@ class LetterSentimentViewTestCase(TestCase):
                 "LetterSentimentView context '{}' should be '{}', if letter found".format(key, expected[key]))
 
 
-class ShowLetterSentimentTestCase(TestCase):
+class GetHighlightedLetterSentimentTestCase(TestCase):
     """
-    Test show_letter_sentiment()
+    Test get_highlighted_letter_sentiment()
     """
 
     @patch('letters.views.highlight_letter_for_sentiment', autospec=True)
-    def test_show_letter_sentiment(self, mock_highlight_letter_for_sentiment):
+    def test_get_highlighted_letter_sentiment(self, mock_highlight_letter_for_sentiment):
         """
-        show_letter_sentiment() should show particular letter with sentiment highlights
+        get_highlighted_letter_sentiment() should show particular letter with sentiment highlights
 
         It's not a view, but it gets returned by the letter_sentiment_view
         """
@@ -326,13 +326,13 @@ class ShowLetterSentimentTestCase(TestCase):
 
         mock_highlight_letter_for_sentiment.return_value = [letter]
 
-        title = 'Letter sentiment'
+        title = 'Letter Sentiment'
         nbar = 'sentiment'
         sentiments = [('1', '0.1234')]
 
         request = RequestFactory().get(reverse('letter_sentiment_view', kwargs={'letter_id': '1', 'sentiment_id': '1'}),
                                        follow=True)
-        response = show_letter_sentiment(request, letter, title, nbar, sentiments)
+        response = get_highlighted_letter_sentiment(request, letter, sentiments)
         content = str(response.content)
 
         self.assertTrue(str(letter) in content)
@@ -340,10 +340,10 @@ class ShowLetterSentimentTestCase(TestCase):
         expected = [title, nbar, str(letter)]
         for item in expected:
             self.assertTrue(item in content,
-                            "show_letter_sentiment() response content should contain '{}'".format(item))
+                            "get_highlighted_letter_sentiment() response content should contain '{}'".format(item))
         for item in ['0.1234']:
             self.assertTrue(item in content,
-                            "show_letter_sentiment() response content should contain sentiment value".format(item))
+                            "get_highlighted_letter_sentiment() response content should contain sentiment value".format(item))
 
         # If sentiment value is a list, all those values should end up in response
         mock_highlight_letter_for_sentiment.return_value = [letter, letter]
@@ -351,12 +351,12 @@ class ShowLetterSentimentTestCase(TestCase):
 
         request = RequestFactory().get(reverse('letter_sentiment_view', kwargs={'letter_id': '1', 'sentiment_id': '1'}),
                                        follow=True)
-        response = show_letter_sentiment(request, letter, title, nbar, sentiments)
+        response = get_highlighted_letter_sentiment(request, letter, sentiments)
         content = str(response.content)
 
         for item in ['0.1234', '0.5678']:
             self.assertTrue(item in content,
-                            "show_letter_sentiment() response content should contain sentiment value".format(item))
+                            "get_highlighted_letter_sentiment() response content should contain sentiment value".format(item))
 
 
 class HighlightLetterForSentimentTestCase(TestCase):

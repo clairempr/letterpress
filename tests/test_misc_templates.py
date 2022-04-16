@@ -63,14 +63,13 @@ class LetterTemplateTestCase(TestCase):
 
     def test_template_content(self):
         template = 'letter.html'
-        description = 'This is the description'
         letter = create_test_letter()
 
-        rendered = render_to_string(template, context={'description': description, 'letter': letter})
+        rendered = render_to_string(template, context={'letter': letter})
 
-        self.assertIn(description, rendered, "HTML should contain description")
+        self.assertIn(str(letter), rendered, 'HTML should contain str(letter)')
         # Letter contents are in snippet letter_contents.html - just check the body here
-        self.assertIn(letter.body, rendered, 'HTML should contain body')
+        self.assertIn(letter.body, rendered, 'HTML should contain letter body')
 
 
 class LetterSentimentTemplateTestCase(TestCase):
