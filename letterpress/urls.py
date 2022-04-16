@@ -4,9 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
-from letters.views import export, GetStatsView, get_text_sentiment, GetWordCloudView, letter_by_id, \
+from letters.views import export, GetStatsView, GetTextSentimentView, GetWordCloudView, letter_by_id, \
     LetterSentimentView, LettersView, logout_view, place_by_id, places_view, random_letter, search, search_places, \
-    SentimentView, StatsView, text_sentiment_view, WordCloudView
+    SentimentView, StatsView, TextSentimentView, WordCloudView
 from letterpress.views import HomeView
 
 from django.contrib import admin
@@ -29,8 +29,8 @@ urlpatterns = [
                   url(r'^stats/', StatsView.as_view(), name='stats_view'),
                   url(r'^get_stats/', GetStatsView.as_view(), name='get_stats'),
                   url(r'^sentiment/', SentimentView.as_view(), name='sentiment_view'),
-                  url(r'^text_sentiment/', text_sentiment_view, name='text_sentiment_view'),
-                  url(r'^get_text_sentiment/', get_text_sentiment, name='get_text_sentiment'),
+                  url(r'^text_sentiment/', TextSentimentView.as_view(), name='text_sentiment_view'),
+                  url(r'^get_text_sentiment/', GetTextSentimentView.as_view(), name='get_text_sentiment'),
                   url(r'^places/(?P<place_id>[0-9]+)/$', place_by_id, name='place_by_id'),
                   url(r'^places/', places_view, name='places'),
                   url(r'^tinymce/', include('tinymce.urls')),

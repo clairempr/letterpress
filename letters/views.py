@@ -288,39 +288,49 @@ def highlight_letter_for_sentiment(letter, sentiment_id):
     return highlighted_letters
 
 
-def text_sentiment_view(request):
+class TextSentimentView(TemplateView):
     """
     View to get a piece of text for analysis using the chosen sentiment(s)
     """
 
-    assert isinstance(request, HttpRequest)
-    filter_values = letters_filter.get_initial_filter_values()
-    return render(request, 'text_sentiment.html', {'title': 'Text sentiment', 'nbar': 'sentiment',
-                                                   'filter_values': filter_values})
+    template_name = 'text_sentiment.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        sort_by = [(DATE, 'Date')]
+        sort_by.extend(get_sentiments_for_sort_by_list())
+
+        context['title'] = 'Text sentiment'
+        context['nbar'] = 'sentiment'
+        context['filter_values'] = letters_filter.get_initial_filter_values()
+
+        return context
 
 
-# Get sentiment analysis (and highlighting, if custom sentiment) for submitted text
-def get_text_sentiment(request):
-    assert isinstance(request, HttpRequest)
-    if request.method != 'POST':
-        return
+class GetTextSentimentView(View):
+    """
+    Get sentiment analysis (and highlighting, if custom sentiment) for submitted text
+    """
 
-    sentiment_ids = letters_filter.get_filter_values_from_request(request).sentiment_ids
-    text = request.POST.get('text')
+    def post(self, request, *args, **kwargs):
+        sentiment_ids = letters_filter.get_filter_values_from_request(request).sentiment_ids
+        text = request.POST.get('text')
 
-    sentiments = []
-    highlighted_texts = []
-    for sentiment_id in sentiment_ids:
-        highlighted_texts.extend(highlight_for_sentiment(text, sentiment_id))
-        if sentiment_id == 0:
-            sentiments.extend(get_sentiment(text))
-        else:
-            sentiments.append(get_custom_sentiment_for_text(text, sentiment_id))
+        sentiments = []
+        highlighted_texts = []
+        for sentiment_id in sentiment_ids:
+            highlighted_texts.extend(highlight_for_sentiment(text, sentiment_id))
+            if sentiment_id == 0:
+                sentiments.extend(get_sentiment(text))
+            else:
+                sentiments.append(get_custom_sentiment_for_text(text, sentiment_id))
 
-    results = zip(sentiments, highlighted_texts)
-    sentiment_html = render_to_string('snippets/sentiment_list.html', {'results': results})
-    # This was Ajax
-    return HttpResponse(json.dumps({'sentiments': sentiment_html}), content_type="application/json")
+        results = zip(sentiments, highlighted_texts)
+        sentiment_html = render_to_string('snippets/sentiment_list.html', {'results': results})
+
+        # This was Ajax
+        return HttpResponse(json.dumps({'sentiments': sentiment_html}), content_type="application/json")
 
 
 def highlight_for_sentiment(text, sentiment_id):
