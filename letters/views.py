@@ -340,6 +340,36 @@ def highlight_for_sentiment(text, sentiment_id):
     return [mark_safe(highlight_for_custom_sentiment(text, sentiment_id))]
 
 
+class SearchView(View):
+    """
+    Return list of letters containing search text
+    page_number is optional
+    """
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('search_text'):
+            size = 5
+        else:
+            size = 10
+        page_number = int(request.POST.get('page_number'))
+        es_result = letter_search.do_letter_search(request, size, page_number)
+        result_html = render_to_string('snippets/search_list.html', {'search_results': es_result.search_results})
+        # First request, no pagination yet
+        if page_number == 0:
+            # There is no built-in way to do something N times in a django template,
+            # so generate a string of length <es_result.pages> and use that in the template
+            # Yes, it's silly, but it's simpler than adding another template filter
+            pages_string = 'x' * es_result.pages
+            pagination_html = render_to_string('snippets/pagination.html',
+                                               {'pages': pages_string, 'total': es_result.total})
+        else:
+            pagination_html = ''
+        # This was Ajax
+        return HttpResponse(json.dumps({
+            'letters': result_html, 'pagination': pagination_html, 'pages': es_result.pages}),
+            content_type="application/json")
+
+
 # return list of letters containing search text
 # page_number is optional
 def search(request):

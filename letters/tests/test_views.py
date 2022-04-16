@@ -16,7 +16,7 @@ from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
 from letters.views import export, export_csv, export_text, get_letter_export_text, GetStatsView, GetTextSentimentView, \
     GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
-    random_letter, search, search_places, show_letter_content, get_highlighted_letter_sentiment
+    random_letter, SearchView, search_places, show_letter_content, get_highlighted_letter_sentiment
 
 
 class LettersViewTestCase(SimpleTestCase):
@@ -526,20 +526,21 @@ class HighlightForSentimentTestCase(SimpleTestCase):
         mock_highlight_for_custom_sentiment.reset_mock()
 
 
-class SearchTestCase(TestCase):
+class SearchViewTestCase(TestCase):
     """
-    Test search()
+    Test SearchView
     """
 
     @patch('letters.views.letter_search.do_letter_search')
-    def test_search(self, mock_do_letter_search):
+    def test_search_view(self, mock_do_letter_search):
         """
-        search() should return list of letters containing search text
+        SearchView should return list of letters containing search text
         """
 
-        # GET request should raise ValueError
-        with self.assertRaises(ValueError):
-            self.client.get(reverse('search'), follow=True)
+        # GET request should return HttpResponseNotAllowed
+        response = self.client.get(reverse('search'), follow=True)
+        self.assertEqual(response.status_code, 405,
+                         'Making a GET request to SearchView should return HttpResponseNotAllowed')
 
         letter = LetterFactory()
 
@@ -556,40 +557,40 @@ class SearchTestCase(TestCase):
 
         # If search_text is supplied, the size passed to do_letter_search() should be 5
         request.POST = {'page_number': '1', 'search_text': 'Bacon ipsum dolor amet ball tip salami kielbasa'}
-        search(request)
+        SearchView().dispatch(request)
 
         args, kwargs = mock_do_letter_search.call_args
         self.assertEqual(args, (request, 5, 1),
-                         'If search_text supplied to search(), the size passed to do_letter_search() should be 5')
+                         'If search_text supplied to SearchView, the size passed to do_letter_search() should be 5')
         mock_do_letter_search.reset_mock()
 
         # If search_text not supplied, the size passed to do_letter_search() should be 10
         request.POST = {'page_number': '1'}
-        response = search(request)
+        response = SearchView().dispatch(request)
 
         args, kwargs = mock_do_letter_search.call_args
         self.assertEqual(args, (request, 10, 1),
-                         'If search_text not supplied to search(), the size passed to do_letter_search() should be 10')
+                         'If search_text not supplied to SearchView, the size passed to do_letter_search() should be 10')
         mock_do_letter_search.reset_mock()
 
         # response content['pages'] should contain do_letter_search() result.pages
         # and response content['letters'] should contain letter from do_letter_search() result.search_results
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['pages'], mock_do_letter_search.return_value.pages,
-                        "search() response content['pages'] should contain do_letter_search() result.pages")
+                        "SearchView response content['pages'] should contain do_letter_search() result.pages")
         self.assertTrue(str(letter.writer) in content['letters'],
-                        "search() response content['letters'] should contain letter found by do_letter_search()")
+                        "SearchView response content['letters'] should contain letter found by do_letter_search()")
 
         # If page_number isn't 0, response content['pagination'] should be empty string
         self.assertEqual(content['pagination'], '',
-                        "search() response content['pagination'] should be empty string if page_number isn't 0")
+                        "SearchView response content['pagination'] should be empty string if page_number isn't 0")
 
         # If page_number is 0, response content['pagination'] shouldn't be empty string
         request.POST = {'page_number': '0'}
-        response = search(request)
+        response = SearchView().dispatch(request)
         content = json.loads(response.content.decode('utf-8'))
         self.assertNotEqual(content['pagination'], '',
-                            "search() response content['pagination'] shouldn't be empty string if page_number is 0")
+                            "SearchView response content['pagination'] shouldn't be empty string if page_number is 0")
 
 
 class LetterByIdTestCase(TestCase):
