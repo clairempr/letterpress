@@ -14,35 +14,24 @@ from django.urls import reverse
 
 from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
-from letters.views import ExportView, export_csv, export_text, get_letter_export_text, GetStatsView, GetTextSentimentView, \
+from letters.views import export_csv, export_text, get_letter_export_text, GetStatsView, GetTextSentimentView, \
     GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
-    random_letter, SearchView, search_places, show_letter_content, get_highlighted_letter_sentiment
+    RandomLetterView, SearchView, search_places, show_letter_content, get_highlighted_letter_sentiment
 
 
-class LettersViewTestCase(SimpleTestCase):
+class LettersViewTestCase(TestCase):
     """
     Test LettersView
     """
 
-    @patch('letters.views.export', autospec=True)
     @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
-    def test_letters_view(self, mock_get_initial_filter_values, mock_export):
+    def test_letters_view_get(self, mock_get_initial_filter_values):
         """
-        If request.method is POST, export(request) should be returned
-
-        Otherwise, response context should contain 'title', 'nbar', 'filter_values', 'show_search_text',
+        Response context should contain 'title', 'nbar', 'filter_values', 'show_search_text',
         'sort_by', and 'show_export_button'
         """
 
-        mock_export.return_value = 'export'
         mock_get_initial_filter_values.return_value = 'initial filter values'
-
-        # POST
-        # For some reason, it's impossible to request a POST request via the Django test client,
-        # so manually create one and call the view directly
-        request = RequestFactory().post(reverse('letters_view'))
-        response = LettersView().dispatch(request)
-        self.assertEqual(response, mock_export.return_value, "LettersView should call export() if POST request")
 
         # GET
         response = self.client.get(reverse('letters_view'), follow=True)
@@ -56,6 +45,51 @@ class LettersViewTestCase(SimpleTestCase):
                              "LettersView context '{}' should be '{}' if GET request".format(key, expected[key]))
         self.assertIn('sort_by', response.context,
                       "LettersView context should contain 'sort_by' if GET request".format(key))
+
+    @patch('letters.views.letter_search.do_letter_search', autospec=True)
+    @patch('letters.views.export_text', autospec=True)
+    @patch('letters.views.export_csv', autospec=True)
+    @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
+    def test_letters_view_post(self, mock_get_initial_filter_values, mock_export_csv, mock_export_text,
+                               mock_do_letter_search):
+        """
+        If request.method is POST, export_text or export_csv should be called
+        """
+
+        letter = LetterFactory()
+
+        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        search_results = [(letter, 'highlight', [('1', 'sentiment')], 'score')]
+        es_result = ES_Result(search_results=search_results, total=42, pages=4)
+
+        mock_do_letter_search.return_value = es_result
+
+        # POST
+        # For some reason, it's impossible to request a POST request via the Django test client,
+        # so manually create one and call the view directly
+        request = RequestFactory().post(reverse('letters_view'))
+
+        # If export_text is in POST parameters, export_text() should get called
+        request.POST = {'export_text': True}
+        LettersView().post(request)
+
+        args, kwargs = mock_export_text.call_args
+        self.assertEqual(args[0], [letter],
+                         "LettersView should call export_text() if 'export_text' in POST parameters")
+        self.assertEqual(mock_export_csv.call_count, 0,
+                         "LettersView shouldn't call export_csv() if 'export_text' in POST parameters")
+        mock_export_text.reset_mock()
+
+        # If export_text not in POST parameters, export_csv() should get called
+        request.POST = {'export_csv': True}
+        LettersView().post(request)
+
+        args, kwargs = mock_export_csv.call_args
+        self.assertEqual(args[0], [letter],
+                         "LettersView should call mock_export_csv(letters) if 'export_text' not in POST parameters")
+        self.assertEqual(mock_export_text.call_count, 0,
+                         "LettersView shouldn't call export_text() if 'export_text' not in POST parameters")
+        mock_export_csv.reset_mock()
 
 
 class StatsViewTestCase(SimpleTestCase):
@@ -666,55 +700,6 @@ class ShowLetterContentTestCase(TestCase):
                         'show_letter_content() response content should contain str(letter)')
 
 
-class ExportViewTestCase(TestCase):
-    """
-    Test ExportView
-    """
-
-    @patch('letters.views.letter_search.do_letter_search', autospec=True)
-    @patch('letters.views.export_text', autospec=True)
-    @patch('letters.views.export_csv', autospec=True)
-    def test_export_view(self, mock_export_csv, mock_export_text, mock_do_letter_search):
-        """
-        ExportView should export letters that meet search criteria to text or csv file
-        """
-
-        letter = LetterFactory()
-
-        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
-        search_results = [(letter, 'highlight', [('1', 'sentiment')], 'score')]
-        es_result = ES_Result(search_results=search_results, total=42, pages=4)
-
-        mock_do_letter_search.return_value = es_result
-
-        # POST
-        # For some reason, it's impossible to request a POST request via the Django test client,
-        # so manually create one and call the view directly
-        request = RequestFactory().post(reverse('export'), follow=True)
-
-        # If export_text is in POST parameters, export_text() should get called
-        request.POST = {'export_text': True}
-        ExportView().dispatch(request)
-
-        args, kwargs = mock_export_text.call_args
-        self.assertEqual(args[0], [letter],
-                         "ExportView should call export_text(letters) if 'export_text' in POST parameters")
-        self.assertEqual(mock_export_csv.call_count, 0,
-                         "ExportView shouldn't call export_csv() if 'export_text' in POST parameters")
-        mock_export_text.reset_mock()
-
-        # If export_text not in POST parameters, export_csv() should get called
-        request.POST = {'export_csv': True}
-        ExportView().dispatch(request)
-
-        args, kwargs = mock_export_csv.call_args
-        self.assertEqual(args[0], [letter],
-                         "ExportView should call mock_export_csv(letters) if 'export_text' not in POST parameters")
-        self.assertEqual(mock_export_text.call_count, 0,
-                         "ExportView shouldn't call export_text() if 'export_text' not in POST parameters")
-        mock_export_csv.reset_mock()
-
-
 class ExportCsvTestCase(TestCase):
     """
     Test export_csv()
@@ -795,57 +780,57 @@ class GetLetterExportTextTestCase(TestCase):
                         'get_letter_export_text() return value should contain letter.contents()')#
 
 
-class RandomLetterTestCase(TestCase):
+class RandomLetterViewTestCase(TestCase):
     """
-    Test random_letter
+    Test RandomLetterView
     """
 
     @patch('letters.views.show_letter_content', autospec=True)
     @patch('letters.views.object_not_found', autosec=True)
-    def test_random_letter(self, mock_object_not_found, mock_show_letter_content):
+    def test_random_letter_view(self, mock_object_not_found, mock_show_letter_content):
         """
-        random_letter() should retrieve a letter with a random index
+        RandomLetterView should retrieve a letter with a random index
         between 1 and total Letter objects.count() - 1
         """
 
         request = RequestFactory().get(reverse('home'), follow=True)
 
-        # If only no Letters, random_letter() should return object_not_found()
-        random_letter(request)
+        # If only no Letters, RandomLetterView should return object_not_found()
+        RandomLetterView().dispatch(request)
 
         args, kwargs = mock_object_not_found.call_args
         self.assertEqual(args, (request, 0, 'Letter'),
-                         'If no Letters, random_letter() should return object_not_found()')
+                         'If no Letters, RandomLetterView should return object_not_found()')
 
         # If one letter, random_letter() should return that one
         letter = LetterFactory()
 
-        random_letter(request)
+        RandomLetterView().dispatch(request)
 
         args, kwargs = mock_show_letter_content.call_args
         self.assertEqual(args, (request, letter),
-                         'If one Letter, random_letter() should return show_letter_content() with certain args')
+                         'If one Letter, RandomLetterView should return show_letter_content() with certain args')
         self.assertEqual(kwargs['title'], 'Random letter',
-                         "If one Letter, random_letter() should return show_letter_content() with title 'Random letter")
+                         "If one Letter, RandomLetterView should return show_letter_content() with title 'Random letter")
         self.assertEqual(kwargs['nbar'], 'random_letter',
-                         "If one Letter, random_letter() should return show_letter_content() with title 'random_letter")
+                         "If one Letter, RandomLetterView should return show_letter_content() with title 'random_letter")
         mock_show_letter_content.reset_mock()
 
-        # If more than one letter, random_letter() should return one of them
+        # If more than one letter, RandomLetterView should return one of them
         letter2 = LetterFactory()
 
         with patch('random.randint', autospec=True) as mock_randint:
             mock_randint.return_value = 1
 
-            random_letter(request)
+            RandomLetterView().dispatch(request)
 
             args, kwargs = mock_show_letter_content.call_args
             self.assertEqual(args, (request, letter2),
-                'If more than one Letter, random_letter() should return show_letter_content() with certain args')
+                'If more than one Letter, RandomLetterView should return show_letter_content() with certain args')
             self.assertEqual(kwargs['title'], 'Random letter',
-                "If more than one Letter, random_letter() should return show_letter_content() with title 'Random letter")
+                "If more than one Letter, RandomLetterView should return show_letter_content() with title 'Random letter")
             self.assertEqual(kwargs['nbar'], 'random_letter',
-                "If more than one Letter, random_letter() should return show_letter_content() with title 'random_letter")
+                "If more than one Letter, RandomLetterView should return show_letter_content() with title 'random_letter")
 
 
 class PlacesViewTestCase(TestCase):

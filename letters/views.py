@@ -37,7 +37,14 @@ class LettersView(TemplateView):
     template_name = 'letters.html'
 
     def post(self, request, *args, **kwargs):
-        return export(request)
+        # for export, return all matching records, within reason
+        size = 10000
+        es_result = letter_search.do_letter_search(request, size, page_number=0)
+        letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
+        if request.POST.get('export_text'):
+            return export_text(letters)
+        else:
+            return export_csv(letters)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -396,35 +403,6 @@ def show_letter_content(request, letter, title, nbar):
                   {'title': title, 'nbar': nbar, 'letter': letter})
 
 
-class ExportView(View):
-    """
-    Export letters to output file
-    """
-
-    def post(self, request, *args, **kwargs):
-        # for export, return all matching records, within reason
-        size = 10000
-        es_result = letter_search.do_letter_search(request, size, page_number=0)
-        letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
-        if request.POST.get('export_text'):
-            return export_text(letters)
-        else:
-            return export_csv(letters)
-
-
-# exports letters to output file
-def export(request):
-    assert isinstance(request, HttpRequest)
-    # for export, return all matching records, within reason
-    size = 10000
-    es_result = letter_search.do_letter_search(request, size, page_number=0)
-    letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
-    if request.POST.get('export_text'):
-        return export_text(letters)
-    else:
-        return export_csv(letters)
-
-
 def export_csv(letters):
     # write csv file contents to buffer rather than directly to HttpResponse
     # because that was causing SSL EOF errors
@@ -467,14 +445,18 @@ def get_letter_export_text(letter):
                           letter.recipient.to_export_string(), letter.contents())
 
 
-# retrieve a letter with a random index
-def random_letter(request):
-    count = Letter.objects.count()
-    if count >= 1:
-        random_idx = random.randint(0, count - 1)
-        letter = Letter.objects.all()[random_idx]
-        return show_letter_content(request, letter, title='Random letter', nbar='random_letter')
-    return object_not_found(request, 0, 'Letter')
+class RandomLetterView(View):
+    """
+    Retrieve a letter with a random index
+    """
+
+    def get(self, request, *args, **kwargs):
+        count = Letter.objects.count()
+        if count >= 1:
+            random_idx = random.randint(0, count - 1)
+            letter = Letter.objects.all()[random_idx]
+            return show_letter_content(request, letter, title='Random letter', nbar='random_letter')
+        return object_not_found(request, 0, 'Letter')
 
 
 # Show map of places
