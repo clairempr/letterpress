@@ -24,9 +24,9 @@
                         <tbody>
                         {% for letter in letters %}
                             <tr>
-                                <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.list_date }}</a></td>
-                                <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.writer }}</a></td>
-                                <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.recipient }}</a></td>
+                                <td><a href="{% url 'letter_detail' letter.id %}">{{ letter.list_date }}</a></td>
+                                <td><a href="{% url 'letter_detail' letter.id %}">{{ letter.writer }}</a></td>
+                                <td><a href="{% url 'letter_detail' letter.id %}">{{ letter.recipient }}</a></td>
                             </tr>
 
                         {% endfor %}

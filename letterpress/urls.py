@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
-from letters.views import export, GetStatsView, GetTextSentimentView, GetWordCloudView, letter_by_id, \
+from letters.views import export, GetStatsView, GetTextSentimentView, GetWordCloudView, LetterDetailView, \
     LetterSentimentView, LettersView, logout_view, place_by_id, places_view, random_letter, SearchView, search_places, \
     SentimentView, StatsView, TextSentimentView, WordCloudView
 from letterpress.views import HomeView
@@ -21,7 +21,7 @@ urlpatterns = [
                   url(r'^export/', export, name='export'),
                   url(r'^letters/(?P<letter_id>[0-9]+)/sentiment/(?P<sentiment_id>[0-9]+)/$',
                         LetterSentimentView.as_view(), name='letter_sentiment_view'),
-                  url(r'^letters/(?P<letter_id>[0-9]+)/$', letter_by_id, name='letter_by_id'),
+                  url(r'^letters/(?P<letter_id>[0-9]+)/$', LetterDetailView.as_view(), name='letter_detail'),
                   url(r'^letters/', LettersView.as_view(), name='letters_view'),
                   url(r'^search_places/', search_places, name='search_places'),
                   url(r'^search/', SearchView.as_view(), name='search'),
