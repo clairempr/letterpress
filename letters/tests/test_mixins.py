@@ -22,4 +22,4 @@ class ObjectNotFoundMixinTestCase(TestCase):
         self.assertTrue('<title>Letter not found</title>' in str(response.content),
                         "ObjectNotFoundMixin response content should include '<object_type> not found'")
         self.assertTrue('ID 1' in str(response.content),
-                        "ObjectNotFoundMixin) response content should include 'ID <object_id>' if it's for a letter")
+                        "ObjectNotFoundMixin response content should include 'ID <object_id>' if it's for a letter")

@@ -627,34 +627,34 @@ class SearchViewTestCase(TestCase):
                             "SearchView response content['pagination'] shouldn't be empty string if page_number is 0")
 
 
-class LetterViewTestCase(TestCase):
+class LetterDetailViewTestCase(TestCase):
     """
-    Test LetterView
+    Test LetterDetailView
     """
 
-    def test_letter_view(self):
+    def test_letter_detail_view(self):
         """
-        LetterView should call show_letter_content() if letter with id found
+        LetterDetailView should call show_letter_content() if letter with id found
 
         For some reason, object_not_found() can't be successfully mocked, so actually call it
         """
 
-        # If Letter with letter_id not found, LetterView should return object_not_found()
+        # If Letter with letter_id not found, LetterDetailView should return object_not_found()
         response = self.client.get(reverse('letter_detail', kwargs={'pk': '1'}), follow=True)
 
         expected = {'title': 'Letter not found', 'object_id': '1', 'object_type': 'Letter'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                "LetterView context '{}' should be '{}', if letter not found".format(key, expected[key]))
+                "LetterDetailView context '{}' should be '{}', if letter not found".format(key, expected[key]))
 
-        # If Letter with letter_id found, LetterView should return show_letter_content()
+        # If Letter with letter_id found, LetterDetailView should return show_letter_content()
         response = self.client.get(reverse('letter_detail', kwargs={'pk': LetterFactory().pk}), follow=True)
         self.assertTemplateUsed(response, 'letter.html')
 
         expected = {'title': 'Letter', 'nbar': 'letters_view'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                "LetterView context '{}' should be '{}', if letter found".format(key, expected[key]))
+                "LetterDetailView context '{}' should be '{}', if letter found".format(key, expected[key]))
 
 
 class ShowLetterContentTestCase(TestCase):

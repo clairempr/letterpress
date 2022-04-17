@@ -399,7 +399,6 @@ class LetterDetailView(DetailView, ObjectNotFoundMixin):
         return context
 
 
-
 # show particular letter
 def show_letter_content(request, letter, title, nbar):
     letter.body = mark_safe(letter.body)
@@ -465,26 +464,6 @@ class RandomLetterView(View):
                           {'letter': letter, 'title': 'Random letter', 'nbar': 'random_letter'})
 
         return object_not_found(request, 0, 'Letter')
-
-
-class LetterDetailView(DetailView, ObjectNotFoundMixin):
-    """
-    Show one letter, by id
-    """
-
-    model = Letter
-    template_name = 'letter.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        letter = self.object
-        letter.body = mark_safe(letter.body)
-        context['title'] = 'Letter'
-        context['nbar'] = 'letters_view'
-        context['letter'] = letter
-
-        return context
 
 
 # Show map of places
