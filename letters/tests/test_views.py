@@ -15,8 +15,8 @@ from django.urls import reverse
 from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
 from letters.views import export_csv, export_text, get_letter_export_text, GetStatsView, GetTextSentimentView, \
-    GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, object_not_found, \
-    RandomLetterView, SearchView, search_places, show_letter_content, get_highlighted_letter_sentiment
+    GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, RandomLetterView, \
+    SearchView, search_places, show_letter_content, get_highlighted_letter_sentiment
 
 
 class LettersViewTestCase(TestCase):
@@ -640,7 +640,7 @@ class LetterViewTestCase(TestCase):
         """
 
         # If Letter with letter_id not found, LetterView should return object_not_found()
-        response = self.client.get(reverse('letter_detail', kwargs={'letter_id': '1'}), follow=True)
+        response = self.client.get(reverse('letter_detail', kwargs={'pk': '1'}), follow=True)
 
         expected = {'title': 'Letter not found', 'object_id': '1', 'object_type': 'Letter'}
         for key in expected.keys():
@@ -648,33 +648,13 @@ class LetterViewTestCase(TestCase):
                 "LetterView context '{}' should be '{}', if letter not found".format(key, expected[key]))
 
         # If Letter with letter_id found, LetterView should return show_letter_content()
-        response = self.client.get(reverse('letter_detail', kwargs={'letter_id': LetterFactory().pk}), follow=True)
+        response = self.client.get(reverse('letter_detail', kwargs={'pk': LetterFactory().pk}), follow=True)
         self.assertTemplateUsed(response, 'letter.html')
 
         expected = {'title': 'Letter', 'nbar': 'letters_view'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
                 "LetterView context '{}' should be '{}', if letter found".format(key, expected[key]))
-
-
-class ObjectNotFoundTestCase(SimpleTestCase):
-    """
-    Test object_not_found()
-    """
-
-    def test_object_not_found(self):
-        """
-        object_not_found() should return rendered html giving details about the object that wasn't found
-        """
-
-        request = RequestFactory()
-        response = object_not_found(request, object_id=1, object_type='Letter')
-        content = str(response.content)
-
-        self.assertTrue('<title>Letter not found</title>' in content,
-                        "object_not_found() response content should include '<object_type> not found'")
-        self.assertTrue('ID 1' in content,
-                        "object_not_found() response content should include 'ID <object_id>' if it's for a letter")
 
 
 class ShowLetterContentTestCase(TestCase):
@@ -785,36 +765,27 @@ class RandomLetterViewTestCase(TestCase):
     Test RandomLetterView
     """
 
-    @patch('letters.views.show_letter_content', autospec=True)
-    @patch('letters.views.object_not_found', autosec=True)
-    def test_random_letter_view(self, mock_object_not_found, mock_show_letter_content):
+    def test_random_letter_view(self):
         """
         RandomLetterView should retrieve a letter with a random index
         between 1 and total Letter objects.count() - 1
         """
 
-        request = RequestFactory().get(reverse('home'), follow=True)
+        # If only no Letters, RandomLetterView should return object not found page
+        response = self.client.get(reverse('random_letter'), follow=True)
 
-        # If only no Letters, RandomLetterView should return object_not_found()
-        RandomLetterView().dispatch(request)
-
-        args, kwargs = mock_object_not_found.call_args
-        self.assertEqual(args, (request, 0, 'Letter'),
-                         'If no Letters, RandomLetterView should return object_not_found()')
+        self.assertTemplateUsed(response, 'obj_not_found.html')
+        self.assertTrue('Letter not found' in str(response.context),
+                         'If no Letters, RandomLetterView should return object not found page')
 
         # If one letter, random_letter() should return that one
         letter = LetterFactory()
 
-        RandomLetterView().dispatch(request)
-
-        args, kwargs = mock_show_letter_content.call_args
-        self.assertEqual(args, (request, letter),
-                         'If one Letter, RandomLetterView should return show_letter_content() with certain args')
-        self.assertEqual(kwargs['title'], 'Random letter',
-                         "If one Letter, RandomLetterView should return show_letter_content() with title 'Random letter")
-        self.assertEqual(kwargs['nbar'], 'random_letter',
-                         "If one Letter, RandomLetterView should return show_letter_content() with title 'random_letter")
-        mock_show_letter_content.reset_mock()
+        response = self.client.get(reverse('random_letter'), follow=True)
+        self.assertIn('Random letter', str(response.content),
+                        "Random letter page should be shown if there's at least one letter in database")
+        self.assertIn(str(letter), str(response.content),
+                      'If one Letter, RandomLetterView should return that letter')
 
         # If more than one letter, RandomLetterView should return one of them
         letter2 = LetterFactory()
@@ -822,15 +793,12 @@ class RandomLetterViewTestCase(TestCase):
         with patch('random.randint', autospec=True) as mock_randint:
             mock_randint.return_value = 1
 
-            RandomLetterView().dispatch(request)
+            response = self.client.get(reverse('random_letter'), follow=True)
 
-            args, kwargs = mock_show_letter_content.call_args
-            self.assertEqual(args, (request, letter2),
-                'If more than one Letter, RandomLetterView should return show_letter_content() with certain args')
-            self.assertEqual(kwargs['title'], 'Random letter',
-                "If more than one Letter, RandomLetterView should return show_letter_content() with title 'Random letter")
-            self.assertEqual(kwargs['nbar'], 'random_letter',
-                "If more than one Letter, RandomLetterView should return show_letter_content() with title 'random_letter")
+            self.assertIn('Random letter', str(response.content),
+                          "If more than one Letter, RandomLetterView should return page title 'Random letter")
+            self.assertIn(str(letter2), str(response.content),
+                          "If more than one Letter, RandomLetterView should return randomly chosen letter")
 
 
 class PlacesViewTestCase(TestCase):

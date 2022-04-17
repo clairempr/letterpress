@@ -15,16 +15,19 @@ from wordcloud import WordCloud, STOPWORDS
 
 from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 from django.views.generic.base import TemplateView, View
+from django.views.generic.detail import DetailView
 from letter_sentiment.custom_sentiment import get_custom_sentiment_for_text, highlight_for_custom_sentiment
 from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentiment
 
 from letters import letter_search
 from letters import filter as letters_filter
 from letters.charts import make_charts
+from letters.mixins import ObjectNotFoundMixin, object_not_found
 from letters.models import Letter, Place
 from letters.sort_by import DATE, RELEVANCE, get_sentiments_for_sort_by_list
 
@@ -376,24 +379,25 @@ class SearchView(View):
             content_type="application/json")
 
 
-class LetterDetailView(View):
+class LetterDetailView(DetailView, ObjectNotFoundMixin):
     """
     Show one letter, by id
     """
 
-    def get(self, request, *args, **kwargs):
-        pk = self.kwargs.get('letter_id')
-        try:
-            letter = Letter.objects.get(pk=pk)
-        except Letter.DoesNotExist:
-            return object_not_found(self.request, pk, 'Letter')
+    model = Letter
+    template_name = 'letter.html'
 
-        return show_letter_content(request, letter, title='Letter', nbar='letters_view')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
+        letter = self.object
+        letter.body = mark_safe(letter.body)
+        context['title'] = 'Letter'
+        context['nbar'] = 'letters_view'
+        context['letter'] = letter
 
-def object_not_found(request, object_id, object_type):
-    return render(request, 'obj_not_found.html',
-                  {'title': object_type + ' not found', 'object_id': object_id, 'object_type': object_type})
+        return context
+
 
 
 # show particular letter
@@ -455,8 +459,32 @@ class RandomLetterView(View):
         if count >= 1:
             random_idx = random.randint(0, count - 1)
             letter = Letter.objects.all()[random_idx]
-            return show_letter_content(request, letter, title='Random letter', nbar='random_letter')
+            letter.body = mark_safe(letter.body)
+
+            return render(request, 'letter.html',
+                          {'letter': letter, 'title': 'Random letter', 'nbar': 'random_letter'})
+
         return object_not_found(request, 0, 'Letter')
+
+
+class LetterDetailView(DetailView, ObjectNotFoundMixin):
+    """
+    Show one letter, by id
+    """
+
+    model = Letter
+    template_name = 'letter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        letter = self.object
+        letter.body = mark_safe(letter.body)
+        context['title'] = 'Letter'
+        context['nbar'] = 'letters_view'
+        context['letter'] = letter
+
+        return context
 
 
 # Show map of places
