@@ -33,7 +33,7 @@
                         href="{% url 'letters_view' %}">Letters</a></li>
                 <li class="{% if nbar == 'random_letter' %}active{% endif %}"><a href="{% url 'random_letter' %}">
                     Random letter</a></li>
-                <li class="{% if nbar == 'places' %}active{% endif %}"><a href="{% url 'places' %}">Places</a></li>
+                <li class="{% if nbar == 'places' %}active{% endif %}"><a href="{% url 'place_list' %}">Places</a></li>
                 </li>
                 <li class="dropdown {% if nbar == 'stats' %}active{% endif %}">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"

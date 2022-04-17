@@ -15,12 +15,12 @@ from wordcloud import WordCloud, STOPWORDS
 
 from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.http import Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.html import mark_safe
 from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
 from letter_sentiment.custom_sentiment import get_custom_sentiment_for_text, highlight_for_custom_sentiment
 from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentiment
 
@@ -466,15 +466,27 @@ class RandomLetterView(View):
         return object_not_found(request, 0, 'Letter')
 
 
-# Show map of places
-def places_view(request):
-    assert isinstance(request, HttpRequest)
-    filter_values = letters_filter.get_initial_filter_values()
-    places = Place.objects.filter(point__isnull=False)[:100]
-    map_html = render_to_string('snippets/map.html', {'places': places})
-    return render(request, 'places.html', {'title': 'Places', 'nbar': 'places',
-                                           'filter_values': filter_values, 'show_search_text': 'true',
-                                           'map': map_html})
+class PlaceListView(ListView):
+    """
+    Show map of places
+    """
+
+    model = Place
+    queryset = Place.objects.filter(point__isnull=False)[:100]
+    template_name = 'places.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = 'Places'
+        context['nbar'] = 'places'
+        context['filter_values'] = letters_filter.get_initial_filter_values()
+        context['show_search_text'] = 'true'
+
+        map_html = render_to_string('snippets/map.html', {'places': self.queryset})
+        context['map'] = map_html
+
+        return context
 
 
 # return map of places whose letters meet search criteria

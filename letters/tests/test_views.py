@@ -635,11 +635,9 @@ class LetterDetailViewTestCase(TestCase):
     def test_letter_detail_view(self):
         """
         LetterDetailView should call show_letter_content() if letter with id found
-
-        For some reason, object_not_found() can't be successfully mocked, so actually call it
         """
 
-        # If Letter with letter_id not found, LetterDetailView should return object_not_found()
+        # If Letter with letter_id not found, LetterDetailView should return object not found
         response = self.client.get(reverse('letter_detail', kwargs={'pk': '1'}), follow=True)
 
         expected = {'title': 'Letter not found', 'object_id': '1', 'object_type': 'Letter'}
@@ -801,16 +799,16 @@ class RandomLetterViewTestCase(TestCase):
                           "If more than one Letter, RandomLetterView should return randomly chosen letter")
 
 
-class PlacesViewTestCase(TestCase):
+class PPlaceListViewTestCase(TestCase):
     """
-    Test places_view()
+    Test PlaceListView
     """
 
     @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
     @patch('letters.views.render_to_string', autospec=True)
-    def test_places_view(self, mock_render_to_string, mock_get_initial_filter_values):
+    def test_place_list_view(self, mock_render_to_string, mock_get_initial_filter_values):
         """
-        places_view() should show a set of initial values and the first 100 Places
+        PlaceListView should show a set of initial values and the first 100 Places
         """
 
         mock_get_initial_filter_values.return_value = 'initial filter values'
@@ -818,15 +816,15 @@ class PlacesViewTestCase(TestCase):
         barbecue = PlaceFactory(name='Barbecue', state='North Carolina', point=Point(0, 0))
         bacon_level = PlaceFactory(name='Bacon Level', state='Alabama')
 
-        response = self.client.get(reverse('places'), follow=True)
+        response = self.client.get(reverse('place_list'), follow=True)
         args, kwargs = mock_render_to_string.call_args
         self.assertTrue(barbecue in args[1]['places'],
-                        'places_view() should call render_to_string() with places that have coordinates in args')
+                        'PlaceListView should call render_to_string() with places that have coordinates in args')
         self.assertFalse(bacon_level in args[1]['places'],
-                        'places_view() should call render_to_string() without places that have no coordinates in args')
+                        'PlaceListView should call render_to_string() without places that have no coordinates in args')
 
         content = str(response.content)
-        self.assertTrue('<title>Places</title>' in content, "places_view() should return page with 'Places' as title")
+        self.assertTrue('<title>Places</title>' in content, "PlaceListView should return page with 'Places' as title")
 
 
 class SearchPlacesTestCase(SimpleTestCase):
