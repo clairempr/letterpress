@@ -30,7 +30,7 @@ def get_envelope_preview(obj):
 
 
 def get_image_preview(obj):
-    return mark_safe('&nbsp;'.join([image.image_tag() for image in obj.images.all()]))
+    return mark_safe('&nbsp;'.join(obj.image_tags()))
 
 
 def html_to_text(html):

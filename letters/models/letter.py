@@ -8,8 +8,8 @@ from letters.models.util import get_envelope_preview, html_to_text
 
 
 class Letter(Document):
-    place = models.ForeignKey(Place)
-    recipient = models.ForeignKey(Correspondent, related_name='recipient')
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    recipient = models.ForeignKey(Correspondent, on_delete=models.CASCADE, related_name='recipient')
     # letter content broken up into separate parts so it can be displayed more nicely
     heading = models.TextField(null=True, blank=True)
     greeting = models.TextField(null=True, blank=True)

@@ -75,7 +75,7 @@ class DeleteTempDocumentTestCase(SimpleTestCase):
     delete_temp_document() delete temporarily indexed document from Elasticsearch index
     """
 
-    @patch('letters.elasticsearch.ES_CLIENT.delete', autospec=True)
+    @patch('letters.elasticsearch.ES_CLIENT.delete')
     def test_delete_temp_document(self, mock_delete):
         result = delete_temp_document()
 
@@ -299,7 +299,7 @@ class IndexTempDocumentTestCase(SimpleTestCase):
     custom sentiment score for a piece of arbitrary text
     """
 
-    @patch('letters.elasticsearch.ES_CLIENT.index', autospec=True)
+    @patch('letters.elasticsearch.ES_CLIENT.index')
     def test_index_temp_document(self, mock_index):
         text = 'normcore unicorn'
 

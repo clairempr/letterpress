@@ -5,17 +5,17 @@ jQuery(document).ready(function ($) {
 });
 
 function get_stats() {
-    var filter_values = filter_values.get();
+    var inital_filter_values = filter_values.get();
 
     $.ajax({
         type: "POST",
         dataType: "json",
         data: {
-            sources: filter_values.sources,
-            writers: filter_values.writers,
-            start_date: filter_values.start_date,
-            end_date: filter_values.end_date,
-            words: filter_values.words
+            sources: inital_filter_values.sources,
+            writers: inital_filter_values.writers,
+            start_date: inital_filter_values.start_date,
+            end_date: inital_filter_values.end_date,
+            words: inital_filter_values.words
         },
         url: "/get_stats/",
         success: function (result) {

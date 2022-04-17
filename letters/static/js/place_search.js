@@ -17,20 +17,20 @@ jQuery(document).ready(function ($) {
 });
 
 function do_place_search() {
-    var filter_values = filter_values.get();
+    var inital_filter_values = filter_values.get();
 
     $.ajax({
         type: "POST",
         dataType: "json",
         data: {
-            search_text: filter_values.search_text,
-            sources: filter_values.sources,
-            writers: filter_values.writers,
-            start_date: filter_values.start_date,
-            end_date: filter_values.end_date,
+            search_text: inital_filter_values.search_text,
+            sources: inital_filter_values.sources,
+            writers: inital_filter_values.writers,
+            start_date: inital_filter_values.start_date,
+            end_date: inital_filter_values.end_date,
             page_number: 0,
         },
-        url: "/search_places/",
+        url: "/places/search/",
         success: function (result) {
             show_map(result.map)
         }

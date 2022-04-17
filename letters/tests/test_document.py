@@ -3,7 +3,8 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from letters.models import Document
+from letters.models import Document, DocumentImage
+from letters.tests.factories import DocumentImageFactory
 
 
 class DocumentTestCase(TestCase):
@@ -55,6 +56,28 @@ class DocumentTestCase(TestCase):
 
         self.assertEqual(Document().image_preview(), mock_get_image_preview.return_value,
                          'Document.image_preview() should return value of Document.get_image_preview()')
+
+    def test_image_tags(self):
+        """
+        Document.image_tags() should return a list of image_tag() for its DocumentImages
+        """
+
+        # Add DocumentImages to the Document using a mock instead of images.add() because that
+        # causes an error AttributeError: 'ManyToManyField' object has no attribute 'm2m_field_name'
+        # Actual use of images on classes that inherit from Document works fine, so just patch here
+        # because it may just be caused by direct use of an abstract class (Document)
+        with patch.object(Document, 'images', autospec=True) as mock_document_images:
+            mock_document_images.all.return_value = [DocumentImageFactory(), DocumentImageFactory()]
+
+            document = Document()
+
+            expected_image_tags = ['image_tag1', 'image_tag2']
+            with patch.object(DocumentImage, 'image_tag', autospec=True, side_effect=expected_image_tags):
+                image_tags = document.image_tags()
+
+                for expected_image_tag in expected_image_tags:
+                    self.assertIn(expected_image_tag, image_tags,
+                                  'Document.image_tags() value should contain image_tag for its DocumentImage')
 
     def test_list_date(self):
         """

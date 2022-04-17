@@ -6,9 +6,9 @@ from letters.models.util import get_choices, get_image_preview, Language
 
 
 class Document(models.Model):
-    source = models.ForeignKey(DocumentSource)
+    source = models.ForeignKey(DocumentSource, on_delete=models.CASCADE)
     date = ApproximateDateField(default='', blank=True)
-    writer = models.ForeignKey(Correspondent, related_name='%(model_name)s_writer')
+    writer = models.ForeignKey(Correspondent, on_delete=models.CASCADE, related_name='%(model_name)s_writer')
     language = models.CharField(max_length=2, default=Language.ENGLISH, blank=True, choices=get_choices(Language))
     notes = tinymce_models.HTMLField(blank=True)
     images = models.ManyToManyField(DocumentImage, blank=True)
@@ -24,6 +24,9 @@ class Document(models.Model):
 
     def image_preview(self):
         return get_image_preview(self)
+
+    def image_tags(self):
+        return [image.image_tag() for image in self.images.all()]
 
     def list_date(self):
         """

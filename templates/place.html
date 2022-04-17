@@ -24,9 +24,9 @@
                         <tbody>
                         {% for letter in letters %}
                             <tr>
-                                <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.list_date }}</a></td>
-                                <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.writer }}</a></td>
-                                <td><a href="{% url 'letter_by_id' letter.id %}">{{ letter.recipient }}</a></td>
+                                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.list_date }}</a></td>
+                                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.writer }}</a></td>
+                                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.recipient }}</a></td>
                             </tr>
 
                         {% endfor %}
@@ -60,7 +60,7 @@
 
         // Define markers as "features" of the vector layer:
         var point = create_point({{ place.point.x }}, {{ place.point.y }});
-        var name = '<a href ="{% url 'place_by_id' place.id %}">{{ place }}</a>';
+        var name = '<a href ="{% url 'place_detail' place.pk %}">{{ place }}</a>';
 
         features.push(create_feature(point, name));
 

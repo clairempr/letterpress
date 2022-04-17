@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='letter',
             name='writer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='letter_writer', to='letters.Correspondent'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='letter_writer', to='letters.Correspondent'),
         ),
         migrations.AlterField(
             model_name='miscdocument',
@@ -31,16 +31,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='miscdocument',
             name='place',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='miscdoc', to='letters.Place'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='miscdoc', to='letters.Place'),
         ),
         migrations.AlterField(
             model_name='miscdocument',
             name='source',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='miscdoc', to='letters.DocumentSource'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='miscdoc', to='letters.DocumentSource'),
         ),
         migrations.AlterField(
             model_name='miscdocument',
             name='writer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='miscdocument_writer', to='letters.Correspondent'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='miscdocument_writer', to='letters.Correspondent'),
         ),
     ]
