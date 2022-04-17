@@ -30,7 +30,7 @@ function do_place_search() {
             end_date: inital_filter_values.end_date,
             page_number: 0,
         },
-        url: "/search_places/",
+        url: "/places/search/",
         success: function (result) {
             show_map(result.map)
         }

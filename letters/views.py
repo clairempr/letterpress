@@ -385,6 +385,7 @@ class LetterDetailView(DetailView, ObjectNotFoundMixin):
     """
 
     model = Letter
+    context_object_name = 'letter'
     template_name = 'letter.html'
 
     def get_context_data(self, **kwargs):
@@ -394,7 +395,6 @@ class LetterDetailView(DetailView, ObjectNotFoundMixin):
         letter.body = mark_safe(letter.body)
         context['title'] = 'Letter'
         context['nbar'] = 'letters_view'
-        context['letter'] = letter
 
         return context
 
@@ -489,34 +489,43 @@ class PlaceListView(ListView):
         return context
 
 
-# return map of places whose letters meet search criteria
-def search_places(request):
-    assert isinstance(request, HttpRequest)
-    if request.method != 'POST':
-        return
-    # get a bunch of them!
-    size = 5000
-    # Search for letters that meet criteria. Start at beginning, so page number = 0
-    es_result = letter_search.do_letter_search(request, size, page_number=0)
-    # Get list of corresponding places
-    place_ids = set([letter.place_id for letter, highlight, sentiments, score in es_result.search_results])
-    # Only show the first 100
-    places = Place.objects.filter(pk__in=place_ids, point__isnull=False)[:100]
-    map_html = render_to_string('snippets/map.html', {'places': places})
-    # This was Ajax
-    return HttpResponse(json.dumps({'map': map_html}), content_type="application/json")
+class PlaceSearchView(View):
+    """
+    Return map of places whose letters meet search criteria
+    """
+
+    def post(self, request, *args, **kwargs):
+        # get a bunch of them!
+        size = 5000
+        # Search for letters that meet criteria. Start at beginning, so page number = 0
+        es_result = letter_search.do_letter_search(request, size, page_number=0)
+        # Get list of corresponding places
+        place_ids = set([letter.place_id for letter, highlight, sentiments, score in es_result.search_results])
+        # Only show the first 100
+        places = Place.objects.filter(pk__in=place_ids, point__isnull=False)[:100]
+        map_html = render_to_string('snippets/map.html', {'places': places})
+        # This was Ajax
+        return HttpResponse(json.dumps({'map': map_html}), content_type="application/json")
 
 
-# view to show one place by id
-def place_by_id(request, place_id):
-    assert isinstance(request, HttpRequest)
-    try:
-        place = Place.objects.get(pk=place_id)
-        letters = Letter.objects.filter(place=place_id).order_by('date')
-        return render(request, 'place.html',
-                      {'title': 'Place', 'nbar': 'places', 'place': place, 'letters': letters})
-    except Place.DoesNotExist:
-        return object_not_found(request, place_id, 'Place')
+class PlaceDetailView(DetailView, ObjectNotFoundMixin):
+    """
+    Show one place by id
+    """
+
+    model = Place
+    context_object_name = 'place'
+    template_name = 'place.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        letters = Letter.objects.filter(place=self.object).order_by('date')
+        context['title'] = 'Place'
+        context['nbar'] = 'places'
+        context['letters'] = letters
+
+        return context
 
 
 def logout_view(request):

@@ -5,8 +5,8 @@ from django.conf.urls.static import static
 from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
 from letters.views import GetStatsView, GetTextSentimentView, GetWordCloudView, LetterDetailView, \
-    LetterSentimentView, LettersView, logout_view, place_by_id, PlaceListView, RandomLetterView, SearchView, \
-    search_places, SentimentView, StatsView, TextSentimentView, WordCloudView
+    LetterSentimentView, LettersView, logout_view, PlaceDetailView, PlaceListView, PlaceSearchView, RandomLetterView, \
+    SearchView, SentimentView, StatsView, TextSentimentView, WordCloudView
 from letterpress.views import HomeView
 
 from django.contrib import admin
@@ -22,7 +22,6 @@ urlpatterns = [
                         LetterSentimentView.as_view(), name='letter_sentiment_view'),
                   url(r'^letters/(?P<pk>[0-9]+)/$', LetterDetailView.as_view(), name='letter_detail'),
                   url(r'^letters/', LettersView.as_view(), name='letters_view'),
-                  url(r'^search_places/', search_places, name='search_places'),
                   url(r'^search/', SearchView.as_view(), name='search'),
                   url(r'^random_letter/', RandomLetterView.as_view(), name='random_letter'),
                   url(r'^stats/', StatsView.as_view(), name='stats_view'),
@@ -30,7 +29,8 @@ urlpatterns = [
                   url(r'^sentiment/', SentimentView.as_view(), name='sentiment_view'),
                   url(r'^text_sentiment/', TextSentimentView.as_view(), name='text_sentiment_view'),
                   url(r'^get_text_sentiment/', GetTextSentimentView.as_view(), name='get_text_sentiment'),
-                  url(r'^places/(?P<place_id>[0-9]+)/$', place_by_id, name='place_by_id'),
+                  url(r'^places/search/', PlaceSearchView.as_view(), name='place_search'),
+                  url(r'^places/(?P<pk>[0-9]+)/$', PlaceDetailView.as_view(), name='place_detail'),
                   url(r'^places/', PlaceListView.as_view(), name='place_list'),
                   url(r'^tinymce/', include('tinymce.urls')),
                   url(r'^wordcloud_image.png', GetWordCloudView.as_view(), name='get_wordcloud'),

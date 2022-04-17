@@ -14,9 +14,9 @@ from django.urls import reverse
 
 from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
-from letters.views import export_csv, export_text, get_letter_export_text, GetStatsView, GetTextSentimentView, \
-    GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, LettersView, RandomLetterView, \
-    SearchView, search_places, show_letter_content, get_highlighted_letter_sentiment
+from letters.views import export_csv, export_text, get_highlighted_letter_sentiment, get_letter_export_text, \
+    GetStatsView, GetTextSentimentView, GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, \
+    LettersView, PlaceSearchView, RandomLetterView, SearchView, show_letter_content
 
 
 class LettersViewTestCase(TestCase):
@@ -827,64 +827,63 @@ class PPlaceListViewTestCase(TestCase):
         self.assertTrue('<title>Places</title>' in content, "PlaceListView should return page with 'Places' as title")
 
 
-class SearchPlacesTestCase(SimpleTestCase):
+class PlaceSearchViewTestCase(SimpleTestCase):
     """
-    Test search_places()
+    Test PlaceSearchView
     """
 
     @patch('letters.views.letter_search.do_letter_search')
     @patch('letters.views.render_to_string', autospec=True)
-    def test_search_places(self, mock_render_to_string, mock_do_letter_search):
-        # GET request should raise ValueError
-        with self.assertRaises(ValueError):
-            self.client.get(reverse('search_places'), follow=True)
+    def test_place_search_view(self, mock_render_to_string, mock_do_letter_search):
+        # GET request should return HttpResponseNotAllowed
+        response = self.client.get(reverse('place_search'), follow=True)
+        self.assertEqual(response.status_code, 405,
+                         'Making a GET request to PlaceSearchView should return HttpResponseNotAllowed')
 
         mock_render_to_string.return_value = 'render to string'
 
         # POST
         # For some reason, it's impossible to request a POST request via the Django test client,
         # so manually create one and call the view directly
-        request = RequestFactory().post(reverse('search_places'))
+        request = RequestFactory().post(reverse('place_search'))
 
-        response = search_places(request)
+        response = PlaceSearchView().dispatch(request)
 
-        self.assertEqual(mock_do_letter_search.call_count, 1, 'search_places() should call do_letter_search()')
-        self.assertEqual(mock_render_to_string.call_count, 1, 'search_places() should call render_to_string()')
+        self.assertEqual(mock_do_letter_search.call_count, 1, 'PlaceSearchView should call do_letter_search()')
+        self.assertEqual(mock_render_to_string.call_count, 1, 'PlaceSearchView should call render_to_string()')
 
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['map'], mock_render_to_string.return_value,
-                         "search_places() should return response containing 'map'")
+                         "PlaceSearchView should return response containing 'map'")
 
 
-class PlaceByIdTestCase(TestCase):
+class PlaceDetailViewTestCase(TestCase):
     """
-    Test place_by_id()
+    Test PlaceDetailView
     """
 
-    def test_place_by_id(self):
+    def test_place_detail_view(self):
         """
-        place_by_id(request, place_id) should return rendered html if Place with id found
-        Otherwise it should return object_not_found()
-
-        For some reason, object_not_found() can't be successfully mocked, so actually call it
+        PlaceDetailView should return rendered html if Place with id found
+        Otherwise it should return object not found
         """
 
-        response = self.client.get(reverse('place_by_id', kwargs={'place_id': '1'}), follow=True)
+        response = self.client.get(reverse('place_detail', kwargs={'pk': '1'}), follow=True)
 
         expected = {'title': 'Place not found', 'object_id': '1', 'object_type': 'Place'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                "place_by_id() context '{}' should be '{}', if place not found".format(key, expected[key]))
+                "PlaceDetailView context '{}' should be '{}', if place not found".format(key, expected[key]))
 
 
-        # If Place with place_id found, place_by_id() should return render()
-        response = self.client.get(reverse('place_by_id', kwargs={'place_id': PlaceFactory().pk}), follow=True)
+        # If Place with pk found, PlaceDetailView should return render()
+        response = self.client.get(reverse('place_detail', kwargs={'pk': PlaceFactory().pk}), follow=True)
         self.assertTemplateUsed(response, 'place.html')
 
         expected = {'title': 'Place', 'nbar': 'places'}
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
-                "place_by_id() context '{}' should be '{}', if letter found".format(key, expected[key]))
+                "PlaceDetailView context '{}' should be '{}', if letter found".format(key, expected[key]))
 
 
 class LogoutViewTestCase(SimpleTestCase):
