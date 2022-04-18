@@ -1,6 +1,7 @@
 import bokeh
 
 from bokeh.models import LayoutDOM
+from bokeh.plotting import Figure
 from pandas import DataFrame
 
 from unittest.mock import patch
@@ -8,7 +9,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 from django.utils.html import format_html
 
-from letters.charts import get_frequency_charts, get_per_month_chart, get_proportions_chart, make_charts
+from letters.charts import get_frequency_charts, get_per_month_chart, get_proportions_chart, make_charts, PALETTE
 
 
 class GetFrequencyChartsTestCase(SimpleTestCase):
@@ -71,7 +72,7 @@ class GetFrequencyChartsTestCase(SimpleTestCase):
 
 class GetPerMonthChartTestCase(SimpleTestCase):
         """
-        get_per_month_chart() should return a Bokeh TimeSeries of
+        get_per_month_chart() should return a Bokeh Figure of
         whatever is in the pandas DataFrame, per month
         """
 
@@ -85,21 +86,26 @@ class GetPerMonthChartTestCase(SimpleTestCase):
             # First test the real thing to make sure there's not an error
             get_per_month_chart(df, title, label)
 
-            # Now mock TimeSeries and see if it's called with the right args,
-            # and if get_per_month_chart() returns it
-            with patch('letters.charts.TimeSeries', autospec=True) as mock_TimeSeries:
-                mock_TimeSeries.return_value = 'timeseries'
+            # Now mock figure.line() and see if it's called with the right args,
+            with patch.object(bokeh.plotting.Figure, 'line', autospec=True) as mock_figure_line:
+                mock_figure_line.return_value = 'figure line'
 
-                result = get_per_month_chart(df, title, label)
-                args, kwargs = mock_TimeSeries.call_args
-                self.assertEqual(set(args[0]), set(df),
-                                 'get_per_month_chart() should create a TimeSeries with DataFrame as 1st arg')
-                self.assertEqual(kwargs['title'], title,
-                                 'get_per_month_chart() should create a TimeSeries with title as kwarg')
-                self.assertEqual(kwargs['ylabel'], label,
-                                 'get_per_month_chart() should create a TimeSeries with label as kwarg')
-                self.assertEqual(result, mock_TimeSeries.return_value,
-                                 'get_per_month_chart() should return a Bokeh TimeSeries')
+                get_per_month_chart(df, title, label)
+
+                args, kwargs = mock_figure_line.call_args
+                self.assertEqual(args[1].all(), df.Month.all(),
+                                 'get_per_month_chart() should create a line with DataFrame month as 2nd arg')
+                self.assertEqual(args[2].all(), df.iloc[:, 1].all(),
+                                 'get_per_month_chart() should create a line with 2nd DataFrame column as 3rd arg')
+                self.assertIn('line_color', kwargs,
+                                 'get_per_month_chart() should create a line with line_color in kwargs')
+                self.assertIn('line_width', kwargs,
+                                 'get_per_month_chart() should create a line with line_width in kwargs')
+
+                # get_per_month_chart() should return a Bokeh Figure
+                with patch.object(bokeh.plotting, 'figure') as mock_figure:
+                    result = get_per_month_chart(df, title, label)
+                    self.assertEqual(type(result), Figure)
 
 
 class GetProportionsChartTestCase(SimpleTestCase):

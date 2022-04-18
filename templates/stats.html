@@ -6,8 +6,8 @@
         {% include "snippets/filter.html" %}
     </form>
 
-    <link href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.5.min.css" rel="stylesheet" type="text/css">
-    <link href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.5.min.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.6.min.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.6.min.css" rel="stylesheet" type="text/css">
 
     <div id="chart">{{ chart }}</div>
     <div id="stats">{{ stats }}</div>
@@ -15,8 +15,8 @@
 
 {% block scripts %}
     <!-- JavaScript for Bokeh charts -->
-    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.5.min.js"></script>
-    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.6.min.js"></script>
+    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.6.min.js"></script>
     {% load staticfiles %}
     <script src={% static "js/letterpress.js" %} type="text/javascript"></script>
     <script src={% static "js/stats.js" %} type="text/javascript"></script>

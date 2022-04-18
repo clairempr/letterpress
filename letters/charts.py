@@ -1,8 +1,11 @@
+import pandas as pd
+
 from bokeh.embed import components
 from bokeh.charts import Bar, TimeSeries
 from bokeh.layouts import row
+from bokeh.plotting import figure
+
 from django.template.loader import render_to_string
-import pandas as pd
 
 # Colors for Bokeh palette
 # royal blue: #4582ec
@@ -97,7 +100,12 @@ def get_proportions_chart(words, df):
 
 
 def get_per_month_chart(df, title, label):
-    time_series = TimeSeries(df, title=title, x='Month',
-                             xlabel='Month', ylabel=label, legend=False,
-                             palette=PALETTE, toolbar_location='right')
-    return time_series
+    chart = figure(plot_width=400, plot_height=400, x_range=list(df.Month),
+                   title=title, y_axis_type='linear', toolbar_location='right')
+    chart.xaxis.axis_label = df.columns[0]
+    chart.xaxis.major_label_orientation = 0.8
+    chart.yaxis.axis_label = df.columns[1]
+    chart.yaxis.axis_label = label
+    chart.line(df.Month, df.iloc[:, 1], line_color=PALETTE[0], line_width=1.75)
+
+    return chart
