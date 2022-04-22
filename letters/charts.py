@@ -1,5 +1,4 @@
 from bokeh.embed import components
-from bokeh.charts import Bar, TimeSeries
 from bokeh.layouts import row
 from bokeh.plotting import figure
 
@@ -46,8 +45,8 @@ def make_charts(words, months, proportions, word_freqs, totals, averages, doc_co
     doc_count_chart = get_per_month_chart(months, doc_counts,
                                           'Letters per month', 'Letters')
 
-    charts.append(row(children=fcharts, responsive=True))
-    charts.append(row(totals_chart, doc_count_chart, averages_chart, responsive=True))
+    charts.append(row(children=fcharts, sizing_mode='scale_width'))
+    charts.append(row(totals_chart, doc_count_chart, averages_chart, sizing_mode='scale_width'))
 
     script, divs = components(charts)
 
@@ -71,7 +70,7 @@ def get_frequency_charts(words, months, word_freqs):
     line_chart.xaxis.axis_label = 'Month'
     line_chart.xaxis.major_label_orientation = 0.8
     line_chart.yaxis.axis_label = 'Frequency'
-    line_chart.legend.location='top_right'
+    line_chart.legend.location = 'top_right'
 
     for idx, freqs in enumerate(word_freqs):
         line_chart.line(x=months, y=freqs, color=PALETTE[idx], line_width=1.75, legend=words[idx])
@@ -80,10 +79,11 @@ def get_frequency_charts(words, months, word_freqs):
     bar_chart.xaxis.axis_label = 'Month'
     bar_chart.xaxis.major_label_orientation = 0.8
     bar_chart.yaxis.axis_label = 'Frequency'
-    bar_chart.legend.location='top_right'
+    bar_chart.legend.location = 'top_right'
 
     for idx, freqs in enumerate(word_freqs):
-        bar_chart.vbar(x=months, top=freqs, width=0.5, bottom=0, line_dash_offset=1, color=PALETTE[idx])
+        bar_chart.vbar(x=months, top=freqs, width=0.5, bottom=0, line_dash_offset=1, color=PALETTE[idx],
+                       legend=words[idx])
 
     return [bar_chart, line_chart]
 

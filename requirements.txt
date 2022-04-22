@@ -1,5 +1,5 @@
 beautifulsoup4==4.5.3
-bokeh==0.12.6
+bokeh==0.12.11
 coverage==5.5  # https://github.com/nedbat/coveragepy
 Django==2.0.13
 django-coverage-plugin==2.0.2  # https://github.com/nedbat/django_coverage_plugin
