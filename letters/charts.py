@@ -45,7 +45,7 @@ def make_charts(words, months, proportions, word_freqs, totals, averages, doc_co
     doc_count_chart = get_per_month_chart(months, doc_counts,
                                           'Letters per month', 'Letters')
 
-    charts.append(row(children=fcharts, sizing_mode='scale_width'))
+    charts.append(row(fcharts, sizing_mode='scale_width'))
     charts.append(row(totals_chart, doc_count_chart, averages_chart, sizing_mode='scale_width'))
 
     script, divs = components(charts)
@@ -112,6 +112,7 @@ def get_per_month_chart(months, values, title, label):
     chart.line(months, values, line_color=PALETTE[0], line_width=1.75)
 
     return chart
+
 
 def get_bokeh_figure(months, title):
     chart = figure(plot_width=400, plot_height=400, x_range=list(months),

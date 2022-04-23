@@ -8,7 +8,8 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 from django.utils.html import format_html
 
-from letters.charts import get_frequency_charts, get_per_month_chart, get_proportions_chart, make_charts, PALETTE
+from letters.charts import get_bokeh_figure, get_frequency_charts, get_per_month_chart, get_proportions_chart, \
+    make_charts, PALETTE
 
 
 class GetFrequencyChartsTestCase(SimpleTestCase):
@@ -117,8 +118,11 @@ class MakeChartsTestCase(SimpleTestCase):
     @patch('letters.charts.render_to_string', autospec=True)
     def test_make_charts(self, mock_render_to_string, mock_get_per_month_chart, mock_get_proportions_chart,
                          mock_get_frequency_charts):
-        # Bokeh row() expects a LayoutDOM object, so just create an empty one for the mock to use
+        # Bokeh row() expects a LayoutDOM object, so just create empty ones for the mocks to use
         mock_get_per_month_chart.return_value = LayoutDOM()
+        mock_get_proportions_chart.return_value = LayoutDOM()
+        # There are two frequency charts
+        mock_get_frequency_charts.return_value = [LayoutDOM(), LayoutDOM()]
         mock_render_to_string.return_value = 'stuff that got returned'
 
         words = ['word', ]
@@ -128,6 +132,7 @@ class MakeChartsTestCase(SimpleTestCase):
         totals = [1]
         averages = [1]
         doc_counts = [1]
+
         make_charts(words=words, months=months, proportions=proportions, word_freqs=word_freqs, totals=totals,
                     averages=averages, doc_counts=doc_counts)
         mock_get_per_month_chart.reset_mock()
@@ -169,3 +174,17 @@ class MakeChartsTestCase(SimpleTestCase):
         # make_charts() should return the return value of render_to_string
         self.assertEqual(result, mock_render_to_string.return_value,
                          'make_charts() should return the return value of render_to_string')
+
+
+class GetBokehFigureTestCase(SimpleTestCase):
+    """
+    get_bokeh_figure() should return a Bokeh figure
+    """
+
+    @patch.object(bokeh.plotting, 'figure', autospec=True)
+    def test_get_bokeh_figure(self, mock_figure):
+        months = ['1863-01', '1863-02', '1863-03', '1863-04']
+        title = 'Doohickeys per month'
+
+        result = get_bokeh_figure(months, title)
+        self.assertEqual(type(result), Figure,'get_bokeh_figure() should return a Bokeh figure')
