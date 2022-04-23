@@ -115,14 +115,16 @@ class MakeChartsTestCase(SimpleTestCase):
     @patch('letters.charts.get_frequency_charts', autospec=True)
     @patch('letters.charts.get_proportions_chart', autospec=True)
     @patch('letters.charts.get_per_month_chart', autospec=True)
+    @patch('bokeh.layouts.Row', autospec=True)
     @patch('letters.charts.render_to_string', autospec=True)
-    def test_make_charts(self, mock_render_to_string, mock_get_per_month_chart, mock_get_proportions_chart,
+    def test_make_charts(self, mock_render_to_string, mock_row, mock_get_per_month_chart, mock_get_proportions_chart,
                          mock_get_frequency_charts):
         # Bokeh row() expects a LayoutDOM object, so just create empty ones for the mocks to use
         mock_get_per_month_chart.return_value = LayoutDOM()
         mock_get_proportions_chart.return_value = LayoutDOM()
         # There are two frequency charts
         mock_get_frequency_charts.return_value = [LayoutDOM(), LayoutDOM()]
+        mock_row.return_value = LayoutDOM()
         mock_render_to_string.return_value = 'stuff that got returned'
 
         words = ['word', ]
