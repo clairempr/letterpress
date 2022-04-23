@@ -6,8 +6,8 @@
         {% include "snippets/filter.html" %}
     </form>
 
-    <link href="https://cdn.bokeh.org/bokeh/release/bokeh-2.1.0.min.css" rel="stylesheet" type="text/css">
-    <link href="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.1.0.min.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.bokeh.org/bokeh/release/bokeh-2.2.0.min.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.2.0.min.css" rel="stylesheet" type="text/css">
 
     <div id="chart">{{ chart }}</div>
     <div id="stats">{{ stats }}</div>
@@ -15,8 +15,8 @@
 
 {% block scripts %}
     <!-- JavaScript for Bokeh charts -->
-    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.1.0.min.js"></script>
-    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.1.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.2.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.2.0.min.js"></script>
     {% load staticfiles %}
     <script src={% static "js/letterpress.js" %} type="text/javascript"></script>
     <script src={% static "js/stats.js" %} type="text/javascript"></script>
