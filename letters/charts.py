@@ -72,7 +72,7 @@ def get_frequency_charts(words, months, word_freqs):
     line_chart.yaxis.axis_label = 'Frequency'
 
     for idx, freqs in enumerate(word_freqs):
-        line_chart.line(x=months, y=freqs, color=PALETTE[idx], line_width=1.75, legend=words[idx])
+        line_chart.line(x=months, y=freqs, color=PALETTE[idx], line_width=1.75, legend_label=words[idx])
     line_chart.legend.location = 'top_right'
 
     bar_chart = get_bokeh_figure(months, title)
@@ -82,7 +82,7 @@ def get_frequency_charts(words, months, word_freqs):
 
     for idx, freqs in enumerate(word_freqs):
         bar_chart.vbar(x=months, top=freqs, width=0.5, bottom=0, line_dash_offset=1, color=PALETTE[idx],
-                       legend=words[idx])
+                       legend_label=words[idx])
     bar_chart.legend.location = 'top_right'
 
     return [bar_chart, line_chart]
