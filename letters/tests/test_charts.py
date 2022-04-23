@@ -1,14 +1,15 @@
 import bokeh
 
 from bokeh.models import LayoutDOM
-from pandas import DataFrame
+from bokeh.plotting import Figure
 
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
 from django.utils.html import format_html
 
-from letters.charts import get_frequency_charts, get_per_month_chart, get_proportions_chart, make_charts
+from letters.charts import get_bokeh_figure, get_frequency_charts, get_per_month_chart, get_proportions_chart, \
+    make_charts, PALETTE
 
 
 class GetFrequencyChartsTestCase(SimpleTestCase):
@@ -18,88 +19,71 @@ class GetFrequencyChartsTestCase(SimpleTestCase):
 
     @patch('letters.charts.str')
     def test_get_frequency_charts(self, mock_str):
-        words = ['&', 'and']
-        frequency_df = DataFrame()
-        frequency_df['&'] = [12, 17, 1, 16]
-        frequency_df['and'] = [1, 1, 0, 0]
-        frequency_df['Month'] = ['1863-01', '1863-02', '1863-03', '1863-04']
-
         mock_str.format.return_value = 'formatted string'
 
+        words = ['&', 'and']
+        months = ['1863-01', '1863-02', '1863-03', '1863-04']
+        word_freqs = [[12, 17, 1, 16], [1, 1, 0, 0]]
+
         # Test that TimeSeries and Bar get created without error
-        get_frequency_charts(words, frequency_df)
+        get_frequency_charts(words, months, word_freqs)
         mock_str.reset_mock()
 
         # get_frequency_charts() should call str.format() if only one word given
-        with patch('letters.charts.TimeSeries', autospec=True) as mock_TimeSeries:
-            with patch('letters.charts.Bar', autospec=True) as mock_Bar:
-                with patch('pandas.melt', autospec=True) as mock_melt:
+        with patch.object(bokeh.plotting, 'figure') as mock_figure:
+            mock_figure.return_value = 'figure'
 
-                    # mock_TimeSeries.return_value = 'time_series'
-                    mock_TimeSeries.return_value = 'line'
-                    mock_Bar.return_value = 'bar'
-                    mock_melt.return_value = frequency_df
+            words = ['and']
 
-                    words = ['and']
+            get_frequency_charts(words, months, [[12, 17, 1, 16]])
 
-                    get_frequency_charts(words, frequency_df)
+            self.assertEqual(mock_str.format.call_count, 1,
+                             'get_frequency_charts() should call str.format() if no words given')
+            # More than one word given
+            words = ['and', '&']
+            result = get_frequency_charts(words, months, word_freqs)
 
-                    self.assertEqual(mock_str.format.call_count, 1,
-                                     'get_frequency_charts() should call str.format() if no words given')
-                    mock_Bar.reset_mock()
-                    mock_melt.reset_mock()
-
-                    # More than one word given
-                    words = ['and', '&']
-                    result = get_frequency_charts(words, frequency_df)
-
-                    # get_frequency_charts() should call/create a Bokeh TimeSeries with words as kwarg 'y'
-                    args, kwargs = mock_TimeSeries.call_args
-                    self.assertEqual(kwargs['y'], words,
-                                     "get_frequency_charts() should call/create Bokeh TimeSeries with words as kwarg 'y'")
-
-                    # get_frequency_charts() should call pandas melt()
-                    self.assertEqual(mock_melt.call_count, 1, 'get_frequency_charts() should call pandas melt()')
-
-                    # get_frequency_charts() should call/create a Bokeh Bar
-                    self.assertEqual(mock_Bar.call_count, 1, 'get_frequency_charts() should call/create Bokeh Bar')
-
-                    # get_frequency_charts() should return [return value of Bar, return value of Timeseries]
-                    self.assertEqual(result, [mock_Bar.return_value, mock_TimeSeries.return_value],
-                                              'get_frequency_charts() should return [return val of Bar, return val of Timeseries]')
+            # get_frequency_charts() should return [return value of Bar, return value of Figure]
+            self.assertEqual(type(result[0]), Figure,
+                             'get_per_month_chart() should return a Bokeh Figure as 1st result')
+            self.assertEqual(type(result[1]), Figure,
+                             'get_per_month_chart() should return a Bokeh Figure as 2nd result')
 
 
 class GetPerMonthChartTestCase(SimpleTestCase):
-        """
-        get_per_month_chart() should return a Bokeh TimeSeries of
-        whatever is in the pandas DataFrame, per month
-        """
+    """
+    get_per_month_chart() should return a Bokeh Figure of values, per month
+    """
 
-        def test_get_per_month_chart(self):
-            df = DataFrame({'Month': ['1863-01', '1863-02', '1863-03', '1863-04']})
-            df['something_per_month'] = [2, 2, 3, 3]
+    def test_get_per_month_chart(self):
+        months = ['1863-01', '1863-02', '1863-03', '1863-04']
+        values = [2, 2, 3, 3]
+        title = 'Title'
+        label = 'TPS Reports Per Month'
 
-            title = 'Title'
-            label = 'TPS Reports Per Month'
+        # First test the real thing to make sure there's not an error
+        get_per_month_chart(months, values, title, label)
 
-            # First test the real thing to make sure there's not an error
-            get_per_month_chart(df, title, label)
+        # Now mock figure.line() and see if it's called with the right args,
+        with patch.object(bokeh.plotting.Figure, 'line', autospec=True) as mock_figure_line:
+            mock_figure_line.return_value = 'figure line'
 
-            # Now mock TimeSeries and see if it's called with the right args,
-            # and if get_per_month_chart() returns it
-            with patch('letters.charts.TimeSeries', autospec=True) as mock_TimeSeries:
-                mock_TimeSeries.return_value = 'timeseries'
+            get_per_month_chart(months, values, title, label)
 
-                result = get_per_month_chart(df, title, label)
-                args, kwargs = mock_TimeSeries.call_args
-                self.assertEqual(set(args[0]), set(df),
-                                 'get_per_month_chart() should create a TimeSeries with DataFrame as 1st arg')
-                self.assertEqual(kwargs['title'], title,
-                                 'get_per_month_chart() should create a TimeSeries with title as kwarg')
-                self.assertEqual(kwargs['ylabel'], label,
-                                 'get_per_month_chart() should create a TimeSeries with label as kwarg')
-                self.assertEqual(result, mock_TimeSeries.return_value,
-                                 'get_per_month_chart() should return a Bokeh TimeSeries')
+            args, kwargs = mock_figure_line.call_args
+            self.assertEqual(args[1], months,
+                             'get_per_month_chart() should create a line with months as 2nd arg')
+            self.assertEqual(args[2], values,
+                             'get_per_month_chart() should create a line with values as 3rd arg')
+            self.assertIn('line_color', kwargs,
+                          'get_per_month_chart() should create a line with line_color in kwargs')
+            self.assertIn('line_width', kwargs,
+                          'get_per_month_chart() should create a line with line_width in kwargs')
+
+        # get_per_month_chart() should return a Bokeh Figure
+        with patch.object(bokeh.plotting, 'figure') as mock_figure:
+            result = get_per_month_chart(months, values, title, label)
+            self.assertEqual(type(result), Figure, 'get_per_month_chart() should return a Bokeh Figure')
 
 
 class GetProportionsChartTestCase(SimpleTestCase):
@@ -108,21 +92,18 @@ class GetProportionsChartTestCase(SimpleTestCase):
     proportions of the use of one word compared to another
     """
 
-    def test_get_proportions_chart(self,):
+    def test_get_proportions_chart(self):
         words = ['and', '&']
         months = ['1863-01', '1863-02', '1863-03', '1863-04']
         proportions = [3.19672131147541, 1.6153846153846154, 4.607843137254902, 1.6388888888888888]
-        df = DataFrame({'Month': months, 'Proportion': proportions})
 
         # Test that TimeSeries gets created without error
-        get_proportions_chart(words, df)
+        get_proportions_chart(words, months, proportions)
 
-        # Test that get_proportions_chart() returns the Bokeh TimeSeries that was created
-        with patch('letters.charts.TimeSeries', autospec=True) as mock_TimeSeries:
-            mock_TimeSeries.return_value = 'proportions chart'
-
-            result = get_proportions_chart(words, df)
-            self.assertEqual(result, mock_TimeSeries.return_value)
+        # get_proportions_chart() should return a Bokeh Figure
+        with patch.object(bokeh.plotting, 'figure') as mock_figure:
+            result = get_proportions_chart(words, months, proportions)
+            self.assertEqual(type(result), Figure, 'get_proportions_chart() should return a Bokeh Figure')
 
 
 class MakeChartsTestCase(SimpleTestCase):
@@ -134,15 +115,19 @@ class MakeChartsTestCase(SimpleTestCase):
     @patch('letters.charts.get_frequency_charts', autospec=True)
     @patch('letters.charts.get_proportions_chart', autospec=True)
     @patch('letters.charts.get_per_month_chart', autospec=True)
+    @patch('bokeh.layouts.Row', autospec=True)
     @patch('letters.charts.render_to_string', autospec=True)
-    def test_make_charts(self, mock_render_to_string, mock_get_per_month_chart, mock_get_proportions_chart,
+    def test_make_charts(self, mock_render_to_string, mock_row, mock_get_per_month_chart, mock_get_proportions_chart,
                          mock_get_frequency_charts):
-
-        # Bokeh row() expects a LayoutDOM object, so just create an empty one for the mock to use
+        # Bokeh row() expects a LayoutDOM object, so just create empty ones for the mocks to use
         mock_get_per_month_chart.return_value = LayoutDOM()
+        mock_get_proportions_chart.return_value = LayoutDOM()
+        # There are two frequency charts
+        mock_get_frequency_charts.return_value = [LayoutDOM(), LayoutDOM()]
+        mock_row.return_value = LayoutDOM()
         mock_render_to_string.return_value = 'stuff that got returned'
 
-        words = ['word',]
+        words = ['word', ]
         months = ['Jan']
         proportions = [1]
         word_freqs = [1]
@@ -171,10 +156,10 @@ class MakeChartsTestCase(SimpleTestCase):
         doc_counts = [1, 2]
 
         result = make_charts(words=words, months=months, proportions=proportions, word_freqs=word_freqs, totals=totals,
-                    averages=averages, doc_counts=doc_counts)
+                             averages=averages, doc_counts=doc_counts)
         args, kwargs = mock_get_frequency_charts.call_args
         self.assertEqual(args[0], words,
-            'make_charts() should call get_proportions_chart() with words as 1st arg if # of words searched for == 2')
+                         'make_charts() should call get_proportions_chart() with words as 1st arg if # of words searched for == 2')
 
         # get_per_month_chart() should be called 3 times
         self.assertEqual(mock_get_per_month_chart.call_count, 3,
@@ -191,3 +176,17 @@ class MakeChartsTestCase(SimpleTestCase):
         # make_charts() should return the return value of render_to_string
         self.assertEqual(result, mock_render_to_string.return_value,
                          'make_charts() should return the return value of render_to_string')
+
+
+class GetBokehFigureTestCase(SimpleTestCase):
+    """
+    get_bokeh_figure() should return a Bokeh figure
+    """
+
+    @patch.object(bokeh.plotting, 'figure', autospec=True)
+    def test_get_bokeh_figure(self, mock_figure):
+        months = ['1863-01', '1863-02', '1863-03', '1863-04']
+        title = 'Doohickeys per month'
+
+        result = get_bokeh_figure(months, title)
+        self.assertEqual(type(result), Figure,'get_bokeh_figure() should return a Bokeh figure')

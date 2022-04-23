@@ -1,8 +1,8 @@
 from bokeh.embed import components
-from bokeh.charts import Bar, TimeSeries
 from bokeh.layouts import row
+from bokeh.plotting import figure
+
 from django.template.loader import render_to_string
-import pandas as pd
 
 # Colors for Bokeh palette
 # royal blue: #4582ec
@@ -22,34 +22,31 @@ def make_charts(words, months, proportions, word_freqs, totals, averages, doc_co
 
     charts = []
 
-    # Make pandas dataframe with word frequencies
-    # word_freqs is a list of word frequencies, grouped by month and then by word
-    frequency_df = pd.DataFrame()
-    # Every n elements is for word
-    for idx, word in enumerate(words):
-        frequency_df[word] = word_freqs[idx::len(words)]
-    frequency_df['Month'] = months
+    # word_freqs are in the format [freq_word1_month1, freq_word2_month1 freq_word1_month2, freq_word2_month2,...]
+    # and they need to be in format {month1: [freq_word1, freq_word2], month2: [freq_word1, freq_word2], ...}
+    word_freqs_by_word = []
+    for idx, _ in enumerate(words):
+        word_freqs_by_word.extend([word_freqs[idx::len(words)]])
 
-    fcharts = get_frequency_charts(words, frequency_df)
+    fcharts = get_frequency_charts(words, months, word_freqs_by_word)
 
     # Make proportions chart if 2 words were searched for
     if len(words) == 2:
-        proportions_df = pd.DataFrame({'Month': months, 'Proportion': proportions})
-        proportions_chart = get_proportions_chart(words, proportions_df)
+        proportions_chart = get_proportions_chart(words, months, proportions)
         fcharts.append(proportions_chart)
 
     # Totals chart
-    totals_chart = get_per_month_chart(pd.DataFrame({'Month': months, 'Total': totals}),
-                                               'Total words per month', 'Total words')
+    totals_chart = get_per_month_chart(months, totals,
+                                       'Total words per month', 'Total words')
     # Averages chart
-    averages_chart = get_per_month_chart(pd.DataFrame({'Month': months, 'Average': averages}),
-                                                 'Average words per letter', 'Average words')
+    averages_chart = get_per_month_chart(months, averages,
+                                         'Average words per letter', 'Average words')
     # Number of letters chart
-    doc_count_chart = get_per_month_chart(pd.DataFrame({'Month': months, 'Average': doc_counts}),
-                                                  'Letters per month', 'Letters')
+    doc_count_chart = get_per_month_chart(months, doc_counts,
+                                          'Letters per month', 'Letters')
 
-    charts.append(row(children=fcharts, responsive=True))
-    charts.append(row(totals_chart, doc_count_chart, averages_chart, responsive=True))
+    charts.append(row(fcharts, sizing_mode='scale_width'))
+    charts.append(row(totals_chart, doc_count_chart, averages_chart, sizing_mode='scale_width'))
 
     script, divs = components(charts)
 
@@ -58,7 +55,7 @@ def make_charts(words, months, proportions, word_freqs, totals, averages, doc_co
                               {'script': script, 'divs': divs})
 
 
-def get_frequency_charts(words, df):
+def get_frequency_charts(words, months, word_freqs):
     """
     Return a time series bar chart
     """
@@ -69,35 +66,55 @@ def get_frequency_charts(words, df):
             title += ' and '
         title += str.format('"{0}"', word)
 
-    time_series = TimeSeries(df, title=title, y=words,
-                             x='Month',
-                             xlabel='Month', ylabel='Frequency',
-                             legend='top_right',
-                             palette=PALETTE, toolbar_location='right')
+    line_chart = get_bokeh_figure(months, title)
+    line_chart.xaxis.axis_label = 'Month'
+    line_chart.xaxis.major_label_orientation = 0.8
+    line_chart.yaxis.axis_label = 'Frequency'
 
-    df = pd.melt(df, id_vars='Month').dropna().set_index('Month')
-    bar = Bar(df, values='value', group='variable', label='Month',
-              ylabel='Frequency',
-              title=title, legend='top_right', bar_width=1,
-              palette=PALETTE, toolbar_location='right')
+    for idx, freqs in enumerate(word_freqs):
+        line_chart.line(x=months, y=freqs, color=PALETTE[idx], line_width=1.75, legend_label=words[idx])
+    line_chart.legend.location = 'top_right'
 
-    return [bar, time_series]
+    bar_chart = get_bokeh_figure(months, title)
+    bar_chart.xaxis.axis_label = 'Month'
+    bar_chart.xaxis.major_label_orientation = 0.8
+    bar_chart.yaxis.axis_label = 'Frequency'
+
+    for idx, freqs in enumerate(word_freqs):
+        bar_chart.vbar(x=months, top=freqs, width=0.5, bottom=0, line_dash_offset=1, color=PALETTE[idx],
+                       legend_label=words[idx])
+    bar_chart.legend.location = 'top_right'
+
+    return [bar_chart, line_chart]
 
 
-def get_proportions_chart(words, df):
+def get_proportions_chart(words, months, proportions):
     """
     Create a time series of the proportions of the use of one word compared to another
     """
 
     title = str.format('Proportions of "{0}" to "{1}"', words[0], words[1])
-    time_series = TimeSeries(df, title=title, x='Month',
-                             xlabel='Month', ylabel='Proportion', legend=False,
-                             palette=PALETTE, toolbar_location='right')
-    return time_series
+    chart = get_bokeh_figure(months, title)
+    chart.xaxis.axis_label = 'Month'
+    chart.xaxis.major_label_orientation = 0.8
+    chart.yaxis.axis_label = 'Proportion'
+    chart.line(months, proportions, line_color=PALETTE[0], line_width=1.75)
+
+    return chart
 
 
-def get_per_month_chart(df, title, label):
-    time_series = TimeSeries(df, title=title, x='Month',
-                             xlabel='Month', ylabel=label, legend=False,
-                             palette=PALETTE, toolbar_location='right')
-    return time_series
+def get_per_month_chart(months, values, title, label):
+    chart = get_bokeh_figure(months, title)
+    chart.xaxis.axis_label = 'Month'
+    chart.xaxis.major_label_orientation = 0.8
+    chart.yaxis.axis_label = label
+    # Can't refer to 2nd column by name because it's variable
+    chart.line(months, values, line_color=PALETTE[0], line_width=1.75)
+
+    return chart
+
+
+def get_bokeh_figure(months, title):
+    chart = figure(plot_width=400, plot_height=400, x_range=list(months),
+                   title=title, y_axis_type='linear', toolbar_location='right')
+    return chart
