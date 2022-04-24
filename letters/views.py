@@ -173,8 +173,10 @@ class GetWordCloudView(View):
 
         stopwords = set(STOPWORDS)
 
-        mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/parchment_horiz.png')))
-        # mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/envelope.png')))
+        mask = None
+        with Image.open(path.join(settings.STATIC_ROOT, 'images/parchment_horiz.png')) as shape_file:
+            mask = np.array(shape_file)
+            # mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/envelope.png')))
 
         cmap = LinearSegmentedColormap.from_list(name='letterpress_colormap',
                                                  colors=['#a1bdef', '#7da5ef', '#5c90ef'],
