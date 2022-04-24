@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 {% load l10n %}
 {% block vars %}
 INITIAL_ZOOM = 5;

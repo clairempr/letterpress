@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block content %}
     <link href="{% static 'css/elasticsearch.css' %}" rel="stylesheet">
@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block scripts %}
-    {% load staticfiles %}
+    {% load static %}
     <script src={% static "js/letterpress.js" %} type="text/javascript"></script>
     <script src={% static "js/letter_search.js" %} type="text/javascript"></script>
 {% endblock %}
