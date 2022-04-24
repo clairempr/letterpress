@@ -13,7 +13,6 @@ from letterpress import settings
 from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
-from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -526,8 +525,3 @@ class PlaceDetailView(DetailView, ObjectNotFoundMixin):
         context['letters'] = letters
 
         return context
-
-
-def logout_view(request):
-    logout(request)
-    return HttpResponseRedirect('/')
