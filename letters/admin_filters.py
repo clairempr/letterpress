@@ -23,8 +23,7 @@ def get_objects_with_date(model):
 
 
 def get_source_lookups():
-    sources = set([doc_source for doc_source in DocumentSource.objects.all()])
-    return [(source.id, source.name) for source in sources]
+    return DocumentSource.objects.values_list('id', 'name')
 
 
 # Get all Correspondents associated with a particular DocumentSource
