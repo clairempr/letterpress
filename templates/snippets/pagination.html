@@ -2,17 +2,17 @@
     <nav aria-label="Page navigation">
         <ul id="pages" class="pagination">
             <li>
-                <a href="#" aria-label="Previous" onclick="return search_prev_page();">
+                <a href="#" aria-label="Previous" onclick="return search_page.prev();">
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
             {% for page in pages %}
                 <li name="page{{ forloop.counter }}">
-                    <a href="#" onclick="return search.do_search({{ forloop.counter }});">{{ forloop.counter }}</a>
+                    <a href="#" onclick="return letter_search.do_search({{ forloop.counter }});">{{ forloop.counter }}</a>
                 </li>
             {% endfor %}
             <li>
-                <a href="#" aria-label="Next" onclick="return search_next_page();">
+                <a href="#" aria-label="Next" onclick="return search_page.next();">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
             </li>

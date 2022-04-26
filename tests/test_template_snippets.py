@@ -194,8 +194,8 @@ class PaginationTemplateSnippetTestCase(SimpleTestCase):
         rendered = render_to_string(template, context={'pages': ['1', '2']})
         self.assertIn('Page navigation', rendered, "'Page navigation' should appear in HTML if page count > 1")
         self.assertIn('results found', rendered, "'results found' should appear in HTML if page count > 1")
-        self.assertIn('search_prev_page()', rendered, "'search_prev_page()' should appear in HTML if page count > 1")
-        self.assertIn('search_next_page()', rendered, "'search_next_page()' should appear in HTML if page count > 1")
+        self.assertIn('search_page.prev()', rendered, "'search_page.prev()' should appear in HTML if page count > 1")
+        self.assertIn('search_page.next()', rendered, "'search_page.next()' should appear in HTML if page count > 1")
         self.assertIn('page1', rendered, "'page=<page_num>' should appear in HTML if page count > 1")
         self.assertIn('page2', rendered, "'page=<page_num>' should appear in HTML if page count > 1")
         self.assertTrue(rendered.count('do_search') == 2,

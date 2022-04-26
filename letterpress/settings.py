@@ -67,6 +67,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'letterpress.urls'
+LOGOUT_REDIRECT_URL = '/'
 
 # This was added to support custom GIS Admin map_template with Django 1.11
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'

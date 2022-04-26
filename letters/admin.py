@@ -114,7 +114,7 @@ class MiscDocumentAdmin(DocumentAdmin):
 
 class PlaceAdmin(gisAdmin.OSMGeoAdmin):
     # show Save and Delete buttons at the top of the page as well as at the bottom
-    save_on_top=True
+    save_on_top = True
     fields = ['id', 'name', 'state', 'country', 'point', 'notes']
     readonly_fields = ['id']
     default_lon = -8635591.130572217

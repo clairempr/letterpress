@@ -266,8 +266,8 @@ class LetterTestCase(TestCase):
                              'Letter.save() should call create_or_update_in_elasticsearch(None) on Letter update')
 
     @patch.object(Letter, 'es_repr', autospec=True)
-    @patch.object(ES_CLIENT, 'create', autospec=True)
-    @patch.object(ES_CLIENT, 'update', autospec=True)
+    @patch.object(ES_CLIENT, 'create')
+    @patch.object(ES_CLIENT, 'update')
     def test_create_or_update_in_elasticsearch(self, mock_update, mock_create, mock_es_repr):
         """
         If this is a newly-created Letter that hasn't been assigned a pk yet,
@@ -304,7 +304,7 @@ class LetterTestCase(TestCase):
         args, kwargs = mock_delete_from_elasticsearch.call_args
         self.assertEqual(args[1], letter_pk, 'Letter.delete() should call delete_from_elasticsearch(letter.pk)')
 
-    @patch.object(ES_CLIENT, 'delete', autospec=True)
+    @patch.object(ES_CLIENT, 'delete')
     def test_delete_from_elasticsearch(self, mock_delete):
         """
         Letter.delete_from_elasticsearch() should call ES_CLIENT.delete()

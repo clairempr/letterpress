@@ -13,7 +13,6 @@ from letterpress import settings
 from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
-from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -174,8 +173,10 @@ class GetWordCloudView(View):
 
         stopwords = set(STOPWORDS)
 
-        mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/parchment_horiz.png')))
-        # mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/envelope.png')))
+        mask = None
+        with Image.open(path.join(settings.STATIC_ROOT, 'images/parchment_horiz.png')) as shape_file:
+            mask = np.array(shape_file)
+            # mask = np.array(Image.open(path.join(settings.STATIC_ROOT, 'images/envelope.png')))
 
         cmap = LinearSegmentedColormap.from_list(name='letterpress_colormap',
                                                  colors=['#a1bdef', '#7da5ef', '#5c90ef'],
@@ -526,8 +527,3 @@ class PlaceDetailView(DetailView, ObjectNotFoundMixin):
         context['letters'] = letters
 
         return context
-
-
-def logout_view(request):
-    logout(request)
-    return HttpResponseRedirect('/')

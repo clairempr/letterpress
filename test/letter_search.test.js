@@ -68,7 +68,7 @@ QUnit.module("letter_search", function (hooks) {
     let fake_ajax = sinon.replace(jQuery, "ajax", sinon.fake());
     let fake_show_search_results = sinon.replace(search_results, "show", sinon.fake());
 
-    search.do_search(
+    letter_search.do_search(
       fake_clear_active_page,
       fake_ajax,
       fake_show_search_results
@@ -90,7 +90,7 @@ QUnit.module("letter_search", function (hooks) {
     sinon.stub(jQuery, "ajax").yieldsTo("success", data);
     fake_show_search_results = sinon.replace(search_results, "show", sinon.fake());
 
-    search.do_search(
+    letter_search.do_search(
       fake_show_search_results
     );
 
@@ -107,76 +107,76 @@ QUnit.module("letter_search", function (hooks) {
 
   QUnit.test('next', function (assert) {
     let fake_get_active_page = sinon.replace(active_page, "get", sinon.fake.returns(2));
-    let fake_do_search = sinon.replace(search, "do_search", sinon.fake());
+    let fake_do_search = sinon.replace(letter_search, "do_search", sinon.fake());
     // if the_active_page.get() >= last_page, search.do_search() shouldn't get called
     last_page = 1;
 
     search_page.next(fake_get_active_page, fake_do_search);
 
     assert.ok(active_page.get.called, "active_page.get() has been called");
-    assert.notOk(search.do_search.called, "search.do_search() hasn't been called");
+    assert.notOk(letter_search.do_search.called, "letter_search.do_search() hasn't been called");
 
     sinon.restore();
 
-    // if the_active_page.get() >= last_page, search.do_search() shouldn't get called
+    // if the_active_page.get() >= last_page, letter_search.do_search() shouldn't get called
     last_page = 2;
 
     sinon.replace(active_page, "get", sinon.fake.returns(2));
-    fake_do_search = sinon.replace(search, "do_search", sinon.fake());
+    fake_do_search = sinon.replace(letter_search, "do_search", sinon.fake());
 
     search_page.next(fake_do_search);
 
-    assert.notOk(search.do_search.called, "search.do_search() hasn't been called");
+    assert.notOk(letter_search.do_search.called, "letter_search.do_search() hasn't been called");
 
     sinon.restore();
 
-    // if the_active_page.get() < last_page, search.do_search() should get called
+    // if the_active_page.get() < last_page, letter_search.do_search() should get called
     last_page = 3;
 
     sinon.replace(active_page, "get", sinon.fake.returns(2));
-    fake_do_search = sinon.replace(search, "do_search", sinon.fake());
+    fake_do_search = sinon.replace(letter_search, "do_search", sinon.fake());
 
     search_page.next(fake_do_search);
 
-    assert.ok(search.do_search.called, "search.do_search() has been called");
+    assert.ok(letter_search.do_search.called, "letter_search.do_search() has been called");
 
     sinon.restore();
   });
 
   QUnit.test('prev', function (assert) {
     let fake_get_active_page = sinon.replace(active_page, "get", sinon.fake.returns(1));
-    let fake_do_search = sinon.replace(search, "do_search", sinon.fake());
+    let fake_do_search = sinon.replace(letter_search, "do_search", sinon.fake());
     last_page = 0;
 
     search_page.prev(fake_get_active_page, fake_do_search);
 
     assert.ok(active_page.get.called, "active_page.get() has been called");
-    // if the_active_page.get() <= 1, search.do_search() shouldn't get called
-    assert.notOk(search.do_search.called, "search.do_search() has been called");
+    // if the_active_page.get() <= 1, letter_search.do_search() shouldn't get called
+    assert.notOk(letter_search.do_search.called, "letter_search.do_search() has been called");
 
     sinon.restore();
 
-    // if the_active_page.get() <= 1, search.do_search() shouldn't get called
+    // if the_active_page.get() <= 1, letter_search.do_search() shouldn't get called
     last_page = 1;
 
     sinon.replace(active_page, "get", sinon.fake.returns(1));
-    fake_do_search = sinon.replace(search, "do_search", sinon.fake());
+    fake_do_search = sinon.replace(letter_search, "do_search", sinon.fake());
 
     search_page.prev(fake_get_active_page, fake_do_search);
 
-    assert.notOk(search.do_search.called, "search.do_search() has been called");
+    assert.notOk(letter_search.do_search.called, "letter_search.do_search() has been called");
 
     sinon.restore();
 
-    // if active_page.get() > 1, search.do_search() should get called
+    // if active_page.get() > 1, letter_search.do_search() should get called
     last_page = 1;
 
     sinon.replace(active_page, "get", sinon.fake.returns(2));
-    fake_do_search = sinon.replace(search, "do_search", sinon.fake());
+    fake_do_search = sinon.replace(letter_search, "do_search", sinon.fake());
 
     search_page.prev(fake_get_active_page, fake_do_search);
 
-    assert.ok(search.do_search.called, "search.do_search() has been called");
+    assert.ok(letter_search.do_search.called, "letter_search.do_search() has been called");
 
     sinon.restore();
   });

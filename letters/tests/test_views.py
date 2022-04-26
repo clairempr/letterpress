@@ -884,18 +884,3 @@ class PlaceDetailViewTestCase(TestCase):
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
                 "PlaceDetailView context '{}' should be '{}', if letter found".format(key, expected[key]))
-
-
-class LogoutViewTestCase(SimpleTestCase):
-    """
-    Test logout_view()
-    """
-
-    def test_logout_view(self):
-        """
-        logout_view() should call logout(request) and redirect to 'home'
-        """
-
-        response = self.client.get(reverse('logout'), follow=True)
-        self.assertRedirects(response, reverse('home'), status_code=301, target_status_code=200)
-        self.assertTrue('<title>Letterpress</title>' in str(response.content))

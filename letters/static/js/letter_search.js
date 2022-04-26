@@ -14,11 +14,11 @@ jQuery(document).ready(function ($) {
     }, false);
 
     $("#search_button").click(function () {
-        search.do_search(0);
+        letter_search.do_search(0);
     });
 });
 
-let search = {
+let letter_search = {
 
     do_search(page_number) {
         active_page.clear();
@@ -106,14 +106,14 @@ let search_page = {
     next() {
         var the_active_page = active_page.get();
         if (the_active_page < last_page) {
-            search.do_search(the_active_page + 1);
+            letter_search.do_search(the_active_page + 1);
         }
     },
 
     prev() {
         var the_active_page = active_page.get();
         if (the_active_page > 1) {
-            search.do_search(the_active_page - 1);
+            letter_search.do_search(the_active_page - 1);
         }
     }
 
