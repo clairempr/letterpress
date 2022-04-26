@@ -84,16 +84,6 @@ class DeleteTempDocumentTestCase(SimpleTestCase):
                          "delete_temp_document() should call ES_CLIENT.delete() with 'id' in kwargs")
         self.assertIsNone(result, "delete_temp_document() shouldn't return anything")
 
-#
-
-# def delete_temp_document():
-#     ES_CLIENT.delete(
-#         index=Letter._meta.es_index_name,
-#         doc_type=Letter._meta.es_type_name,
-#         id='temp',
-#         refresh=True,
-#     )
-
 
 
 class DoEsAnalyzeTestCase(SimpleTestCase):
