@@ -5,26 +5,26 @@ from django.contrib.auth import get_user_model
 from django.db.models import Model
 from django.test import RequestFactory, TestCase
 
-from letters.admin import delete_selected, LetterAdmin
+from letters.admin import LetterAdmin
 from letters.models import Letter
 from letters.tests.factories import LetterFactory
 
 User = get_user_model()
 
 
-class DeleteSelectedTestCase(TestCase):
-    """
-    delete_selected() should override Django Admin's delete_selected action
-    to use model's delete method and update elasticsearch index
-    """
+class LetterAdminTestCase(TestCase):
 
     @patch.object(Letter, 'delete', autospec=True)
-    def test_delete_selected(self, mock_delete):
+    def test_delete_queryset(self, mock_delete):
+        """
+        delete_queryset() should override Django Admin's delete_queryset action
+        to use model's delete method and update elasticsearch index
+        """
         modeladmin = LetterAdmin(Letter, site)
 
         # First an empty queryset
         queryset = Letter.objects.all()
-        delete_selected(modeladmin, RequestFactory(), queryset)
+        modeladmin.delete_queryset(RequestFactory(), queryset)
 
         self.assertEqual(mock_delete.call_count, 0,
                          "delete_selected() shouldn't delete anything if queryset empty")
@@ -34,10 +34,10 @@ class DeleteSelectedTestCase(TestCase):
         LetterFactory()
 
         queryset = Letter.objects.all()
-        delete_selected(modeladmin, RequestFactory(), queryset)
+        modeladmin.delete_queryset(RequestFactory(), queryset)
 
         self.assertEqual(mock_delete.call_count, 2,
-                         'delete_selected() should delete all objects in queryset')
+                         'delete_queryset() should delete all objects in queryset')
 
 
 class LetterAdminFormTestCase(TestCase):
