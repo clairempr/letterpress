@@ -3,14 +3,12 @@ jobs:
   build:
     working_directory: ~/letterpress
     docker:
-      - image: circleci/python:3.7.12 # every job must define an image for the docker executor and subsequent jobs may define a different image.
+      - image: cimg/python:3.9.10 # every job must define an image for the docker executor and subsequent jobs may define a different image.
       - image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2 # an example of how to specify a service container
     steps:
     - checkout  # checkout source code to working directory
-    - run:
-        command: |
-          sudo chown -R circleci:circleci /usr/local/bin
-          sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
+    - run: sudo chown -R circleci:circleci /usr/local/bin
+    - run: sudo chown -R circleci:circleci /home/circleci/.pyenv/versions/3.9.10/lib/python3.9/site-packages
     - restore_cache: # restore cached dependencies
         key: pip-env-{{ checksum "requirements.txt" }}
     - run:
@@ -28,7 +26,6 @@ jobs:
         paths:
           - '/home/circleci/.cache/pip'
           - '/usr/local/bin'
-          - '/usr/local/lib/python3.7/site-packages'
-    - run: coverage run manage.py test
-
-    - run: coveralls
+          - '/home/circleci/.pyenv/versions/3.9.10/lib/python3.9/site-packages'
+    - run: /home/circleci/.pyenv/versions/3.9.10/bin/python3.9 -m coverage run manage.py test
+    - run: /home/circleci/.pyenv/versions/3.9.10/bin/python3.9 -m coveralls
