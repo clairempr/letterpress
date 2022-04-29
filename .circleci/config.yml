@@ -22,7 +22,7 @@ jobs:
     - run: pip install coveralls
     - run: touch letterpress/settings_secret.py
     - save_cache: # cache installed dependencies
-        key: pip-env-{{ checksum "requirements.txt" }}
+        key: pip-env-{{ checksum "requirements.txt" }}x
         paths:
           - '/home/circleci/.cache/pip'
           - '/usr/local/bin'
