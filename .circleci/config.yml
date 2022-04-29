@@ -26,5 +26,5 @@ jobs:
         paths:
           - '/home/circleci/.cache/pip'
           - '/usr/local/bin'
-    - run: /usr/local/lib/3.9.10/bin/python3.9 -m coverage run manage.py test
-    - run: /usr/local/lib/3.9.10/bin/python3.9 -m coveralls
+    - run: coverage run manage.py test
+    - run: coveralls
