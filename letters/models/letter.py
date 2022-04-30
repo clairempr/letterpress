@@ -59,7 +59,7 @@ class Letter(Document):
                                  "word_count": {
                                      "type": "token_count",
                                      "analyzer": "string_sentiment_analyzer",
-                                     "store": "yes"
+                                     "store": "true"
                                  },
                                  "custom_sentiment": {
                                      "type": "text",

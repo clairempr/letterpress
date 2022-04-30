@@ -5,14 +5,6 @@ from letters.admin_filters import CorrespondentSourceFilter, ImageSourceFilter, 
     RecipientFilter, WriterFilter, YearFilter
 
 
-# Override Django Admin's delete_selected action to use model's
-# delete method and update elasticsearch index
-# Unfortunately, we lose the confirmation dialogue
-def delete_selected(modeladmin, request, queryset):
-    for obj in queryset:
-        obj.delete()
-
-
 # Model admin classes
 
 # This subclass of Django ModelAdmin contains settings that are
@@ -73,7 +65,6 @@ class LetterAdmin(DocumentAdmin):
                      'recipient__last_name', 'recipient__first_names',
                      'place__name',  'place__state', 'date')
     filter_horizontal = DocumentAdmin.filter_horizontal + ('envelopes',)
-    actions = [delete_selected]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(LetterAdmin, self).get_form(request, obj, **kwargs)
@@ -84,6 +75,13 @@ class LetterAdmin(DocumentAdmin):
         form.base_fields['signature'].widget.attrs['style'] = 'height: 3em;'
         form.base_fields['ps'].widget.attrs['style'] = 'height: 3em;'
         return form
+
+    # Override Django Admin's delete_queryset action to use model's
+    # delete method and update elasticsearch index
+    # Unfortunately, we lose the confirmation dialogue
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            obj.delete()
 
 
 class DocumentImageAdmin(MyModelAdmin):
