@@ -9,6 +9,11 @@ ES_ANALYZE = settings.ELASTICSEARCH_URL + 'letterpress/_analyze'
 ES_SEARCH = ES_LETTER_URL + '_search?explain'
 ES_MTERMVECTORS = ES_LETTER_URL + '_mtermvectors'
 
+# Test Elasticsearch URLs
+ES_LETTER_TEST_URL = settings.ELASTICSEARCH_URL + 'letterpress_test/letter/'
+ES_ANALYZE_TEST = settings.ELASTICSEARCH_URL + 'letterpress_test/_analyze'
+ES_SEARCH_TEST = ES_LETTER_TEST_URL + '_search?explain'
+
 ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
 )

@@ -265,6 +265,9 @@ class LetterTestCase(TestCase):
         self.assertIsNotNone(kwargs['is_new'],
                              'Letter.save() should call create_or_update_in_elasticsearch(None) on Letter update')
 
+    # We don't want to be messing with the real Elasticsearch index,
+    # so patch this in case something goes wrong with the mocks
+    @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
     @patch.object(Letter, 'es_repr', autospec=True)
     @patch.object(ES_CLIENT, 'create')
     @patch.object(ES_CLIENT, 'update')

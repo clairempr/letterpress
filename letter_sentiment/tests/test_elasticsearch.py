@@ -1,19 +1,27 @@
 import json
 
+from django_date_extensions.fields import ApproximateDate
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase
 
+from letters import es_settings
+from letters.tests.factories import LetterFactory
 from letter_sentiment.elasticsearch import calculate_custom_sentiment, get_custom_sentiment_query, \
     get_sentiment_function_score_query, get_sentiment_function_score_query, get_sentiment_match_query
 from letter_sentiment.tests.factories import CustomSentimentFactory, TermFactory
 
 
-class CalculateCustomSentimentTestCase(SimpleTestCase):
+class CalculateCustomSentimentTestCase(TestCase):
     """
     calculate_custom_sentiment() should retrieve a custom sentiment query,
     do a search with Elasticsearch and return the score from the first (only) hit
     """
+
+    # We don't want to be messing with the real Elasticsearch index, in case something goes wrong
+    # with mocking
+    @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
+    @patch('letters.es_settings.ES_LETTER_URL', es_settings.ES_LETTER_TEST_URL)
     @patch('letter_sentiment.elasticsearch.get_custom_sentiment_query', autospec=True)
     @patch('letter_sentiment.elasticsearch.do_es_search', autospec=True)
     def test_calculate_custom_sentiment(self, mock_do_es_search, mock_get_custom_sentiment_query):
@@ -42,6 +50,28 @@ class CalculateCustomSentimentTestCase(SimpleTestCase):
         result = calculate_custom_sentiment(1, 2)
         self.assertEqual(result, 0,
                          'calculate_custom_sentiment() should return 0 if no Elasticsearch hits')
+
+    # We don't want to be messing with the real Elasticsearch index
+    @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
+    @patch('letters.elasticsearch.ES_LETTER_URL', es_settings.ES_LETTER_TEST_URL)
+    @patch('letters.elasticsearch.ES_SEARCH', es_settings.ES_SEARCH_TEST)
+    def test_calculate_custom_sentiment_without_mocks(self):
+        """
+        Haven't yet figured out why Elasticsearch doesn't deliver the same score in test as in
+        prod, so for now just make sure it doesn't cause an error
+        """
+        sentiment = CustomSentimentFactory(name='OMG Ponies!', max_weight=2)
+        TermFactory(text='pony', weight=2, custom_sentiment=sentiment)
+        TermFactory(text='horse', weight=1, custom_sentiment=sentiment)
+
+        letter = LetterFactory(date=ApproximateDate(1970, 1, 1),
+                               body='Look at the horse. Look at the pony.')
+        letter.delete_from_elasticsearch(pk=letter.pk)
+        letter.create_or_update_in_elasticsearch(is_new=None)
+
+        calculate_custom_sentiment(letter_id=letter.id, sentiment_id=sentiment.id)
+
+        letter.delete_from_elasticsearch(pk=letter.pk)
 
 
 class GetCustomSentimentQuery(SimpleTestCase):
