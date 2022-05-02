@@ -10,7 +10,9 @@ import platform
 
 env = environ.Env(
     # set casting, default value
-    CIRCLECI=(bool, False)
+    CIRCLECI=(bool, False),
+    CIRCLECI_ELASTICSEARCH_USER=(bool, False),
+    CIRCLECI_ELASTICSEARCH_PASSWORD=(bool, False)
 )
 
 # If this is running under CircleCI, then settings_secret won't be available
@@ -199,5 +201,9 @@ X_FRAME_OPTIONS = "DENY"
 # otherwise it should be localhost if running locally
 if CIRCLECI:
     ELASTICSEARCH_URL = 'http://localhost:9200/'
+    ELASTICSEARCH_USER = env('CIRCLECI_ELASTICSEARCH_USER')
+    ELASTICSEARCH_PASSWORD = env('CIRCLECI_ELASTICSEARCH_PASSWORD')
 else:
     ELASTICSEARCH_URL = 'http://elasticsearch:9200/'
+    ELASTICSEARCH_USER = settings_secret.ELASTICSEARCH_USER
+    ELASTICSEARCH_PASSWORD = settings_secret.ELASTICSEARCH_PASSWORD
