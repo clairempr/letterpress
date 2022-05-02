@@ -15,9 +15,11 @@ ES_LETTER_TEST_URL = settings.ELASTICSEARCH_URL + 'letterpress_test/letter/'
 ES_ANALYZE_TEST = settings.ELASTICSEARCH_URL + 'letterpress_test/_analyze'
 ES_SEARCH_TEST = ES_LETTER_TEST_URL + '_search?explain'
 
+elasticsearch_user = CIRCLECI_ELASTICSEARCH_USER if CIRCLECI else settings_secret.ELASTICSEARCH_USER
+elasticsearch_password = CIRCLECI_ELASTICSEARCH_PASSWORD if CIRCLECI else settings_secret.ELASTICSEARCH_PASSWORD
 ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
-    http_auth=(settings_secret.ELASTICSEARCH_USER, settings_secret.ELASTICSEARCH_PASSWORD),
+    http_auth=(elasticsearch_user, elasticsearch_password),
 )
 
 # Settings for custom analyzer
