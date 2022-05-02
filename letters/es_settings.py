@@ -3,6 +3,7 @@ from elasticsearch import Elasticsearch, RequestsHttpConnection
 
 from django.conf import settings
 
+from letterpress import settings_secret
 
 ES_LETTER_URL = settings.ELASTICSEARCH_URL + 'letterpress/letter/'
 ES_ANALYZE = settings.ELASTICSEARCH_URL + 'letterpress/_analyze'
@@ -16,6 +17,7 @@ ES_SEARCH_TEST = ES_LETTER_TEST_URL + '_search?explain'
 
 ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
+    http_auth=(settings_secret.ELASTICSEARCH_USER, settings_secret.ELASTICSEARCH_PASSWORD),
 )
 
 # Settings for custom analyzer
