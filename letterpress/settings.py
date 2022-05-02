@@ -11,8 +11,8 @@ import platform
 env = environ.Env(
     # set casting, default value
     CIRCLECI=(bool, False),
-    CIRCLECI_ELASTICSEARCH_USER=(bool, False),
-    CIRCLECI_ELASTICSEARCH_PASSWORD=(bool, False)
+    CIRCLECI_ELASTICSEARCH_USER=(str, ''),
+    CIRCLECI_ELASTICSEARCH_PASSWORD=(str, '')
 )
 
 # If this is running under CircleCI, then settings_secret won't be available
