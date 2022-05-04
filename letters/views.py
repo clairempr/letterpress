@@ -14,12 +14,15 @@ from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils.html import mark_safe
 from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+
+from letterpress.exceptions import ElasticsearchException
 from letter_sentiment.custom_sentiment import get_custom_sentiment_for_text, highlight_for_custom_sentiment
 from letter_sentiment.sentiment import get_sentiment, highlight_text_for_sentiment
 
@@ -41,7 +44,12 @@ class LettersView(TemplateView):
     def post(self, request, *args, **kwargs):
         # for export, return all matching records, within reason
         size = 10000
-        es_result = letter_search.do_letter_search(request, size, page_number=0)
+
+        try:
+            es_result = letter_search.do_letter_search(request, size, page_number=0)
+        except ElasticsearchException as ex:
+            return redirect('elasticsearch_error', status=ex.status, error=ex.error)
+
         letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
         if request.POST.get('export_text'):
             return export_text(letters)
@@ -86,9 +94,13 @@ class GetStatsView(View):
 
     def post(self, request, *args, **kwargs):
         filter_values = letters_filter.get_filter_values_from_request(request)
-        es_word_counts = letter_search.get_word_counts_per_month(filter_values)
-        words = filter_values.words
-        es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
+
+        try:
+            es_word_counts = letter_search.get_word_counts_per_month(filter_values)
+            words = filter_values.words
+            es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
+        except ElasticsearchException as ex:
+            return get_elasticsearch_error_response(ex)
 
         if len(words) == 2:
             show_proportion = 'true'
@@ -165,7 +177,11 @@ class GetWordCloudView(View):
 
     def get(self, request, *args, **kwargs):
         # return all matching records, within reason
-        es_result = letter_search.do_letter_search(request, size=10000, page_number=0)
+        try:
+            es_result = letter_search.do_letter_search(request, size=10000, page_number=0)
+        except ElasticsearchException as ex:
+            return get_elasticsearch_error_response(ex)
+
         letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
         text = ' '.join([letter.contents() for letter in letters])
         if text.rstrip() == '':
@@ -329,12 +345,16 @@ class GetTextSentimentView(View):
 
         sentiments = []
         highlighted_texts = []
-        for sentiment_id in sentiment_ids:
-            highlighted_texts.extend(highlight_for_sentiment(text, sentiment_id))
-            if sentiment_id == 0:
-                sentiments.extend(get_sentiment(text))
-            else:
-                sentiments.append(get_custom_sentiment_for_text(text, sentiment_id))
+
+        try:
+            for sentiment_id in sentiment_ids:
+                highlighted_texts.extend(highlight_for_sentiment(text, sentiment_id))
+                if sentiment_id == 0:
+                    sentiments.extend(get_sentiment(text))
+                else:
+                    sentiments.append(get_custom_sentiment_for_text(text, sentiment_id))
+        except ElasticsearchException as ex:
+            return get_elasticsearch_error_response(ex)
 
         results = zip(sentiments, highlighted_texts)
         sentiment_html = render_to_string('snippets/sentiment_list.html', {'results': results})
@@ -362,7 +382,12 @@ class SearchView(View):
         else:
             size = 10
         page_number = int(request.POST.get('page_number'))
-        es_result = letter_search.do_letter_search(request, size, page_number)
+
+        try:
+            es_result = letter_search.do_letter_search(request, size, page_number)
+        except ElasticsearchException as ex:
+            return get_elasticsearch_error_response(ex)
+
         result_html = render_to_string('snippets/search_list.html', {'search_results': es_result.search_results})
         # First request, no pagination yet
         if page_number == 0:
@@ -449,6 +474,14 @@ def get_letter_export_text(letter):
                           letter.recipient.to_export_string(), letter.contents())
 
 
+def get_elasticsearch_error_response(ex):
+    url = reverse('elasticsearch_error', kwargs={'error': ex.error,
+                                                 'status': ex.status if ex.status else 0})
+
+    return HttpResponse(json.dumps({
+        'redirect_url': url}), content_type="application/json")
+
+
 class RandomLetterView(View):
     """
     Retrieve a letter with a random index
@@ -499,7 +532,11 @@ class PlaceSearchView(View):
         # get a bunch of them!
         size = 5000
         # Search for letters that meet criteria. Start at beginning, so page number = 0
-        es_result = letter_search.do_letter_search(request, size, page_number=0)
+        try:
+            es_result = letter_search.do_letter_search(request, size, page_number=0)
+        except ElasticsearchException as ex:
+            return get_elasticsearch_error_response(ex)
+
         # Get list of corresponding places
         place_ids = set([letter.place_id for letter, highlight, sentiments, score in es_result.search_results])
         # Only show the first 100

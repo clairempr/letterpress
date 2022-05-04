@@ -4,6 +4,7 @@ import requests
 
 from letters.es_settings import ES_CLIENT, ES_ANALYZE, ES_MTERMVECTORS, ES_LETTER_URL, ES_SEARCH
 from letters.models import Letter
+from letterpress.exceptions import ElasticsearchException
 
 
 def analyze_term(term, analyzer):
@@ -139,9 +140,17 @@ def do_es_termvectors_for_text(query):
 def do_es_search(query):
     """
     Call Elasticsearch search for the given query and return result
+
+    If there was an error, raise an exception
     """
 
     response = requests.get(ES_SEARCH, data=query)
+    response_json = json.loads(response.text)
+
+    error = response_json.get('error', '')
+    if error:
+        raise ElasticsearchException(status=response_json.get('status', ''), error=error)
+
     return json.loads(response.text)
 
 

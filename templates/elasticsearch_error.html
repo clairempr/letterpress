@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+    <p>
+    <img src={% static "images/spilled-ink.jpg" %} alt="oops" height="100">
+    </p>
+
+    <div class="container">
+
+        <div class="row">
+            <div class="col-xs-8 letter-content well well-lg">
+                <div class="row">
+                    <p class="pull-right">{% now "jS F Y" %}</p>
+                </div>
+                <div class="row">
+                    <p>Dear User,</p>
+                </div>
+                <div class="row">
+                    <div><p>I have the honor to report that an order to Elasticsearch, on your behalf,
+                      could not be carried out. The enquiry was deemed to be {{ status_description }}
+                      {% if status_code %} ({{ status_code }}){% endif %} for the reason "{{ error }}".
+                      My apologies for any vexation this may have caused.</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="pull-right">I am, User,</div>
+                </div>
+                <div class="row">
+                    <div class="pull-right">Very sincerely</div>
+                </div>
+                <div class="row">
+                    <div class="pull-right">Your obedient servant,</div>
+                </div>
+                <div class="row">
+                    <div class="pull-right">Letterpress</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

@@ -38,6 +38,10 @@ let letter_search = {
             },
             url: "/search/",
             success: function (result) {
+                // If there was an error, redirect to error page
+                if (result.redirect_url){
+                    window.location.href = result.redirect_url;
+                }
                 search_results.show(result, page_number);
                 //window.location.hash = "#search_button";
             }
