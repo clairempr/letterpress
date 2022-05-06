@@ -5,7 +5,7 @@ class ElasticsearchException(Exception):
     status is Http status, if relevant
     """
 
-    def __init__(self, status, error):
-        self.status = status
+    def __init__(self, error, status):
         self.error = error
+        self.status = status
         super().__init__(self.error)

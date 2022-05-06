@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase
 
+from letterpress.exceptions import ElasticsearchException
 from letters.elasticsearch import analyze_term, build_termvector_query, delete_temp_document, do_es_analyze, \
     do_es_mtermvectors, do_es_search, do_es_termvectors_for_text, get_mtermvectors, get_sentiment_termvector_for_text, \
     get_stored_fields_for_letter, get_termvector_from_result, index_temp_document
@@ -138,12 +139,12 @@ class DoEsSearchTestCase(SimpleTestCase):
     """
 
     def test_do_es_search(self):
-        response_text = {'response': 'response'}
+        query = {'query'}
 
+        response = {'response': 'response'}
         with patch('requests.get', autospec=True,
-            return_value=Mock(text=json.dumps(response_text), status_code=200)) as mock_requests_get:
+            return_value=Mock(text=json.dumps(response), status_code=200)) as mock_requests_get:
 
-            query = {'query'}
             result = do_es_search(query)
 
             args, kwargs = mock_requests_get.call_args
@@ -151,8 +152,24 @@ class DoEsSearchTestCase(SimpleTestCase):
                              'do_es_search(query) should make Elasticsearch request with ES_SEARCH as url')
             self.assertEqual(kwargs['data'], query,
                              'do_es_search(query) should make Elasticsearch request with query as data')
-            self.assertEqual(result, response_text,
+            self.assertEqual(result, response,
                              'do_es_search(query) should return result of Elasticsearch request')
+
+        # If there was an error, ElasticsearchException should be raised
+        response = {'error': 'Something went wrong'}
+        with patch('requests.get', autospec=True,
+            return_value=Mock(text=json.dumps(response), status_code=200)) as mock_requests_get:
+
+            with self.assertRaises(ElasticsearchException):
+                do_es_search(query)
+
+        # If there was an error with status code, ElasticsearchException should be raised
+        response = {'error': 'Something went wrong'}
+        with patch('requests.get', autospec=True,
+            return_value=Mock(text=json.dumps(response), status_code=406)) as mock_requests_get:
+
+            with self.assertRaises(ElasticsearchException):
+                do_es_search(query)
 
 
 class DoEsTermvectorsForTextTestCase(SimpleTestCase):

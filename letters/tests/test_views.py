@@ -12,11 +12,12 @@ from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
+from letterpress.exceptions import ElasticsearchException
 from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
-from letters.views import export_csv, export_text, get_highlighted_letter_sentiment, get_letter_export_text, \
-    GetStatsView, GetTextSentimentView, GetWordCloudView, highlight_for_sentiment, highlight_letter_for_sentiment, \
-    LettersView, PlaceSearchView, RandomLetterView, SearchView, show_letter_content
+from letters.views import export_csv, export_text, get_elasticsearch_error_response, get_highlighted_letter_sentiment, \
+    get_letter_export_text, GetStatsView, GetTextSentimentView, GetWordCloudView, highlight_for_sentiment, \
+    highlight_letter_for_sentiment, LettersView, PlaceSearchView, RandomLetterView, SearchView, show_letter_content
 
 
 class LettersViewTestCase(TestCase):
@@ -91,6 +92,31 @@ class LettersViewTestCase(TestCase):
                          "LettersView shouldn't call export_text() if 'export_text' not in POST parameters")
         mock_export_csv.reset_mock()
 
+    @patch('letters.views.letter_search.do_letter_search', autospec=True)
+    @patch('letters.views.export_text', autospec=True)
+    @patch('letters.views.export_csv', autospec=True)
+    @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
+    @patch('letters.views.get_elasticsearch_error_response', autospec=True)
+    def test_letters_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response,
+                                                  mock_get_initial_filter_values, mock_export_csv, mock_export_text,
+                                                  mock_do_letter_search):
+        """
+        If request.method is POST and there's an Elasticsearch exception,
+        get_elasticsearch_error_response() should be called
+        """
+
+        mock_do_letter_search.side_effect = ElasticsearchException(error='error', status=406)
+
+        # POST
+        # For some reason, it's impossible to request a POST request via the Django test client,
+        # so manually create one and call the view directly
+        request = RequestFactory().post(reverse('letters_view'))
+        request.POST = {'export_text': True}
+        LettersView().post(request)
+
+        self.assertEqual(mock_get_elasticsearch_error_response.call_count, 1,
+                         "If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called")
+
 
 class StatsViewTestCase(SimpleTestCase):
     """
@@ -142,7 +168,7 @@ class GetStatsViewTestCase(SimpleTestCase):
     @patch('letters.views.render_to_string', autospec=True)
     @patch('letters.views.make_charts', autospec=True)
     def test_get_stats_view(self, mock_make_charts, mock_render_to_string, mock_get_multiple_word_frequencies,
-                       mock_get_word_counts_per_month, mock_get_filter_values_from_request):
+                            mock_get_word_counts_per_month, mock_get_filter_values_from_request):
 
         # GET request should return HttpResponseNotAllowed
         response = self.client.get(reverse('get_stats'), follow=True)
@@ -218,6 +244,48 @@ class GetStatsViewTestCase(SimpleTestCase):
             "If months not in Elasticsearch word frequencies, 'chart' in GetStatsView response should be empty string")
 
 
+    @patch('letters.views.letters_filter.get_filter_values_from_request', autospec=True)
+    @patch('letters.views.letter_search.get_word_counts_per_month', autospec=True)
+    @patch('letters.views.letter_search.get_multiple_word_frequencies', autospec=True)
+    @patch('letters.views.render_to_string', autospec=True)
+    @patch('letters.views.make_charts', autospec=True)
+    @patch('letters.views.get_elasticsearch_error_response', autospec=True)
+    def test_get_stats_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response, mock_make_charts,
+                                                    mock_render_to_string, mock_get_multiple_word_frequencies,
+                                                    mock_get_word_counts_per_month, mock_get_filter_values_from_request):
+        """
+        If request.method is POST and there's an Elasticsearch exception,
+        get_elasticsearch_error_response() should be called
+        """
+
+        # If get_word_counts_per_month() has an ElasticsearchException,
+        # get_elasticsearch_error_response() should be called
+
+        # For some reason, it's impossible to request a POST request via the Django test client,
+        # so manually create one and call the view directly
+        mock_get_word_counts_per_month.side_effect = ElasticsearchException(error='error', status=406)
+
+        request = RequestFactory().post(reverse('get_stats'))
+        GetStatsView().post(request)
+
+        self.assertEqual(mock_get_elasticsearch_error_response.call_count, 1,
+                         "If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called")
+        mock_get_word_counts_per_month.side_effect = None
+        mock_get_elasticsearch_error_response.reset_mock()
+
+        # If get_multiple_word_frequencies() has an ElasticsearchException,
+        # get_elasticsearch_error_response() should be called
+        mock_get_multiple_word_frequencies.side_effect = ElasticsearchException(error='error', status=406)
+
+        request = RequestFactory().post(reverse('get_stats'))
+        GetStatsView().post(request)
+
+        self.assertEqual(mock_get_elasticsearch_error_response.call_count, 1,
+                         "If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called")
+        mock_get_multiple_word_frequencies.side_effect = None
+        mock_get_elasticsearch_error_response.reset_mock()
+
+
 class WordCloudViewTestCase(SimpleTestCase):
     """
     Test WordCloudView
@@ -280,6 +348,23 @@ class GetWordCloudViewTestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['wc'], 'decoded image string',
                          "GetWordCloudView should return decoded WordCloud image in response content['wc']")
+
+    @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
+    @patch('letters.views.letter_search.do_letter_search', autospec=True)
+    @patch('letters.views.get_elasticsearch_error_response', autospec=True)
+    def test_get_wordcloud_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response, mock_do_letter_search,
+                                                  mock_get_initial_filter_values):
+        """
+        If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called
+        """
+
+        mock_do_letter_search.side_effect = ElasticsearchException(error='error', status=406)
+
+        request = RequestFactory().get(reverse('get_wordcloud'))
+        GetWordCloudView().dispatch(request)
+
+        self.assertEqual(mock_get_elasticsearch_error_response.call_count, 1,
+                         "If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called")
 
 
 class SentimentViewTestCase(SimpleTestCase):
@@ -467,6 +552,22 @@ class GetTextSentimentViewTestCase(SimpleTestCase):
     Test GetTextSentimentView
     """
 
+    def setUp(self):
+        FilterValues = namedtuple('FilterValues',
+                                  ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date',
+                                   'words',
+                                   'sentiment_ids', 'sort_by'])
+        self.filter_values = FilterValues(
+            search_text='search_text',
+            source_ids=[1, 2, 3],
+            writer_ids=[1, 2, 3],
+            start_date=['1862-01-01'],
+            end_date=['1862-12-31'],
+            words=['&', 'and'],
+            sentiment_ids=[0, 1, 2],
+            sort_by='sort_by'
+        )
+
     @patch('letters.views.letters_filter.get_filter_values_from_request', autospec=True)
     @patch('letters.views.highlight_for_sentiment', autospec=True)
     @patch('letters.views.get_sentiment', autospec=True)
@@ -479,21 +580,7 @@ class GetTextSentimentViewTestCase(SimpleTestCase):
         self.assertEqual(response.status_code, 405,
                          'Making a GET request to GetTextSentimentView should return HttpResponseNotAllowed')
 
-        FilterValues = namedtuple('FilterValues',
-                                  ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date',
-                                   'words',
-                                   'sentiment_ids', 'sort_by'])
-        filter_values = FilterValues(
-            search_text='search_text',
-            source_ids=[1, 2, 3],
-            writer_ids=[1, 2, 3],
-            start_date=['1862-01-01'],
-            end_date=['1862-12-31'],
-            words=['&', 'and'],
-            sentiment_ids=[0, 1, 2],
-            sort_by='sort_by'
-        )
-        mock_get_filter_values_from_request.return_value = filter_values
+        mock_get_filter_values_from_request.return_value = self.filter_values
         mock_highlight_for_sentiment.return_value = 'highlight for sentiment'
         mock_get_custom_sentiment_for_text.return_value = 'custom sentiment for text'
 
@@ -518,6 +605,28 @@ class GetTextSentimentViewTestCase(SimpleTestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertTrue(mock_get_custom_sentiment_for_text.return_value in content['sentiments'],
                         "GetTextSentimentView should return custom sentiment in response content['sentiments']")
+
+    @patch('letters.views.letters_filter.get_filter_values_from_request', autospec=True)
+    @patch('letters.views.highlight_for_sentiment', autospec=True)
+    @patch('letters.views.get_sentiment', autospec=True)
+    @patch('letters.views.get_custom_sentiment_for_text', autospec=True)
+    @patch('letters.views.get_elasticsearch_error_response', autospec=True)
+    def test_get_text_sentiment_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response,
+                                                             mock_get_custom_sentiment_for_text, mock_get_sentiment,
+                                                             mock_highlight_for_sentiment,
+                                                             mock_get_filter_values_from_request):
+        """
+        If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called
+        """
+
+        mock_get_filter_values_from_request.return_value = self.filter_values
+        mock_get_custom_sentiment_for_text.side_effect = ElasticsearchException(error='error', status=406)
+
+        request = RequestFactory().post(reverse('get_text_sentiment'))
+        GetTextSentimentView().dispatch(request)
+
+        self.assertEqual(mock_get_elasticsearch_error_response.call_count, 1,
+                         "If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called")
 
 
 class HighlightForSentimentTestCase(SimpleTestCase):
@@ -625,6 +734,22 @@ class SearchViewTestCase(TestCase):
         content = json.loads(response.content.decode('utf-8'))
         self.assertNotEqual(content['pagination'], '',
                             "SearchView response content['pagination'] shouldn't be empty string if page_number is 0")
+
+    @patch('letters.views.letter_search.do_letter_search', autospec=True)
+    @patch('letters.views.get_elasticsearch_error_response', autospec=True)
+    def test_search_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response, mock_do_letter_search):
+        """
+        If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called
+        """
+
+        mock_do_letter_search.side_effect = ElasticsearchException(error='error', status=406)
+
+        request = RequestFactory().post(reverse('search'))
+        request.POST = {'page_number': '1'}
+        SearchView().dispatch(request)
+
+        self.assertEqual(mock_get_elasticsearch_error_response.call_count, 1,
+                         "If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called")
 
 
 class LetterDetailViewTestCase(TestCase):
@@ -799,7 +924,7 @@ class RandomLetterViewTestCase(TestCase):
                           "If more than one Letter, RandomLetterView should return randomly chosen letter")
 
 
-class PPlaceListViewTestCase(TestCase):
+class PlaceListViewTestCase(TestCase):
     """
     Test PlaceListView
     """
@@ -856,6 +981,22 @@ class PlaceSearchViewTestCase(SimpleTestCase):
         self.assertEqual(content['map'], mock_render_to_string.return_value,
                          "PlaceSearchView should return response containing 'map'")
 
+    @patch('letters.views.letter_search.do_letter_search', autospec=True)
+    @patch('letters.views.get_elasticsearch_error_response', autospec=True)
+    def test_place_search_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response, mock_do_letter_search):
+        """
+        If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called
+        """
+
+        mock_do_letter_search.side_effect = ElasticsearchException(error='error', status=406)
+
+        request = RequestFactory().post(reverse('place_search'))
+        request.POST = {'page_number': '1'}
+        PlaceSearchView().dispatch(request)
+
+        self.assertEqual(mock_get_elasticsearch_error_response.call_count, 1,
+                         "If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called")
+
 
 class PlaceDetailViewTestCase(TestCase):
     """
@@ -884,3 +1025,21 @@ class PlaceDetailViewTestCase(TestCase):
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
                 "PlaceDetailView context '{}' should be '{}', if letter found".format(key, expected[key]))
+
+
+class GetElasticsearchErrorResponseTestCase(SimpleTestCase):
+    """
+    get_elasticsearch_error_response() should return json HttpResponse
+    with url redirecting to ElasticsearchErrorView
+    """
+
+    def test_get_elasticsearch_error_response(self):
+        ex = ElasticsearchException(status=406, error='Something went wrong')
+        response = get_elasticsearch_error_response(ex)
+        response_json = json.loads(response.content)
+
+        self.assertIn('redirect_url', response_json)
+        redirect_url = response_json.get('redirect_url')
+        self.assertIn('406', redirect_url, 'redirect_url should contain status code')
+        for word in 'Something went wrong'.split():
+            self.assertIn(word, redirect_url, 'redirect_url should contain error message')

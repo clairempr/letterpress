@@ -43,7 +43,6 @@ let letter_search = {
                     window.location.href = result.redirect_url;
                 }
                 search_results.show(result, page_number);
-                //window.location.hash = "#search_button";
             }
         });
     }

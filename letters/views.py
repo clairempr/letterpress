@@ -48,7 +48,7 @@ class LettersView(TemplateView):
         try:
             es_result = letter_search.do_letter_search(request, size, page_number=0)
         except ElasticsearchException as ex:
-            return redirect('elasticsearch_error', status=ex.status, error=ex.error)
+            return get_elasticsearch_error_response(ex)
 
         letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
         if request.POST.get('export_text'):
@@ -477,9 +477,7 @@ def get_letter_export_text(letter):
 def get_elasticsearch_error_response(ex):
     url = reverse('elasticsearch_error', kwargs={'error': ex.error,
                                                  'status': ex.status if ex.status else 0})
-
-    return HttpResponse(json.dumps({
-        'redirect_url': url}), content_type="application/json")
+    return HttpResponse(json.dumps({'redirect_url': url}), content_type="application/json")
 
 
 class RandomLetterView(View):

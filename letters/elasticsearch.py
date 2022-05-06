@@ -149,7 +149,7 @@ def do_es_search(query):
 
     error = response_json.get('error', '')
     if error:
-        raise ElasticsearchException(status=response_json.get('status', ''), error=error)
+        raise ElasticsearchException(status=int(response_json.get('status', 0)), error=error)
 
     return json.loads(response.text)
 
