@@ -138,7 +138,7 @@ def do_es_termvectors_for_text(query):
     return get_termvector_from_result(result)
 
 
-def do_es_search(query):
+def do_es_search(index, query):
     """
     Call Elasticsearch search for the given query and return result
 
@@ -146,7 +146,7 @@ def do_es_search(query):
     """
 
     try:
-        response = ES_CLIENT.search(index=[Letter._meta.es_index_name], body=query)
+        response = ES_CLIENT.search(index=index, body=query)
 
         # Query didn't find anything, probably because there was an error with Elasticsearch
         if 'hits' not in response:

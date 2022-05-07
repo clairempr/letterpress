@@ -3,13 +3,14 @@ import json
 
 from letter_sentiment.models import CustomSentiment
 from letters.elasticsearch import do_es_search
+from letters.models import Letter
 
 
 # Use Elasticsearch scoring to calculate custom sentiment
 def calculate_custom_sentiment(letter_id, sentiment_id):
     custom_sentiment_es = 0
     query = get_custom_sentiment_query(letter_id, sentiment_id)
-    result = do_es_search(json.dumps(query))
+    result = do_es_search(index=[Letter._meta.es_index_name], query=json.dumps(query))
     # get the score from the first hit (there should be only one)
     if 'hits' in result and 'hits' in result['hits']:
         custom_sentiment_es = result['hits']['hits'][0]['_score']

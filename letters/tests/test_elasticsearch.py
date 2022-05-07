@@ -136,7 +136,8 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
 
 class DoEsSearchTestCase(SimpleTestCase):
     """
-    do_es_search() should call Elasticsearch search for the given query and return result
+    do_es_search(index, query) should call Elasticsearch search for the given index and query,
+    and return the result
     """
 
     def test_do_es_search(self):
@@ -157,10 +158,10 @@ class DoEsSearchTestCase(SimpleTestCase):
             return_value=response_mock) as mock_Elasticsearch_search:
             response_mock.text = json.dumps({'search_response': 'response'})
 
-            response = do_es_search(query)
+            response = do_es_search(index=Letter._meta.es_index_name, query=query)
 
             args, kwargs = mock_Elasticsearch_search.call_args
-            self.assertEqual(kwargs['index'], [Letter._meta.es_index_name],
+            self.assertEqual(kwargs['index'], Letter._meta.es_index_name,
                              'do_es_search(query) should make Elasticsearch request with Elasticsearch.search')
             self.assertEqual(kwargs['body'], query,
                              'do_es_search(query) should make Elasticsearch request with query as data')
@@ -173,7 +174,7 @@ class DoEsSearchTestCase(SimpleTestCase):
             response_mock.text = json.dumps({'error': 'Something went wrong'})
 
             with self.assertRaises(ElasticsearchException):
-                do_es_search(query)
+                do_es_search(index=Letter._meta.es_index_name, query=query)
 
         # If there was an Elasticsearch client RequestError, ElasticsearchException should be raised
         with patch('elasticsearch.Elasticsearch.search', autospec=True) as mock_Elasticsearch_search:
@@ -184,7 +185,7 @@ class DoEsSearchTestCase(SimpleTestCase):
             mock_Elasticsearch_search.side_effect = request_error
 
             with self.assertRaises(ElasticsearchException) as context:
-                do_es_search(query)
+                do_es_search(index=Letter._meta.es_index_name, query=query)
             self.assertEqual(context.exception.error, 'Something sent wrong')
             self.assertEqual(context.exception.status, 400)
 
@@ -195,7 +196,7 @@ class DoEsSearchTestCase(SimpleTestCase):
             mock_Elasticsearch_search.side_effect = request_error
 
             with self.assertRaises(ElasticsearchException) as context:
-                do_es_search(query)
+                do_es_search(index=Letter._meta.es_index_name, query=query)
             self.assertEqual(context.exception.error, 'Something sent wrong')
             self.assertEqual(context.exception.status, 400)
 

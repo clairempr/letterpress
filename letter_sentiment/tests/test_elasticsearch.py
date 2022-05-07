@@ -39,8 +39,10 @@ class CalculateCustomSentimentTestCase(TestCase):
 
         # do_es_search() should get called
         args, kwargs = mock_do_es_search.call_args
-        self.assertEqual(args[0], json.dumps(mock_get_custom_sentiment_query.return_value),
-                         'calculate_custom_sentiment() should call do_es_search(query)')
+        self.assertEqual(kwargs['index'], [Letter._meta.es_index_name],
+                         'calculate_custom_sentiment() should call do_es_search() with index as kwarg')
+        self.assertEqual(kwargs['query'], json.dumps(mock_get_custom_sentiment_query.return_value),
+                         'calculate_custom_sentiment() should call do_es_search() with query as kwarg')
 
         # Return value should be score from hits
         self.assertEqual(result, expected_result,
