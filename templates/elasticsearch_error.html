@@ -19,16 +19,17 @@
                 </div>
                 <div class="row">
                     <div><p>I have the honor to report that an order to Elasticsearch, on your behalf,
-                      could not be carried out. The enquiry was deemed to be {{ status_description }}
-                      {% if status_code %} ({{ status_code }}){% endif %} for the reason "{{ error }}".
-                      My apologies for any vexation this may have caused.</p>
+                      could unfortunately not be carried out. The enquiry was deemed {{ status_description }}
+                      {% if status_code %} ({{ status_code }}){% endif %}, the reason being:
+                      <blockquote>{{ error}}</blockquote>
+                      The matter is being looked into.</p>
                     </div>
                 </div>
                 <div class="row">
                     <div class="pull-right">I am, User,</div>
                 </div>
                 <div class="row">
-                    <div class="pull-right">Very sincerely</div>
+                    <div class="pull-right">Very respectfully</div>
                 </div>
                 <div class="row">
                     <div class="pull-right">Your obedient servant,</div>

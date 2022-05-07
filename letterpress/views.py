@@ -26,7 +26,15 @@ class ElasticsearchErrorView(TemplateView):
         context = super().get_context_data(**kwargs)
 
         status_code = kwargs.get('status', 0)
-        status_description = '"Not Acceptable"' if status_code == 406 else 'highly irregular'
+        status_descriptions = {
+            400: '"Bad Request"',
+            406: ''"Not Acceptable"''
+        }
+
+        if status_code in status_descriptions:
+            status_description = status_descriptions[status_code]
+        else:
+            status_description = 'highly irregular'
 
         context['title'] = 'Elasticsearch Error'
         context['status_code'] = status_code

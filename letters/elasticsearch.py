@@ -1,4 +1,5 @@
 # elasticsearch stuff that's completely separate from any models
+import elasticsearch
 import json
 import requests
 
@@ -144,14 +145,31 @@ def do_es_search(query):
     If there was an error, raise an exception
     """
 
-    response = requests.get(ES_SEARCH, data=query)
-    response_json = json.loads(response.text)
+    try:
+        response = ES_CLIENT.search(index=[Letter._meta.es_index_name], body=query)
 
-    error = response_json.get('error', '')
-    if error:
-        raise ElasticsearchException(status=int(response_json.get('status', 0)), error=error)
+        # Query didn't find anything, probably because there was an error with Elasticsearch
+        if 'hits' not in response:
+            response_json = json.loads(response.text)
 
-    return json.loads(response.text)
+            error = response_json.get('error', '')
+            status = response_json.get('status', 0)
+            if error:
+                raise ElasticsearchException(status=status, error=error)
+
+        return response
+
+    except elasticsearch.exceptions.RequestError as ex:
+        # Error with Elasticsearch client
+        # ex.info contains dict of returned error info from Elasticsearch, where available
+        if ex.info:
+            error = ex.info.get('error')
+            status = ex.info.get('status')
+        else:
+            error = ex.error
+            status = ex.status_code
+
+        raise ElasticsearchException(status=status, error=error)
 
 
 def index_temp_document(text):

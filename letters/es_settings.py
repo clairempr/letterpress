@@ -1,5 +1,5 @@
 # Elasticsearch settings
-from elasticsearch import Elasticsearch, Urllib3HttpConnection
+from elasticsearch import Elasticsearch
 
 from django.conf import settings
 
