@@ -6,6 +6,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase, TestCase
 
 from letters import es_settings
+from letters.models import Letter
 from letters.tests.factories import LetterFactory
 from letter_sentiment.elasticsearch import calculate_custom_sentiment, get_custom_sentiment_query, \
     get_sentiment_function_score_query, get_sentiment_function_score_query, get_sentiment_match_query
@@ -66,7 +67,11 @@ class CalculateCustomSentimentTestCase(TestCase):
 
         letter = LetterFactory(date=ApproximateDate(1970, 1, 1),
                                body='Look at the horse. Look at the pony.')
-        letter.delete_from_elasticsearch(pk=letter.pk)
+
+        # Make sure there's not already an indexed document with the same Id
+        # because it might not have gotten cleaned up properly after a previous test
+        if es_settings.ES_CLIENT.exists(index=[Letter._meta.es_index_name], doc_type='_all', id=letter.pk):
+            letter.delete_from_elasticsearch(pk=letter.pk)
         letter.create_or_update_in_elasticsearch(is_new=None)
 
         calculate_custom_sentiment(letter_id=letter.id, sentiment_id=sentiment.id)
