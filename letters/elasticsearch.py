@@ -3,7 +3,7 @@ import elasticsearch
 import json
 import requests
 
-from letters.es_settings import ES_CLIENT, ES_ANALYZE, ES_MTERMVECTORS, ES_LETTER_URL, ES_SEARCH
+from letters.es_settings import ES_CLIENT, ES_ANALYZE, ES_LETTER_URL
 from letters.models import Letter
 from letterpress.exceptions import ElasticsearchException
 

@@ -22,7 +22,6 @@ class CalculateCustomSentimentTestCase(TestCase):
     # We don't want to be messing with the real Elasticsearch index, in case something goes wrong
     # with mocking
     @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
-    @patch('letters.es_settings.ES_LETTER_URL', es_settings.ES_LETTER_TEST_URL)
     @patch('letter_sentiment.elasticsearch.get_custom_sentiment_query', autospec=True)
     @patch('letter_sentiment.elasticsearch.do_es_search', autospec=True)
     def test_calculate_custom_sentiment(self, mock_do_es_search, mock_get_custom_sentiment_query):
@@ -56,8 +55,6 @@ class CalculateCustomSentimentTestCase(TestCase):
 
     # We don't want to be messing with the real Elasticsearch index
     @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
-    @patch('letters.elasticsearch.ES_LETTER_URL', es_settings.ES_LETTER_TEST_URL)
-    @patch('letters.elasticsearch.ES_SEARCH', es_settings.ES_SEARCH_TEST)
     def test_calculate_custom_sentiment_without_mocks(self):
         """
         Haven't yet figured out why Elasticsearch doesn't deliver the same score in test as in

@@ -10,7 +10,7 @@ from letters.elasticsearch import analyze_term, build_termvector_query, delete_t
     do_es_mtermvectors, do_es_search, do_es_termvectors_for_text, get_mtermvectors, get_sentiment_termvector_for_text, \
     get_stored_fields_for_letter, get_termvector_from_result, index_temp_document, \
     raise_exception_from_response_error, raise_exception_from_request_error
-from letters.es_settings import ES_ANALYZE, ES_LETTER_URL, ES_MTERMVECTORS, ES_SEARCH
+from letters.es_settings import ES_ANALYZE, ES_LETTER_URL
 from letters.models import Letter
 
 
