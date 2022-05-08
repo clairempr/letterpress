@@ -204,14 +204,13 @@ class DoEsTermvectorsForTextTestCase(SimpleTestCase):
     def test_do_es_termvectors_for_text(self, mock_raise_exception_from_request_error,
                                         mock_raise_exception_from_response_error, mock_get_termvector_from_result):
         mock_get_termvector_from_result.return_value = 'termvector from result'
-
         response_mock = MagicMock()
         type(response_mock).status_code = PropertyMock(return_value=200)
 
         # if 'term_vectors' in response, response should be returned
         with patch('elasticsearch.Elasticsearch.termvectors', autospec=True,
             return_value=response_mock) as mock_Elasticsearch_termvectors:
-            response_mock.text = json.dumps({'term_vectors': 'term_vectors'})
+            response_mock = json.dumps({'term_vectors': 'term_vectors'})
 
             query = {'query'}
             response = do_es_termvectors_for_text(index=Letter._meta.es_index_name,
@@ -220,30 +219,38 @@ class DoEsTermvectorsForTextTestCase(SimpleTestCase):
 
             args, kwargs = mock_Elasticsearch_termvectors.call_args
             self.assertEqual(kwargs['body'], query,
-                'do_es_termvectors_for_text(query) should make Elasticsearch request with query as data')
-            args, kwargs = mock_get_termvector_from_result.call_args
-            self.assertEqual(args[0], response_mock,
-                'do_es_termvectors_for_text(query) should call get_termvector_from_result() with result from Elasticsearch termvectors request')
+                'do_es_termvectors_for_text() should make Elasticsearch request with query as data')
+            self.assertEqual(mock_get_termvector_from_result.call_count, 1,
+                'do_es_termvectors_for_text() should call get_termvector_from_result() with result from Elasticsearch termvectors request')
             self.assertEqual(response, mock_get_termvector_from_result.return_value,
-                'do_es_termvectors_for_text(query) should return result of get_termvector_from_result()')
+                'do_es_termvectors_for_text() should return result of get_termvector_from_result()')
 
 
-        # if 'term_vectors not in response, check for error
         with patch('elasticsearch.Elasticsearch.termvectors', autospec=True,
             return_value=response_mock) as mock_Elasticsearch_termvectors:
-            response_mock.text = json.dumps({'termvectors_response': 'response'})
+            # # if 'term_vectors not in response, check for error
+            response_mock = json.dumps({'termvectors_response': 'response'})
 
             query = {'query'}
+            do_es_termvectors_for_text(index=Letter._meta.es_index_name,
+                                       doc_type=Letter._meta.es_type_name,
+                                       query=query)
+
+            args, kwargs = mock_Elasticsearch_termvectors.call_args
+            self.assertEqual(kwargs['body'], query,
+                'do_es_termvectors_for_text() should make Elasticsearch request with query as data')
+            self.assertEqual(mock_raise_exception_from_response_error.call_count, 1,
+                'do_es_termvectors_for_text() should call exception_from_response_error() if error in termvectors response')
+
+            # If there was an Elasticsearch client RequestError, raise_exception_from_response_error() should be called
+            mock_Elasticsearch_termvectors.side_effect = elasticsearch.exceptions.RequestError
+
             do_es_termvectors_for_text(index=Letter._meta.es_index_name,
                                                 doc_type=Letter._meta.es_type_name,
                                                 query=query)
 
-            args, kwargs = mock_Elasticsearch_termvectors.call_args
-            self.assertEqual(kwargs['body'], query,
-                'do_es_termvectors_for_text(query) should make Elasticsearch request with query as data')
-            args, kwargs = mock_get_termvector_from_result.call_args
-            self.assertEqual(args[0], response_mock,
-                'do_es_termvectors_for_text(query) should call get_termvector_from_result() with result from Elasticsearch termvectors request')
+            self.assertEqual(mock_raise_exception_from_request_error.call_count, 1,
+                        'do_es_search() should call exception_from_request_error() if RequestError from search')
 
 
 class GetMtermvectorsTestCase(SimpleTestCase):
