@@ -69,7 +69,7 @@ def do_letter_search(request, size, page_number):
         total = results['hits']['total']
         for doc in results['hits']['hits']:
             letter = Letter.objects.get(pk=doc['_id'])
-            # Only show Elasticsearch higlights if user explicitly searched for a term
+            # Only show Elasticsearch highlights if user explicitly searched for a term
             # Don't show highlights associated with custom sentiment search terms
             highlight = get_doc_highlights(doc) if letter_match_query else ''
             score = doc['_score']
@@ -323,7 +323,7 @@ def get_highlight_options(filter_values):
 
     return {
         'fields': {
-            'contents': {'type': 'postings', 'number_of_fragments': 6}
+            'contents': {'type': 'unified', 'number_of_fragments': 6}
         }
     }
 

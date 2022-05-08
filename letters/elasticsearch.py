@@ -54,7 +54,9 @@ def get_sentiment_termvector_for_text(text):
 
     query = build_termvector_query(text=text, analyzer='termvector_sentiment_analyzer',
                                    offsets='true', positions='true')
-    termvector = do_es_termvectors_for_text(query)
+    termvector = do_es_termvectors_for_text(index=Letter._meta.es_index_name,
+                                            doc_type=Letter._meta.es_type_name,
+                                            query=query)
     return termvector
 
 
@@ -126,16 +128,26 @@ def do_es_mtermvectors(query):
     return json.loads(response.text)
 
 
-def do_es_termvectors_for_text(query):
+def do_es_termvectors_for_text(index, doc_type, query):
     """
     Call Elasticsearch termvectors request for the given query, call get_termvector_from_result()
     with return value, and return result
     """
 
-    termvectors_url = str.format('{0}_termvectors', ES_LETTER_URL)
-    response = requests.get(termvectors_url, data=query)
-    result = json.loads(response.text)
-    return get_termvector_from_result(result)
+    try:
+        response = ES_CLIENT.termvectors(index=index,
+                                         doc_type=doc_type,
+                                         body=query)
+
+        if 'term_vectors' not in response:
+            # Query didn't find anything, probably because there was an error with Elasticsearch
+            raise_exception_from_response_error(response)
+
+        return get_termvector_from_result(response)
+
+    except elasticsearch.exceptions.RequestError as exception:
+        # Error with Elasticsearch client
+        raise_exception_from_request_error(exception)
 
 
 def do_es_search(index, query):
@@ -148,28 +160,15 @@ def do_es_search(index, query):
     try:
         response = ES_CLIENT.search(index=index, body=query)
 
-        # Query didn't find anything, probably because there was an error with Elasticsearch
         if 'hits' not in response:
-            response_json = json.loads(response.text)
-
-            error = response_json.get('error', '')
-            status = response_json.get('status', 0)
-            if error:
-                raise ElasticsearchException(status=status, error=error)
+            # Query didn't find anything, probably because there was an error with Elasticsearch
+            raise_exception_from_response_error(response)
 
         return response
 
-    except elasticsearch.exceptions.RequestError as ex:
+    except elasticsearch.exceptions.RequestError as exception:
         # Error with Elasticsearch client
-        # ex.info contains dict of returned error info from Elasticsearch, where available
-        if ex.info:
-            error = ex.info.get('error')
-            status = ex.info.get('status')
-        else:
-            error = ex.error
-            status = ex.status_code
-
-        raise ElasticsearchException(status=status, error=error)
+        raise_exception_from_request_error(exception)
 
 
 def index_temp_document(text):
@@ -199,3 +198,31 @@ def delete_temp_document():
         id='temp',
         refresh=True,
     )
+
+
+def raise_exception_from_response_error(response):
+    """
+    If response contains error, raise custom ElasticsearchException
+    """
+    response_json = json.loads(response.text)
+
+    error = response_json.get('error', '')
+    status = response_json.get('status', 0)
+    if error:
+        raise ElasticsearchException(status=status, error=error)
+
+
+def raise_exception_from_request_error(request_error):
+    """
+    A RequestError exception was returned by the Elasticsearch client
+    Raise a new custom ElasticsearchException
+    """
+    # exception.info contains dict of returned error info from Elasticsearch, where available
+    if request_error.info:
+        error = request_error.info.get('error')
+        status = request_error.info.get('status')
+    else:
+        error = request_error.error
+        status = request_error.status_code
+
+    raise ElasticsearchException(status=status, error=error)

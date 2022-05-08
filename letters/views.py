@@ -13,7 +13,7 @@ from letterpress import settings
 from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -48,7 +48,7 @@ class LettersView(TemplateView):
         try:
             es_result = letter_search.do_letter_search(request, size, page_number=0)
         except ElasticsearchException as ex:
-            return get_elasticsearch_error_response(ex)
+            return get_elasticsearch_error_response(exception=ex, json_response=True)
 
         letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
         if request.POST.get('export_text'):
@@ -100,7 +100,7 @@ class GetStatsView(View):
             words = filter_values.words
             es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
         except ElasticsearchException as ex:
-            return get_elasticsearch_error_response(ex)
+            return get_elasticsearch_error_response(exception=ex, json_response=True)
 
         if len(words) == 2:
             show_proportion = 'true'
@@ -180,7 +180,7 @@ class GetWordCloudView(View):
         try:
             es_result = letter_search.do_letter_search(request, size=10000, page_number=0)
         except ElasticsearchException as ex:
-            return get_elasticsearch_error_response(ex)
+            return get_elasticsearch_error_response(exception=ex, json_response=True)
 
         letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
         text = ' '.join([letter.contents() for letter in letters])
@@ -258,7 +258,10 @@ class LetterSentimentView(View):
         # sentiments is a list of tuples (id, value)
         sentiments = letter_search.get_letter_sentiments(letter, self.kwargs.get('sentiment_id'))
 
-        return get_highlighted_letter_sentiment(request, letter, sentiments=sentiments)
+        try:
+            return get_highlighted_letter_sentiment(request, letter, sentiments=sentiments)
+        except ElasticsearchException as ex:
+            return get_elasticsearch_error_response(ex, json_response=False)
 
 
 def get_highlighted_letter_sentiment(request, letter, sentiments):
@@ -354,7 +357,7 @@ class GetTextSentimentView(View):
                 else:
                     sentiments.append(get_custom_sentiment_for_text(text, sentiment_id))
         except ElasticsearchException as ex:
-            return get_elasticsearch_error_response(ex)
+            return get_elasticsearch_error_response(exception=ex, json_response=True)
 
         results = zip(sentiments, highlighted_texts)
         sentiment_html = render_to_string('snippets/sentiment_list.html', {'results': results})
@@ -386,7 +389,7 @@ class SearchView(View):
         try:
             es_result = letter_search.do_letter_search(request, size, page_number)
         except ElasticsearchException as ex:
-            return get_elasticsearch_error_response(ex)
+            return get_elasticsearch_error_response(exception=ex, json_response=True)
 
         result_html = render_to_string('snippets/search_list.html', {'search_results': es_result.search_results})
         # First request, no pagination yet
@@ -474,10 +477,17 @@ def get_letter_export_text(letter):
                           letter.recipient.to_export_string(), letter.contents())
 
 
-def get_elasticsearch_error_response(ex):
-    url = reverse('elasticsearch_error', kwargs={'error': ex.error,
-                                                 'status': ex.status if ex.status else 0})
-    return HttpResponse(json.dumps({'redirect_url': url}), content_type="application/json")
+def get_elasticsearch_error_response(exception, json_response=True):
+    """
+    Return HttpResponse with json containing url for Elasticsearch error page,
+    or redirect to it
+    """
+    url = reverse('elasticsearch_error', kwargs={'error': exception.error,
+                                                 'status': exception.status if exception.status else 0})
+    if json_response:
+        return HttpResponse(json.dumps({'redirect_url': url}), content_type="application/json")
+    else:
+        return redirect(url)
 
 
 class RandomLetterView(View):
@@ -533,7 +543,7 @@ class PlaceSearchView(View):
         try:
             es_result = letter_search.do_letter_search(request, size, page_number=0)
         except ElasticsearchException as ex:
-            return get_elasticsearch_error_response(ex)
+            return get_elasticsearch_error_response(exception=ex, json_response=True)
 
         # Get list of corresponding places
         place_ids = set([letter.place_id for letter, highlight, sentiments, score in es_result.search_results])
