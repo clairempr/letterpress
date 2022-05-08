@@ -43,7 +43,9 @@ def get_mtermvectors(ids, fields):
         }
     })
 
-    return do_es_mtermvectors(query)
+    return do_es_mtermvectors(index=Letter._meta.es_index_name,
+                              doc_type=Letter._meta.es_type_name,
+                              query=query)
 
 
 def get_sentiment_termvector_for_text(text):
@@ -119,13 +121,25 @@ def do_es_analyze(query):
     return json.loads(response.text)
 
 
-def do_es_mtermvectors(query):
+def do_es_mtermvectors(index, doc_type, query):
     """
     Return the results of Elasticsearch mtermvector request for the given query
     """
 
-    response = requests.get(ES_MTERMVECTORS, data=query)
-    return json.loads(response.text)
+    try:
+        response = ES_CLIENT.mtermvectors(index=index,
+                                          doc_type=doc_type,
+                                          body=query)
+
+        if 'docs' not in response:
+            # Query didn't find anything, probably because there was an error with Elasticsearch
+            raise_exception_from_response_error(response)
+
+        return response
+
+    except elasticsearch.exceptions.RequestError as exception:
+        # Error with Elasticsearch client
+        raise_exception_from_request_error(exception)
 
 
 def do_es_termvectors_for_text(index, doc_type, query):
