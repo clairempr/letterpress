@@ -294,12 +294,12 @@ def get_highlighted_letter_sentiment(request, letter, sentiments):
 def highlight_letter_for_sentiment(letter, sentiment_id):
     highlighted_letters = []
 
-    headings = highlight_for_sentiment(letter.heading, sentiment_id)
-    greetings = highlight_for_sentiment(letter.greeting, sentiment_id)
+    headings = highlight_for_sentiment(letter.heading, sentiment_id) if letter.heading else ['']
+    greetings = highlight_for_sentiment(letter.greeting, sentiment_id) if letter.greeting else['']
     bodies = highlight_for_sentiment(letter.body_as_text(), sentiment_id)
-    closings = highlight_for_sentiment(letter.closing, sentiment_id)
-    sigs = highlight_for_sentiment(letter.signature, sentiment_id)
-    pss = highlight_for_sentiment(letter.ps, sentiment_id)
+    closings = highlight_for_sentiment(letter.closing, sentiment_id) if letter.closing else ['']
+    sigs = highlight_for_sentiment(letter.signature, sentiment_id) if letter.signature else ['']
+    pss = highlight_for_sentiment(letter.ps, sentiment_id) if letter.ps else ['']
 
     for idx, heading in enumerate(headings):
         # Make a copy of the letter so we can manipulate the content fields
