@@ -17,7 +17,8 @@ from letters.models import Correspondent, Letter
 from letters.tests.factories import LetterFactory, PlaceFactory
 from letters.views import export_csv, export_text, get_elasticsearch_error_response, get_highlighted_letter_sentiment, \
     get_letter_export_text, GetStatsView, GetTextSentimentView, GetWordCloudView, highlight_for_sentiment, \
-    highlight_letter_for_sentiment, LettersView, PlaceSearchView, RandomLetterView, SearchView, show_letter_content
+    highlight_letter_for_sentiment, LetterSentimentView, LettersView, PlaceSearchView, RandomLetterView, SearchView, \
+    show_letter_content
 
 
 class LettersViewTestCase(TestCase):
@@ -427,6 +428,31 @@ class LetterSentimentViewTestCase(TestCase):
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
                 "LetterSentimentView context '{}' should be '{}', if letter found".format(key, expected[key]))
+
+    @patch('letters.views.letter_search.get_letter_sentiments', autospec=True)
+    @patch('letters.views.get_highlighted_letter_sentiment', autospec=True)
+    @patch('letters.views.get_elasticsearch_error_response', autospec=True)
+    def test_letter_sentiment_view_elasticsearch_exception(self,
+                                                           mock_get_elasticsearch_error_response,
+                                                           mock_get_highlighted_letter_sentiment,
+                                                           mock_get_letter_sentiments
+                                                           ):
+        """
+        If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called
+        """
+
+        mock_get_highlighted_letter_sentiment.side_effect = ElasticsearchException(error='error', status=406)
+
+
+        # Mocking get_elasticsearch_error_response() doesn't seem to work when using self.client.get(),
+        # so do it this way:
+        request = RequestFactory().get(reverse('letter_sentiment_view',
+                                               kwargs={'letter_id': '1', 'sentiment_id': '1'}), follow=True)
+        view = LetterSentimentView()
+        view.kwargs = {'letter_id': LetterFactory().pk, 'sentiment_id': '1'}
+        view.dispatch(request)
+        self.assertEqual(mock_get_elasticsearch_error_response.call_count, 1,
+                         "If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called")
 
 
 class GetHighlightedLetterSentimentTestCase(TestCase):
@@ -1033,9 +1059,12 @@ class GetElasticsearchErrorResponseTestCase(SimpleTestCase):
     with url redirecting to ElasticsearchErrorView
     """
 
-    def test_get_elasticsearch_error_response(self):
+    @patch('letters.views.redirect', autospec=True)
+    def test_get_elasticsearch_error_response(self, mock_redirect):
         ex = ElasticsearchException(status=406, error='Something went wrong')
-        response = get_elasticsearch_error_response(ex)
+
+        # If json_response is True, JSON response with redirect url should be returned
+        response = get_elasticsearch_error_response(exception=ex, json_response=True)
         response_json = json.loads(response.content)
 
         self.assertIn('redirect_url', response_json)
@@ -1043,3 +1072,8 @@ class GetElasticsearchErrorResponseTestCase(SimpleTestCase):
         self.assertIn('406', redirect_url, 'redirect_url should contain status code')
         for word in 'Something went wrong'.split():
             self.assertIn(word, redirect_url, 'redirect_url should contain error message')
+
+        # If json_response is not True, redirect should be called
+        get_elasticsearch_error_response(exception=ex, json_response=False)
+        self.assertEqual(mock_redirect.call_count, 1,
+                         'get_elasticsearch_error_response() should call redirect if json_response is not True')

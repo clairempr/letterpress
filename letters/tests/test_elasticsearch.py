@@ -124,10 +124,9 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
 
         # if 'docs' in response, response should be returned
         with patch('elasticsearch.Elasticsearch.mtermvectors', autospec=True,
-            return_value=response_mock) as mock_Elasticsearch_mtermvectors:
-            response_mock.text = json.dumps({'docs': 'mterm_vectors'})
+            return_value={'docs': 'mterm_vectors'}) as mock_Elasticsearch_mtermvectors:
 
-            query = {'query':'query'}
+            query = {'query': 'query'}
             response = do_es_mtermvectors(index=Letter._meta.es_index_name,
                                           doc_type=Letter._meta.es_type_name,
                                           query=query)
@@ -135,7 +134,7 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
             args, kwargs = mock_Elasticsearch_mtermvectors.call_args
             self.assertEqual(kwargs['body'], query,
                              'do_es_mtermvectors() should make Elasticsearch request with query as body')
-            self.assertTrue('docs' in response.text,
+            self.assertTrue('docs' in response,
                             'do_es_mtermvectors() should return result of Elasticsearch request')
 
         # If there was an error in the response, raise_exception_from_response_error() should be called
@@ -186,8 +185,7 @@ class DoEsSearchTestCase(SimpleTestCase):
 
         # If there was no error, search result should be returned
         with patch('elasticsearch.Elasticsearch.search', autospec=True,
-            return_value=response_mock) as mock_Elasticsearch_search:
-            response_mock.text = json.dumps({'search_response': 'response'})
+            return_value={'hits': 'response'}) as mock_Elasticsearch_search:
 
             response = do_es_search(index=Letter._meta.es_index_name, query=query)
 
@@ -196,11 +194,11 @@ class DoEsSearchTestCase(SimpleTestCase):
                              'do_es_search() should make Elasticsearch request with Elasticsearch.search')
             self.assertEqual(kwargs['body'], query,
                              'do_es_search() should make Elasticsearch request with query as body')
-            self.assertTrue('search_response' in response.text,
+            self.assertTrue('hits' in response,
                              'do_es_search() should return result of Elasticsearch request')
 
         # If there was an error in the response, raise_exception_from_response_error() should be called
-        with patch('elasticsearch.Elasticsearch.search', autospec=True,
+        with patch.object(elasticsearch.Elasticsearch, 'search', autospec=True,
             return_value=response_mock) as mock_Elasticsearch_search:
             response_mock.text = json.dumps({'error': 'Something went wrong'})
 
@@ -235,12 +233,12 @@ class DoEsTermvectorsForTextTestCase(SimpleTestCase):
         response_mock = MagicMock()
         type(response_mock).status_code = PropertyMock(return_value=200)
 
+        query = {'query'}
+
         # if 'term_vectors' in response, response should be returned
         with patch('elasticsearch.Elasticsearch.termvectors', autospec=True,
-            return_value=response_mock) as mock_Elasticsearch_termvectors:
-            response_mock = json.dumps({'term_vectors': 'term_vectors'})
+            return_value={'term_vectors': 'term_vectors'}) as mock_Elasticsearch_termvectors:
 
-            query = {'query'}
             response = do_es_termvectors_for_text(index=Letter._meta.es_index_name,
                                                 doc_type=Letter._meta.es_type_name,
                                                 query=query)
@@ -256,9 +254,8 @@ class DoEsTermvectorsForTextTestCase(SimpleTestCase):
         with patch('elasticsearch.Elasticsearch.termvectors', autospec=True,
             return_value=response_mock) as mock_Elasticsearch_termvectors:
             # if 'term_vectors not in response, check for error
-            response_mock = json.dumps({'termvectors_response': 'response'})
+            response_mock.text = json.dumps({'error': 'Something went wrong'})
 
-            query = {'query'}
             do_es_termvectors_for_text(index=Letter._meta.es_index_name,
                                        doc_type=Letter._meta.es_type_name,
                                        query=query)

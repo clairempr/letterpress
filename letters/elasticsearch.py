@@ -130,12 +130,11 @@ def do_es_mtermvectors(index, doc_type, query):
         response = ES_CLIENT.mtermvectors(index=index,
                                           doc_type=doc_type,
                                           body=query)
+        if 'docs' in response:
+            return response
 
-        if 'docs' not in response:
-            # Query didn't find anything, probably because there was an error with Elasticsearch
-            raise_exception_from_response_error(response)
-
-        return response
+        # Query didn't find anything, probably because there was an error with Elasticsearch
+        raise_exception_from_response_error(response)
 
     except elasticsearch.exceptions.RequestError as exception:
         # Error with Elasticsearch client
@@ -153,11 +152,11 @@ def do_es_termvectors_for_text(index, doc_type, query):
                                          doc_type=doc_type,
                                          body=query)
 
-        if 'term_vectors' not in response:
-            # Query didn't find anything, probably because there was an error with Elasticsearch
-            raise_exception_from_response_error(response)
+        if 'term_vectors' in response:
+            return get_termvector_from_result(response)
 
-        return get_termvector_from_result(response)
+        # Query didn't find anything, probably because there was an error with Elasticsearch
+        raise_exception_from_response_error(response)
 
     except elasticsearch.exceptions.RequestError as exception:
         # Error with Elasticsearch client
@@ -174,11 +173,11 @@ def do_es_search(index, query):
     try:
         response = ES_CLIENT.search(index=index, body=query)
 
-        if 'hits' not in response:
-            # Query didn't find anything, probably because there was an error with Elasticsearch
-            raise_exception_from_response_error(response)
+        if 'hits' in response:
+            return response
 
-        return response
+        # Query didn't find anything, probably because there was an error with Elasticsearch
+        raise_exception_from_response_error(response)
 
     except elasticsearch.exceptions.RequestError as exception:
         # Error with Elasticsearch client

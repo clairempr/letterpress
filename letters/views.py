@@ -261,7 +261,7 @@ class LetterSentimentView(View):
         try:
             return get_highlighted_letter_sentiment(request, letter, sentiments=sentiments)
         except ElasticsearchException as ex:
-            return get_elasticsearch_error_response(ex, json_response=False)
+            return get_elasticsearch_error_response(exception=ex, json_response=False)
 
 
 def get_highlighted_letter_sentiment(request, letter, sentiments):
