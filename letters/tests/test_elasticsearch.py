@@ -10,7 +10,7 @@ from letters.elasticsearch import analyze_term, build_termvector_query, delete_t
     do_es_mtermvectors, do_es_search, do_es_termvectors_for_text, get_mtermvectors, get_sentiment_termvector_for_text, \
     get_stored_fields_for_letter, get_termvector_from_result, index_temp_document, \
     raise_exception_from_response_error, raise_exception_from_request_error
-from letters.es_settings import ES_ANALYZE, ES_LETTER_URL
+from letters.es_settings import ES_LETTER_URL
 from letters.models import Letter
 
 
@@ -32,8 +32,8 @@ class AnalyzeTermTestCase(SimpleTestCase):
 
         result = analyze_term(term, analyzer)
         args, kwargs = mock_do_es_analyze.call_args
-        self.assertEqual(args[0], query,
-                         'analyze_term(term, analyzer) should call do_es_analyze() with query containing them')
+        self.assertEqual(kwargs['query'], query,
+                         'analyze_term(term, analyzer) should call do_es_analyze() with query')
         self.assertTrue('horse' in result,
                         'analyze_term() should return text containing tokens returned by do_es_analyze()')
 
@@ -93,22 +93,45 @@ class DoEsAnalyzeTestCase(SimpleTestCase):
     do_es_analyze(query) should return the results of Elasticsearch analyze for the given query
     """
 
-    def test_do_es_analyze(self):
-        response_text = {'response': 'response'}
+    @patch('letters.elasticsearch.raise_exception_from_response_error', autospec=True)
+    @patch('letters.elasticsearch.raise_exception_from_request_error', autospec=True)
+    def test_do_es_analyze(self, mock_raise_exception_from_request_error, mock_raise_exception_from_response_error):
+        response_mock = MagicMock()
+        type(response_mock).status_code = PropertyMock(return_value=200)
 
-        with patch('requests.get', autospec=True,
-            return_value=Mock(text=json.dumps(response_text), status_code=200)) as mock_requests_get:
+        # if 'tokens' in response, response should be returned
+        with patch.object(elasticsearch.client.IndicesClient, 'analyze', autospec=True,
+            return_value={'tokens': 'tokens'}) as mock_analyze:
 
             query = {'query'}
-            result = do_es_analyze(query)
+            result = do_es_analyze(index=Letter._meta.es_index_name, query=query)
 
-            args, kwargs = mock_requests_get.call_args
-            self.assertEqual(args[0], ES_ANALYZE,
-                             'do_es_analyze(query) should make Elasticsearch request with ES_ANALYZE as url')
-            self.assertEqual(kwargs['data'], query,
-                             'do_es_analyze(query) should make Elasticsearch request with query as data')
-            self.assertEqual(result, response_text,
-                             'do_es_analyze(query) should return result of Elasticsearch request')
+            args, kwargs = mock_analyze.call_args
+            self.assertEqual(kwargs['body'], query,
+                             'do_es_analyze() should make Elasticsearch request with query as body')
+            self.assertEqual(result, {'tokens': 'tokens'},
+                             'do_es_analyze() should return result of Elasticsearch request')
+
+        # If there was an error in the response, raise_exception_from_response_error() should be called
+        with patch.object(elasticsearch.client.IndicesClient, 'analyze', autospec=True,
+            return_value=response_mock) as mock_Elasticsearch_analyze:
+            response_mock.text = json.dumps({'error': 'Something went wrong'})
+
+            do_es_analyze(index=Letter._meta.es_index_name, query=query)
+
+            args, kwargs = mock_raise_exception_from_response_error.call_args
+            self.assertEqual(args[0], response_mock,
+                        'do_es_analyze() should call raise_exception_from_response_error if error in search response')
+
+        # If there was an Elasticsearch client RequestError, raise_exception_from_response_error() should be called
+        with patch.object(elasticsearch.client.IndicesClient, 'analyze', autospec=True) as mock_Elasticsearch_analyze:
+            mock_Elasticsearch_analyze.side_effect = elasticsearch.exceptions.RequestError
+
+            do_es_analyze(index=Letter._meta.es_index_name, query=query)
+
+
+            self.assertEqual(mock_raise_exception_from_request_error.call_count, 1,
+                             'do_es_analyze() should call exception_from_request_error if RequestError from search')
 
 
 class DoEsMtermvectorsTestCase(SimpleTestCase):

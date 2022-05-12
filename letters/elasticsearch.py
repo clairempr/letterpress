@@ -3,7 +3,7 @@ import elasticsearch
 import json
 import requests
 
-from letters.es_settings import ES_CLIENT, ES_ANALYZE, ES_LETTER_URL
+from letters.es_settings import ES_CLIENT, ES_LETTER_URL
 from letters.models import Letter
 from letterpress.exceptions import ElasticsearchException
 
@@ -19,7 +19,7 @@ def analyze_term(term, analyzer):
         "text": term
     })
 
-    result = do_es_analyze(query)
+    result = do_es_analyze(index=Letter._meta.es_index_name, query=query)
     if 'tokens' in result:
         analyzed_text = ' '.join(item['token'] for item in result['tokens'])
     else:
@@ -112,13 +112,23 @@ def get_stored_fields_for_letter(letter_id, stored_fields):
     return json.loads(response.text)
 
 
-def do_es_analyze(query):
+def do_es_analyze(index, query):
     """
     Return the results of Elasticsearch analyze for the given query
     """
 
-    response = requests.get(ES_ANALYZE, data=query)
-    return json.loads(response.text)
+    try:
+        response = ES_CLIENT.indices.analyze(index=index,
+                                             body=query)
+        if 'tokens' in response:
+            return response
+
+        # Query didn't find anything, probably because there was an error with Elasticsearch
+        raise_exception_from_response_error(response)
+
+    except elasticsearch.exceptions.RequestError as exception:
+        # Error with Elasticsearch client
+        raise_exception_from_request_error(exception)
 
 
 def do_es_mtermvectors(index, doc_type, query):

@@ -6,10 +6,6 @@ from django.conf import settings
 from letterpress import settings_secret
 
 ES_LETTER_URL = settings.ELASTICSEARCH_URL + 'letterpress/letter/'
-ES_ANALYZE = settings.ELASTICSEARCH_URL + 'letterpress/_analyze'
-
-# Test Elasticsearch URLs
-ES_ANALYZE_TEST = settings.ELASTICSEARCH_URL + 'letterpress_test/_analyze'
 
 ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
