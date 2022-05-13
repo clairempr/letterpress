@@ -54,9 +54,9 @@ def get_sentiment_function_score_query(bool_query):
             "script": {
                 "lang": "painless",
                 # _score of 1 means that no terms were found, so return 0
-                "inline": "if (_score == 1) { return 0; } "
+                "source": "if (_score == 1) { return 0; } "
                           "long word_count = doc['contents.word_count'].value; "
-                          "double factor = (Math.log(word_count * 0.5) / Math.log(2)) * 14; "
+                          "double factor = (Math.log1p(word_count * 0.5) / Math.log1p(2)) * 14; "
                           "return _score / factor;"
             }
         }

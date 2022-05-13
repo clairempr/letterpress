@@ -206,6 +206,8 @@ class LetterTestCase(TestCase):
         result = letter.field_es_repr('heading')
         self.assertEqual(result, letter.heading,
                          "Letter.field_es_repr() should return the field's value if it doesn't have its own method")
+        # Set mapping back to a valid type
+        Letter._meta.es_mapping['properties']['heading'] = {'type': 'text'}
 
     @patch.object(Letter, 'contents', autospec=True)
     def test_get_es_contents(self, mock_contents):
