@@ -151,7 +151,6 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
 
             query = {'query': 'query'}
             response = do_es_mtermvectors(index=Letter._meta.es_index_name,
-                                          doc_type=Letter._meta.es_type_name,
                                           query=query)
 
             args, kwargs = mock_Elasticsearch_mtermvectors.call_args
@@ -166,7 +165,6 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
             response_mock.text = json.dumps({'error': 'Something went wrong'})
 
             do_es_mtermvectors(index=Letter._meta.es_index_name,
-                               doc_type=Letter._meta.es_type_name,
                                query=query)
 
             args, kwargs = mock_raise_exception_from_response_error.call_args
@@ -178,7 +176,6 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
             mock_Elasticsearch_search.side_effect = elasticsearch.exceptions.RequestError
 
             do_es_mtermvectors(index=Letter._meta.es_index_name,
-                               doc_type=Letter._meta.es_type_name,
                                query=query)
 
             self.assertEqual(mock_raise_exception_from_request_error.call_count, 1,

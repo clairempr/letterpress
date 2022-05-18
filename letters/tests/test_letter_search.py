@@ -293,7 +293,7 @@ class DoLetterSearchTestCase(TestCase):
         mock_do_es_search.return_value = {'hits': {
             'hits':
                 [{'_id': LetterFactory().id, '_score': 1}],
-            'total': 5}
+            'total': {'value': 5}}
         }
 
         request = self.request_factory.get('search', data={})
@@ -449,7 +449,7 @@ class DoLetterSearchTestCase(TestCase):
         mock_do_es_search.return_value = {'hits': {
             'hits':
                 [{'_id': letter.id, '_score': 1}],
-            'total': 10}
+            'total': {'value': 10}}
         }
 
         request = self.request_factory.get('search', data={})

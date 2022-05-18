@@ -2,7 +2,7 @@ version: "3"
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.8.23
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
     volumes:
     - /usr/share/elasticsearch/data
     ports:
@@ -10,6 +10,7 @@ services:
     environment:
       ES_JAVA_OPTS: "-Xms256m -Xmx256m"
       xpack.security.enabled: "false"
+      discovery.type: single-node
 
   django:
     build: .

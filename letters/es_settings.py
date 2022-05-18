@@ -1,5 +1,6 @@
 # Elasticsearch settings
 from elasticsearch import Elasticsearch
+from elasticsearch.client import IndicesClient
 
 from django.conf import settings
 
@@ -11,6 +12,8 @@ ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
     http_auth=(settings.ELASTICSEARCH_USER, settings.ELASTICSEARCH_PASSWORD),
 )
+
+ES_INDICES_CLIENT = IndicesClient
 
 # Settings for custom analyzer
 AMPERSAND_REPLACEMENT = 'DHPEOPIJOJOIUYTUXBTEEXFGOPMBFR'

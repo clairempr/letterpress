@@ -1,5 +1,3 @@
-import json
-
 from unittest.mock import patch
 
 from django.http.request import QueryDict

@@ -66,7 +66,7 @@ def do_letter_search(request, size, page_number):
     search_results = []
     total = 0
     if 'hits' in results:
-        total = results['hits']['total']
+        total = results['hits']['total']['value']
         for doc in results['hits']['hits']:
             letter = Letter.objects.get(pk=doc['_id'])
             # Only show Elasticsearch highlights if user explicitly searched for a term

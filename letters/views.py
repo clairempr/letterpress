@@ -98,7 +98,10 @@ class GetStatsView(View):
         try:
             es_word_counts = letter_search.get_word_counts_per_month(filter_values)
             words = filter_values.words
-            es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
+            if words:
+                es_word_freqs = letter_search.get_multiple_word_frequencies(filter_values)
+            else:
+                es_word_freqs = []
         except ElasticsearchException as ex:
             return get_elasticsearch_error_response(exception=ex, json_response=True)
 

@@ -44,7 +44,6 @@ def get_mtermvectors(ids, fields):
     })
 
     return do_es_mtermvectors(index=Letter._meta.es_index_name,
-                              doc_type=Letter._meta.es_type_name,
                               query=query)
 
 
@@ -131,15 +130,14 @@ def do_es_analyze(index, query):
         raise_exception_from_request_error(exception)
 
 
-def do_es_mtermvectors(index, doc_type, query):
+def do_es_mtermvectors(index, query):
     """
     Return the results of Elasticsearch mtermvector request for the given query
     """
 
     try:
-        response = ES_CLIENT.mtermvectors(index=index,
-                                          doc_type=doc_type,
-                                          body=query)
+        response = ES_CLIENT.mtermvectors(index=index, body=query)
+
         if 'docs' in response:
             return response
 
@@ -202,7 +200,6 @@ def index_temp_document(text):
 
     ES_CLIENT.index(
         index=Letter._meta.es_index_name,
-        doc_type=Letter._meta.es_type_name,
         id='temp',
         refresh=True,
         body={'contents': text}
@@ -217,7 +214,6 @@ def delete_temp_document():
 
     ES_CLIENT.delete(
         index=Letter._meta.es_index_name,
-        doc_type=Letter._meta.es_type_name,
         id='temp',
         refresh=True,
     )

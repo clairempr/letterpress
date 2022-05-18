@@ -22,7 +22,7 @@ class PushToIndexTestCase(TestCase):
         if indices_client.exists(index_name):
             indices_client.delete(index=index_name)
         indices_client.create(index=index_name,
-                              body=es_settings.settings)
+                              body={'settings': es_settings.settings})
 
     def setUp(self):
         self.command = Command()
@@ -105,5 +105,12 @@ class PushToIndexTestCase(TestCase):
         convert_for_bulk() should add keys and values to data
         """
         data = self.command.convert_for_bulk(self.letter)
-        for key in ['_op_type', '_index', '_type']:
+        self.assertEqual(data.get('_id'), self.letter.pk,
+                         'Data returned from convert_for_bulk() should contain letter id')
+        self.assertEqual(data.get('contents'), self.letter.contents(),
+                         'Data returned from convert_for_bulk() should contain letter contents')
+        for key in ['date', 'source', 'writer', 'place']:
             self.assertIn(key, data, "Data returned from convert_for_bulk() should contain '{}'".format(key))
+        self.assertEqual(data.get('_index'), Letter._meta.es_index_name,
+                         'Data returned from convert_for_bulk() should contain letter index name')
+

@@ -69,7 +69,8 @@ class CalculateCustomSentimentTestCase(TestCase):
 
         # Make sure there's not already an indexed document with the same Id
         # because it might not have gotten cleaned up properly after a previous test
-        if es_settings.ES_CLIENT.exists(index=[Letter._meta.es_index_name], doc_type='_all', id=letter.pk):
+        if es_settings.ES_CLIENT.exists(index=[Letter._meta.es_index_name],
+                                        id=letter.pk):
             letter.delete_from_elasticsearch(pk=letter.pk)
         letter.create_or_update_in_elasticsearch(is_new=None)
 
