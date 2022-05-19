@@ -6,7 +6,7 @@ jobs:
       - image: circleci/python:3.9.9-bullseye # Need to use older CircleCI image because newer images (cimg) don't work with GeoDjango
       - image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
         environment:
-          ES_JAVA_OPTS: "-Xmx1024m -Xms1024m"
+          ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     steps:
       - checkout
       - restore_cache: # restore cached dependencies
