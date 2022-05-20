@@ -157,7 +157,7 @@ def do_es_termvectors_for_text(index, doc_type, query):
 
     try:
         response = ES_CLIENT.termvectors(index=index,
-                                         doc_type=doc_type,
+                                         # doc_type=doc_type,
                                          body=query)
 
         if 'term_vectors' in response:

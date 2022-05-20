@@ -220,7 +220,7 @@ def get_word_counts_per_month(filter_values):
         "words_per_month": {
             "date_histogram": {
                 "field": 'date',
-                "interval": "month",
+                "calendar_interval": "month",
                 "min_doc_count": 1,
             },
             "aggs": {
