@@ -7,7 +7,7 @@ django-date-extensions==3.1.1
 django-environ==0.8.1
 django-sslserver==0.20
 django-tinymce==2.7.0
-elasticsearch==7.7.1
+elasticsearch==7.17.1
 factory-boy==3.1.0  # https://github.com/FactoryBoy/factory_boy
 lxml==4.6.5
 MarkupSafe==1.1.1
