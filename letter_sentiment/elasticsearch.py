@@ -21,7 +21,7 @@ def calculate_custom_sentiment(letter_id, sentiment_id):
 def get_custom_sentiment_query(letter_id, sentiment_id):
     # get the query with all the custom sentiment terms in it
     sentiment_match_query = get_sentiment_match_query(sentiment_id)
-    should_conditions = [condition for condition in [sentiment_match_query] if condition]
+    should_conditions = [condition for condition in sentiment_match_query if condition]
 
     # filter by id
     bool_query = {
