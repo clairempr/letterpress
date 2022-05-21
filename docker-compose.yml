@@ -2,7 +2,7 @@ version: "3"
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
     volumes:
     - /usr/share/elasticsearch/data
     ports:
