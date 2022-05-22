@@ -381,31 +381,27 @@ class DoLetterSearchTestCase(TestCase):
         request_factory = RequestFactory()
         request = request_factory.get('search', data={})
 
-        # If page_number is 0 and size is 1, do_es_search() should be called with json.dumps(query_json)
-        # where query_json 'from' is 0
+        # If page_number is 0 and size is 1, do_es_search() should be called with from_offset=0
         do_letter_search(request, page_number=0, size=1)
         args, kwargs = mock_do_es_search.call_args
-        query = json.loads(kwargs['query'])
-        self.assertEqual(query['from'], 0,
-                         "If page_number is 0, do_letter_search() should call do_es_search() with query where 'from' is 0")
+        self.assertEqual(kwargs['from_offset'], 0,
+                         "If page_number is 0, do_letter_search() should call do_es_search() with from_offset=0")
         mock_do_es_search.reset_mock()
 
         # If page_number is 1 and size is 1, do_es_search() should be called with json.dumps(query_json)
         # where query_json 'from' is 0
         do_letter_search(request, page_number=1, size=1)
         args, kwargs = mock_do_es_search.call_args
-        query = json.loads(kwargs['query'])
-        self.assertEqual(query['from'], 0,
-                         "If page_number is 1, do_letter_search() should call do_es_search() with query where 'from' is 0")
+        self.assertEqual(kwargs['from_offset'], 0,
+                         "If page_number is 1, do_letter_search() should call do_es_search() with from_offset=0")
         mock_do_es_search.reset_mock()
 
         # If page_number is 1 and size is 1, do_es_search() should be called with json.dumps(query_json)
         # where query_json 'from' is 1
         do_letter_search(request, page_number=2, size=1)
         args, kwargs = mock_do_es_search.call_args
-        query = json.loads(kwargs['query'])
-        self.assertEqual(query['from'], 1,
-                         "If page_number is 2, do_letter_search() should call do_es_search() with query where 'from' is 1")
+        self.assertEqual(kwargs['from_offset'], 1,
+                         "If page_number is 2, do_letter_search() should call do_es_search() with from_offset=1")
         mock_do_es_search.reset_mock()
 
     @patch('letters.filter.get_filter_values_from_request', autospec=True)

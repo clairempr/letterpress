@@ -16,9 +16,9 @@ class Command(BaseCommand):
         if indices_client.exists(index=index_name):
             indices_client.delete(index=index_name)
         indices_client.create(index=index_name,
-                              body={'settings': es_settings.settings})
+                              settings={'settings': es_settings.settings})
         indices_client.put_mapping(
-            body=Letter._meta.es_mapping,
+            properties=Letter._meta.es_mapping,
             index=index_name
         )
 

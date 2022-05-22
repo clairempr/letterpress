@@ -25,7 +25,7 @@ class CalculateCustomSentimentTestCase(TestCase):
     @patch('letter_sentiment.elasticsearch.get_custom_sentiment_query', autospec=True)
     @patch('letter_sentiment.elasticsearch.do_es_search', autospec=True)
     def test_calculate_custom_sentiment(self, mock_do_es_search, mock_get_custom_sentiment_query):
-        mock_get_custom_sentiment_query.return_value = {'query': 'find me the thing'}
+        mock_get_custom_sentiment_query.return_value = {'find me the thing'}
         expected_result = 1
         mock_do_es_search.return_value = {'hits': {'hits': [{'_score': expected_result}]}}
 
@@ -40,7 +40,7 @@ class CalculateCustomSentimentTestCase(TestCase):
         args, kwargs = mock_do_es_search.call_args
         self.assertEqual(kwargs['index'], [Letter._meta.es_index_name],
                          'calculate_custom_sentiment() should call do_es_search() with index as kwarg')
-        self.assertEqual(kwargs['query'], json.dumps(mock_get_custom_sentiment_query.return_value),
+        self.assertEqual(kwargs['query'], mock_get_custom_sentiment_query.return_value,
                          'calculate_custom_sentiment() should call do_es_search() with query as kwarg')
 
         # Return value should be score from hits
@@ -99,7 +99,7 @@ class GetCustomSentimentQuery(SimpleTestCase):
                          'get_custom_sentiment_query() should call get_sentiment_function_score_query()')
 
         # get_custom_sentiment_query() should return the query
-        for key in ['query', 'stored_fields']:
+        for key in ['function_score']:
             self.assertIn(key, query.keys(), 'get_custom_sentiment_query() should return query with key {}'.format(key))
 
 

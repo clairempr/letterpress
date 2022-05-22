@@ -19,7 +19,7 @@ class PushToIndexTestCase(TestCase):
     def recreate_test_index(self):
         indices_client = es_settings.ES_CLIENT.indices
         index_name = Letter._meta.es_index_name
-        if indices_client.exists(index_name):
+        if indices_client.exists(index=index_name):
             indices_client.delete(index=index_name)
         indices_client.create(index=index_name,
                               body={'settings': es_settings.settings})

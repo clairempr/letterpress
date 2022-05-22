@@ -53,16 +53,12 @@ def do_letter_search(request, size, page_number):
             'bool': bool_query
         }
 
-    query_json = {
-        'query': query,
-        'from': results_from,
-        'size': size,
-        'highlight': get_highlight_options(filter_values),
-        'stored_fields': ['contents.word_count'],
-        'sort': [get_sort_conditions(filter_values.sort_by)]
-    }
-
-    results = do_es_search(index=[Letter._meta.es_index_name], query=json.dumps(query_json))
+    results = do_es_search(index=[Letter._meta.es_index_name],
+                           query=query, from_offset=results_from,
+                           size=size,
+                           highlight=get_highlight_options(filter_values),
+                           stored_fields=['contents.word_count'],
+                           sort=[get_sort_conditions(filter_values.sort_by)])
     search_results = []
     total = 0
     if 'hits' in results:
@@ -158,18 +154,14 @@ def get_multiple_word_frequencies(filter_values):
     """
 
     words = filter_values.words
-    query = json.dumps({
-        '_source': ['date'],
-        'query': {
+    query = {
             'bool': {
                 'must': {'match': {'contents': ' '.join(words)}},
                 'filter': get_filter_conditions_for_query(filter_values)
             }
-        },
-        'size': 10000,
-    })
+        }
 
-    es_result = do_es_search(index=[Letter._meta.es_index_name], query=query)
+    es_result = do_es_search(index=[Letter._meta.es_index_name], query=query, size=10000, source=['date'])
 
     if 'hits' in es_result and 'hits' in es_result['hits']:
         matching_docs = {hit['_id']: hit['_source']['date'] for hit in es_result['hits']['hits']}
@@ -214,8 +206,6 @@ def get_word_counts_per_month(filter_values):
     for words given in filter_values, and return them
     """
 
-    filter_conditions = get_filter_conditions_for_query(filter_values)
-
     aggs = {
         "words_per_month": {
             "date_histogram": {
@@ -237,20 +227,16 @@ def get_word_counts_per_month(filter_values):
         }
     }
 
-    query = json.dumps({
-        '_source': ['date'],
-        'query': {
-            'bool': {
-                'filter': filter_conditions
-            }
-        },
-        'size': 10000,
-        'sort': {'date': {'order': 'asc'}},
-        'stored_fields': ['contents.word_count'],
-        'aggs': aggs
-    })
+    query = {
+        'bool': {
+            'filter': get_filter_conditions_for_query(filter_values)
 
-    es_result = do_es_search(index=[Letter._meta.es_index_name], query=query)
+        }
+    }
+
+    es_result = do_es_search(index=[Letter._meta.es_index_name],  query=query, aggs=aggs,
+                             size=10000, sort={'date': {'order': 'asc'}}, source=['date'],
+                             stored_fields=['contents.word_count'])
     word_counts = {}
     if 'aggregations' in es_result and 'words_per_month' in es_result['aggregations']:
         for bucket in es_result['aggregations']['words_per_month']['buckets']:
