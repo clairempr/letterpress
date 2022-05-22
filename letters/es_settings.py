@@ -11,7 +11,6 @@ ES_LETTER_URL = settings.ELASTICSEARCH_URL + 'letterpress/letter/'
 ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
     http_auth=(settings.ELASTICSEARCH_USER, settings.ELASTICSEARCH_PASSWORD),
-    use_ssl=False,
     ca_certs=False,
     verify_certs=False
 )
