@@ -7,7 +7,7 @@ from django.urls import path
 from letters.views import GetStatsView, GetTextSentimentView, GetWordCloudView, LetterDetailView, \
     LetterSentimentView, LettersView, PlaceDetailView, PlaceListView, PlaceSearchView, RandomLetterView, \
     SearchView, SentimentView, StatsView, TextSentimentView, WordCloudView
-from letterpress.views import HomeView
+from letterpress.views import ElasticsearchErrorView, HomeView
 
 from django.contrib import admin
 
@@ -17,6 +17,7 @@ urlpatterns = [
                   path('admin/', admin.site.urls),
                   path('accounts/', include('django.contrib.auth.urls')),
                   path('', HomeView.as_view(), name='home'),
+                  path('elasticsearch_error/<str:error>/<int:status>/', ElasticsearchErrorView.as_view(), name='elasticsearch_error'),
                   path('letters/<letter_id>/sentiment/<sentiment_id>/',
                        LetterSentimentView.as_view(), name='letter_sentiment_view'),
                   path('letters/<pk>/', LetterDetailView.as_view(), name='letter_detail'),

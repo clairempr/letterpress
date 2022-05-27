@@ -70,7 +70,9 @@ class TermTestCase(TestCase):
 
         mock_analyze_text.return_value = text
 
-        term = TermFactory(text=text, analyzed_text=text)
+        # Test with actual Term because analyze_text() is mocked in TermFactory object creation
+        term = Term.objects.create(text=text, analyzed_text=text,
+                                   custom_sentiment=CustomSentimentFactory())
         self.assertEqual(mock_analyze_text.call_count, 0,
                          "If Term.text hasn't changed, it shouldn't be analyzed again")
 

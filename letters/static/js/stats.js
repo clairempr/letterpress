@@ -19,6 +19,10 @@ function get_stats() {
         },
         url: "/get_stats/",
         success: function (result) {
+           // If there was an error, redirect to error page
+            if (result.redirect_url){
+                window.location.href = result.redirect_url;
+            }
             $('#chart').html(result.chart);
             $('#stats').html(result.stats);
         }

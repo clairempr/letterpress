@@ -1,23 +1,31 @@
 import json
 
+from django_date_extensions.fields import ApproximateDate
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase
 
+from letters import es_settings
+from letters.models import Letter
+from letters.tests.factories import LetterFactory
 from letter_sentiment.elasticsearch import calculate_custom_sentiment, get_custom_sentiment_query, \
     get_sentiment_function_score_query, get_sentiment_function_score_query, get_sentiment_match_query
 from letter_sentiment.tests.factories import CustomSentimentFactory, TermFactory
 
 
-class CalculateCustomSentimentTestCase(SimpleTestCase):
+class CalculateCustomSentimentTestCase(TestCase):
     """
     calculate_custom_sentiment() should retrieve a custom sentiment query,
     do a search with Elasticsearch and return the score from the first (only) hit
     """
+
+    # We don't want to be messing with the real Elasticsearch index, in case something goes wrong
+    # with mocking
+    @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
     @patch('letter_sentiment.elasticsearch.get_custom_sentiment_query', autospec=True)
     @patch('letter_sentiment.elasticsearch.do_es_search', autospec=True)
     def test_calculate_custom_sentiment(self, mock_do_es_search, mock_get_custom_sentiment_query):
-        mock_get_custom_sentiment_query.return_value = {'query': 'find me the thing'}
+        mock_get_custom_sentiment_query.return_value = {'find me the thing'}
         expected_result = 1
         mock_do_es_search.return_value = {'hits': {'hits': [{'_score': expected_result}]}}
 
@@ -30,8 +38,10 @@ class CalculateCustomSentimentTestCase(SimpleTestCase):
 
         # do_es_search() should get called
         args, kwargs = mock_do_es_search.call_args
-        self.assertEqual(args[0], json.dumps(mock_get_custom_sentiment_query.return_value),
-                         'calculate_custom_sentiment() should call do_es_search(query)')
+        self.assertEqual(kwargs['index'], [Letter._meta.es_index_name],
+                         'calculate_custom_sentiment() should call do_es_search() with index as kwarg')
+        self.assertEqual(kwargs['query'], mock_get_custom_sentiment_query.return_value,
+                         'calculate_custom_sentiment() should call do_es_search() with query as kwarg')
 
         # Return value should be score from hits
         self.assertEqual(result, expected_result,
@@ -42,6 +52,31 @@ class CalculateCustomSentimentTestCase(SimpleTestCase):
         result = calculate_custom_sentiment(1, 2)
         self.assertEqual(result, 0,
                          'calculate_custom_sentiment() should return 0 if no Elasticsearch hits')
+
+    # We don't want to be messing with the real Elasticsearch index
+    @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
+    def test_calculate_custom_sentiment_without_mocks(self):
+        """
+        Haven't yet figured out why Elasticsearch doesn't deliver the same score in test as in
+        prod, so for now just make sure it doesn't cause an error
+        """
+        sentiment = CustomSentimentFactory(name='OMG Ponies!', max_weight=2)
+        TermFactory(text='pony', weight=2, custom_sentiment=sentiment)
+        TermFactory(text='horse', weight=1, custom_sentiment=sentiment)
+
+        letter = LetterFactory(date=ApproximateDate(1970, 1, 1),
+                               body='Look at the horse. Look at the pony.')
+
+        # Make sure there's not already an indexed document with the same Id
+        # because it might not have gotten cleaned up properly after a previous test
+        if es_settings.ES_CLIENT.exists(index=[Letter._meta.es_index_name],
+                                        id=letter.pk):
+            letter.delete_from_elasticsearch(pk=letter.pk)
+        letter.create_or_update_in_elasticsearch(is_new=None)
+
+        calculate_custom_sentiment(letter_id=letter.id, sentiment_id=sentiment.id)
+
+        letter.delete_from_elasticsearch(pk=letter.pk)
 
 
 class GetCustomSentimentQuery(SimpleTestCase):

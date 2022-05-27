@@ -278,7 +278,7 @@ class DoLetterSearchTestCase(TestCase):
                                             mock_get_sentiment_match_query, mock_get_selected_sentiment_id,
                                             mock_get_filter_values_from_request):
         """
-        Test to make sure that if 'hits' in the return value of do_es_search(json.dumps(query_json)),
+        Test to make sure that if 'hits' in the return value of do_es_search(),
         get_doc_highlights(), get_letter_sentiments(), and format_sentiment() get called
         Otherwise they shouldn't get called
         """
@@ -288,12 +288,12 @@ class DoLetterSearchTestCase(TestCase):
         mock_get_sentiment_function_score_query.return_value = 'sentiment_function_score_query'
         mock_get_sort_conditions.return_value = 'sort_conditions'
 
-        # If 'hits' in the return value of do_es_search(json.dumps(query_json)),
+        # If 'hits' in the return value of do_es_search(),
         # get_doc_highlights(), get_letter_sentiments(), and format_sentiment() should get called
         mock_do_es_search.return_value = {'hits': {
             'hits':
                 [{'_id': LetterFactory().id, '_score': 1}],
-            'total': 5}
+            'total': {'value': 5}}
         }
 
         request = self.request_factory.get('search', data={})
@@ -310,7 +310,7 @@ class DoLetterSearchTestCase(TestCase):
         mock_get_letter_sentiments.reset_mock()
         mock_format_sentiment.reset_mock()
 
-        # If 'hits' in return value of do_es_search(json.dumps(query_json)) but sentiment_id is 0,
+        # If 'hits' in return value of do_es_search() but sentiment_id is 0,
         # format_sentiment() should not get called
         filter_values = self.FilterValues(
             search_text='search_text',
@@ -334,7 +334,7 @@ class DoLetterSearchTestCase(TestCase):
         mock_get_letter_sentiments.reset_mock()
         mock_format_sentiment.reset_mock()
 
-        # If 'hits' not in the return value of do_es_search(json.dumps(query_json)),
+        # If 'hits' not in the return value of do_es_search(),
         # get_doc_highlights(), get_letter_sentiments(), and format_sentiment() should NOT get called
         mock_do_es_search.return_value = {}
 
@@ -381,31 +381,27 @@ class DoLetterSearchTestCase(TestCase):
         request_factory = RequestFactory()
         request = request_factory.get('search', data={})
 
-        # If page_number is 0 and size is 1, do_es_search() should be called with json.dumps(query_json)
-        # where query_json 'from' is 0
+        # If page_number is 0 and size is 1, do_es_search() should be called with from_offset=0
         do_letter_search(request, page_number=0, size=1)
         args, kwargs = mock_do_es_search.call_args
-        query = json.loads(args[0])
-        self.assertEqual(query['from'], 0,
-                         "If page_number is 0, do_letter_search() should call do_es_search() with query where 'from' is 0")
+        self.assertEqual(kwargs['from_offset'], 0,
+                         "If page_number is 0, do_letter_search() should call do_es_search() with from_offset=0")
         mock_do_es_search.reset_mock()
 
         # If page_number is 1 and size is 1, do_es_search() should be called with json.dumps(query_json)
         # where query_json 'from' is 0
         do_letter_search(request, page_number=1, size=1)
         args, kwargs = mock_do_es_search.call_args
-        query = json.loads(args[0])
-        self.assertEqual(query['from'], 0,
-                         "If page_number is 1, do_letter_search() should call do_es_search() with query where 'from' is 0")
+        self.assertEqual(kwargs['from_offset'], 0,
+                         "If page_number is 1, do_letter_search() should call do_es_search() with from_offset=0")
         mock_do_es_search.reset_mock()
 
         # If page_number is 1 and size is 1, do_es_search() should be called with json.dumps(query_json)
         # where query_json 'from' is 1
         do_letter_search(request, page_number=2, size=1)
         args, kwargs = mock_do_es_search.call_args
-        query = json.loads(args[0])
-        self.assertEqual(query['from'], 1,
-                         "If page_number is 2, do_letter_search() should call do_es_search() with query where 'from' is 1")
+        self.assertEqual(kwargs['from_offset'], 1,
+                         "If page_number is 2, do_letter_search() should call do_es_search() with from_offset=1")
         mock_do_es_search.reset_mock()
 
     @patch('letters.filter.get_filter_values_from_request', autospec=True)
@@ -449,7 +445,7 @@ class DoLetterSearchTestCase(TestCase):
         mock_do_es_search.return_value = {'hits': {
             'hits':
                 [{'_id': letter.id, '_score': 1}],
-            'total': 10}
+            'total': {'value': 10}}
         }
 
         request = self.request_factory.get('search', data={})

@@ -13,12 +13,11 @@ class Command(BaseCommand):
     def recreate_index(self):
         indices_client = es_settings.ES_CLIENT.indices
         index_name = Letter._meta.es_index_name
-        if indices_client.exists(index_name):
+        if indices_client.exists(index=index_name):
             indices_client.delete(index=index_name)
         indices_client.create(index=index_name,
-                              body=es_settings.settings)
+                              body={'settings': es_settings.settings})
         indices_client.put_mapping(
-            doc_type=Letter._meta.es_type_name,
             body=Letter._meta.es_mapping,
             index=index_name
         )
@@ -34,7 +33,6 @@ class Command(BaseCommand):
         metadata = {
             '_op_type': action,
             "_index": django_object._meta.es_index_name,
-            "_type": django_object._meta.es_type_name,
         }
         data.update(**metadata)
         return data

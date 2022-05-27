@@ -1,17 +1,26 @@
 # Elasticsearch settings
-from elasticsearch import Elasticsearch, RequestsHttpConnection
+import ssl
+
+from elasticsearch import Elasticsearch
+from elasticsearch.client import IndicesClient
 
 from django.conf import settings
 
+from letterpress import settings_secret
 
 ES_LETTER_URL = settings.ELASTICSEARCH_URL + 'letterpress/letter/'
-ES_ANALYZE = settings.ELASTICSEARCH_URL + 'letterpress/_analyze'
-ES_SEARCH = ES_LETTER_URL + '_search?explain'
-ES_MTERMVECTORS = ES_LETTER_URL + '_mtermvectors'
 
+# If no options are given and the certifi package is installed then certifi’s CA
+# bundle is used by default:
+# https://www.elastic.co/guide/en/elasticsearch/client/python-api/current/config.html#tls-and-ssl
 ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
+    http_auth=(settings.ELASTICSEARCH_USER, settings.ELASTICSEARCH_PASSWORD),
+    verify_certs=False,
+    ssl_version=ssl.TLSVersion.TLSv1_3
 )
+
+ES_INDICES_CLIENT = IndicesClient
 
 # Settings for custom analyzer
 AMPERSAND_REPLACEMENT = 'DHPEOPIJOJOIUYTUXBTEEXFGOPMBFR'

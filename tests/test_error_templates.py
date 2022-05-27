@@ -89,3 +89,22 @@ class Error500TemplateTestCase(ErrorTemplateTestCase, SimpleTestCase):
 
     def test_template(self):
         self.test_template_content()
+
+
+class ElasticsearchErrorTemplateTestCase(SimpleTestCase):
+    """
+    Test Elasticsearch error template
+    """
+
+    def test_template_content(self):
+        template = 'elasticsearch_error.html'
+
+        rendered = render_to_string(template, context={'title': 'Elasticsearch Error',
+                                                       'status_code': 406,
+                                                       'status_description': 'highly irregular',
+                                                       'error': 'Something went wrong'})
+
+        self.assertIn('<title>Elasticsearch Error</title>', rendered, "HTML should contain title 'Elasticsearch Error'")
+        self.assertIn('406', rendered, 'HTML should contain status code')
+        self.assertIn('highly irregular', rendered, 'HTML should contain status description')
+        self.assertIn('Something went wrong', rendered, 'HTML should contain error')

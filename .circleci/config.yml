@@ -4,28 +4,29 @@ jobs:
     working_directory: ~/letterpress
     docker:
       - image: circleci/python:3.9.9-bullseye # Need to use older CircleCI image because newer images (cimg) don't work with GeoDjango
-      - image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2 # an example of how to specify a service container
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.17.3
+        environment:
+          discovery.type: single-node
+          ES_JAVA_OPTS: "-Xms256m -Xmx256m"
     steps:
-    - checkout  # checkout source code to working directory
-#    - run: sudo chown -R circleci:circleci /usr/local/bin
-#    - run: sudo chown -R circleci:circleci circleci:circleci /usr/local/lib/python3.9/site-packages
-    - restore_cache: # restore cached dependencies
-        key: pip-env-{{ checksum "requirements.txt" }}
-    - run:
-        command: |
-          sudo apt-get update --allow-releaseinfo-change
-          sudo apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
-          sudo apt-get install -y libsqlite3-mod-spatialite gdal-bin
-          sudo apt-get install -y libjpeg-dev libturbojpeg-dev
-          sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
-    - run: pip install -r requirements.txt
-    - run: python -m textblob.download_corpora
-    - run: pip install coveralls
-    - run: touch letterpress/settings_secret.py
-    - save_cache: # cache installed dependencies
-        key: pip-env-{{ checksum "requirements.txt" }}
-        paths:
-          - '/home/circleci/.cache/pip'
-          - '/usr/local/bin'
-    - run: coverage run manage.py test
-    - run: coveralls
+      - checkout
+      - restore_cache: # restore cached dependencies
+          key: pip-env-{{ checksum "requirements.txt" }}
+      - run:
+          command: |
+            sudo apt-get update --allow-releaseinfo-change
+            sudo apt-get install -y --no-install-recommends libatlas-base-dev gfortran apt-utils
+            sudo apt-get install -y libsqlite3-mod-spatialite gdal-bin
+            sudo apt-get install -y libjpeg-dev libturbojpeg-dev
+            sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite* /usr/local/lib/
+      - run: pip install -r requirements.txt
+      - run: python -m textblob.download_corpora
+      - run: pip install coveralls
+      - run: touch letterpress/settings_secret.py
+      - save_cache: # cache installed dependencies
+          key: pip-env-{{ checksum "requirements.txt" }}
+          paths:
+            - '/home/circleci/.cache/pip'
+            - '/usr/local/bin'
+      - run: coverage run manage.py test
+      - run: coveralls
