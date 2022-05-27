@@ -1,4 +1,6 @@
 # Elasticsearch settings
+import ssl
+
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 
@@ -8,11 +10,14 @@ from letterpress import settings_secret
 
 ES_LETTER_URL = settings.ELASTICSEARCH_URL + 'letterpress/letter/'
 
+# If no options are given and the certifi package is installed then certifi’s CA
+# bundle is used by default:
+# https://www.elastic.co/guide/en/elasticsearch/client/python-api/current/config.html#tls-and-ssl
 ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
     http_auth=(settings.ELASTICSEARCH_USER, settings.ELASTICSEARCH_PASSWORD),
-    ca_certs=False,
-    verify_certs=False
+    verify_certs=False,
+    ssl_version=ssl.TLSVersion.TLSv1_3
 )
 
 ES_INDICES_CLIENT = IndicesClient
