@@ -188,6 +188,10 @@ class GetStatsViewTestCase(SimpleTestCase):
         # so manually create one and call the view directly
         response = GetStatsView().post(self.request)
 
+        # If words in filter_values, get_multiple_word_frequencies() should be called
+        self.assertEqual(mock_get_multiple_word_frequencies.call_count, 1,
+                         'If words in filter_values, get_multiple_word_frequencies() should be called')
+
         # render_to_string() should get called with certain args
         args, kwargs = mock_render_to_string.call_args
         self.assertEqual(args[1]['words'], self.filter_values.words,
@@ -244,6 +248,25 @@ class GetStatsViewTestCase(SimpleTestCase):
         self.assertEqual(content['chart'], '',
             "If months not in Elasticsearch word frequencies, 'chart' in GetStatsView response should be empty string")
 
+        # If no words in filter values, get_multiple_word_frequencies() shouldn't be called
+        mock_get_multiple_word_frequencies.reset_mock()
+
+        filter_values_no_words = self.FilterValues(
+            search_text='search_text',
+            source_ids=[1, 2, 3],
+            writer_ids=[1, 2, 3],
+            start_date=['1862-01-01'],
+            end_date=['1862-12-31'],
+            words=[],
+            sentiment_ids=[1, 2, 3],
+            sort_by='sort_by'
+        )
+        mock_get_filter_values_from_request.return_value = filter_values_no_words
+
+        GetStatsView().post(self.request)
+
+        self.assertEqual(mock_get_multiple_word_frequencies.call_count, 0,
+                         'If no words in filter_values, get_multiple_word_frequencies() should not be called')
 
     @patch('letters.views.letters_filter.get_filter_values_from_request', autospec=True)
     @patch('letters.views.letter_search.get_word_counts_per_month', autospec=True)

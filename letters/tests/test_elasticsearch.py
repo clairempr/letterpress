@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch, PropertyMock
 from django.test import SimpleTestCase
 
 from letterpress.exceptions import ElasticsearchException
-from letters.elasticsearch import analyze_term, delete_temp_document, do_es_analyze, \
+from letters.elasticsearch import analyze_term, build_termvector_query, delete_temp_document, do_es_analyze, \
     do_es_mtermvectors, do_es_search, do_es_termvectors_for_text, get_mtermvectors, get_sentiment_termvector_for_text, \
     get_stored_fields_for_letter, get_termvector_from_result, index_temp_document, \
     raise_exception_from_response_error, raise_exception_from_request_error
@@ -42,6 +42,35 @@ class AnalyzeTermTestCase(SimpleTestCase):
         result = analyze_term(term, analyzer)
         self.assertEqual(result, '',
                          "analyze_term() should return empty string if no tokens in return value of do_es_analyze()")
+
+
+class BuildTermvectorQueryTestCase(SimpleTestCase):
+    """
+    build_termvector_query() should build a query with given analyzer, offsets, position,
+    and optionally text
+    """
+
+    def test_build_termvector_query(self):
+        analyzer = 'termvector_sentiment_analyzer'
+        offsets = [1, 2, 3]
+        positions = [3]
+
+        # No text specified
+        result = json.loads(build_termvector_query('', analyzer, offsets, positions))
+        self.assertEqual(result['per_field_analyzer']['contents'], analyzer,
+                'build_termvector_query(text, analyzer, offsets, postions) should build a query that contains analyzer')
+        self.assertEqual(result['offsets'], offsets,
+                 'build_termvector_query(text, analyzer, offsets, postions) should build a query that contains offsets')
+        self.assertEqual(result['positions'], positions,
+            'build_termvector_query(text, analyzer, offsets, postions) should build a query that contains positions')
+        self.assertFalse('doc' in result,
+            "build_termvector_query(text, analyzer, offsets, postions) query shouldn't contain 'doc' if no text given")
+
+        # Text specified
+        text = 'fanny pack succulents'
+        result = json.loads(build_termvector_query(text, analyzer, offsets, positions))
+        self.assertEqual(result['doc']['contents'], text,
+                'build_termvector_query(text, analyzer, offsets, postions) query should contain text if text given')
 
 
 class DeleteTempDocumentTestCase(SimpleTestCase):

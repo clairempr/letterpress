@@ -68,9 +68,11 @@ class TermInlineTestCase(TestCase):
         self.assertEqual(TermInline.analyzed_text_display(self, term), text,
                          "analyzed_text_display() should return Term's text if it's equal to analyzed text")
 
-        # analyzed_text is different from  text
-        term = TermFactory(text=text, analyzed_text=analyzed_text)
+        # analyzed_text is different from text
+        term = TermFactory(text=text)
+        # Manually set analyzed_text to be different, because factory objects sets it equal to text
+        term.analyzed_text = analyzed_text
         expected_html = str.format('<span style="color:red;">{0}</span>', analyzed_text)
         analyzed_text_display = TermInline.analyzed_text_display(self, term)
-        self.assertIn(analyzed_text, expected_html,
+        self.assertIn(analyzed_text_display, expected_html,
                       "analyzed_text_display() should return Term's analyzed_text if it's not equal to text")
