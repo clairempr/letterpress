@@ -22,7 +22,7 @@ class Language(Enum):
     GERMAN = 'DE'
 
 
-options.DEFAULT_NAMES += 'es_index_name', 'es_type_name', 'es_mapping'
+options.DEFAULT_NAMES += 'es_index_name', 'es_mapping'
 
 
 def get_envelope_preview(obj):

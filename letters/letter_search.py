@@ -1,5 +1,5 @@
 """ (elastic)search stuff that's specific to letters and related models """
-import collections
+from collections import namedtuple
 import json
 
 from letters import filter as letters_filter
@@ -82,7 +82,7 @@ def do_letter_search(request, size, page_number):
     else:
         pages = int(total / size)
 
-    ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+    ES_Result = namedtuple('ES_Result', ['search_results', 'total', 'pages'])
     es_result = ES_Result(search_results=search_results, total=total, pages=pages)
     return es_result
 

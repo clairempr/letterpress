@@ -1,8 +1,7 @@
 import base64
-import collections
+from collections import namedtuple
 import json
 
-from collections import namedtuple
 from matplotlib.colors import LinearSegmentedColormap
 from unittest.mock import MagicMock, patch
 from wordcloud import WordCloud
@@ -60,7 +59,7 @@ class LettersViewTestCase(TestCase):
 
         letter = LetterFactory()
 
-        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        ES_Result = namedtuple('ES_Result', ['search_results', 'total', 'pages'])
         search_results = [(letter, 'highlight', [('1', 'sentiment')], 'score')]
         es_result = ES_Result(search_results=search_results, total=42, pages=4)
 
@@ -359,7 +358,7 @@ class GetWordCloudViewTestCase(TestCase):
                     "GetWordCloudView should return '' in response content['wc'] if no letters found by Elasticsearch")
 
         # If something returned by Elasticsearch, decoded WordCloud image should get returned in response content['wc']
-        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        ES_Result = namedtuple('ES_Result', ['search_results', 'total', 'pages'])
         search_results = [(LetterFactory(), 'highlight', 'sentiment', 'score')]
         es_result = ES_Result(search_results=search_results, total=42, pages=4)
 
@@ -736,7 +735,7 @@ class SearchViewTestCase(TestCase):
 
         letter = LetterFactory()
 
-        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        ES_Result = namedtuple('ES_Result', ['search_results', 'total', 'pages'])
         search_results = [(letter, 'highlight', [('1', 'sentiment')], 'score')]
         es_result = ES_Result(search_results=search_results, total=42, pages=4)
 

@@ -1,4 +1,4 @@
-import collections
+from collections import namedtuple
 from letters.models import Letter
 from letter_sentiment.custom_sentiment import get_custom_sentiments
 
@@ -32,7 +32,7 @@ def get_sentiment_list():
     Return list of sentiments, both standard and custom, in named tuple with id and name
     """
 
-    Sentiment = collections.namedtuple('Sentiment', ['id', 'name'])
+    Sentiment = namedtuple('Sentiment', ['id', 'name'])
     sentiments = [Sentiment(id=0, name='Positive/negative')]
     custom_sentiments = [Sentiment(id=sentiment.id, name=sentiment.name) for sentiment in get_custom_sentiments()]
     sentiments.extend(custom_sentiments)
@@ -71,7 +71,7 @@ def get_filter_values_from_request(request):
     sentiment_ids = [int(id) for id in sentiment_ids]
     sort_by = get_or_post.get('sort_by')
 
-    FilterValues = collections.namedtuple('FilterValues',
+    FilterValues = namedtuple('FilterValues',
         ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date', 'words',
          'sentiment_ids', 'sort_by'])
     filter_values = FilterValues(
