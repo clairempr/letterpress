@@ -2,14 +2,14 @@ from django.db import models
 from django_date_extensions.fields import ApproximateDateField
 from tinymce import models as tinymce_models
 from letters.models import Correspondent, DocumentImage, DocumentSource
-from letters.models.util import get_choices, get_image_preview, Language
+from letters.models.util import get_image_preview, Language
 
 
 class Document(models.Model):
     source = models.ForeignKey(DocumentSource, on_delete=models.CASCADE)
     date = ApproximateDateField(default='', blank=True)
     writer = models.ForeignKey(Correspondent, on_delete=models.CASCADE, related_name='%(model_name)s_writer')
-    language = models.CharField(max_length=2, default=Language.ENGLISH, blank=True, choices=get_choices(Language))
+    language = models.CharField(max_length=2, default=Language.ENGLISH, blank=True, choices=Language.choices)
     notes = tinymce_models.HTMLField(blank=True)
     images = models.ManyToManyField(DocumentImage, blank=True)
 
