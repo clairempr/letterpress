@@ -13,7 +13,7 @@ from django.urls import reverse
 
 from letterpress.exceptions import ElasticsearchException
 from letters.models import Correspondent, Letter
-from letters.tests.factories import LetterFactory, PlaceFactory
+from letters.tests.factories import CorrespondentFactory, LetterFactory, PlaceFactory
 from letters.views import export_csv, export_text, get_elasticsearch_error_response, get_highlighted_letter_sentiment, \
     get_letter_export_text, GetStatsView, GetTextSentimentView, GetWordCloudView, highlight_for_sentiment, \
     highlight_letter_for_sentiment, LetterSentimentView, LettersView, PlaceSearchView, RandomLetterView, SearchView, \
@@ -512,19 +512,6 @@ class GetHighlightedLetterSentimentTestCase(TestCase):
             self.assertTrue(item in content,
                             "get_highlighted_letter_sentiment() response content should contain sentiment value".format(item))
 
-        # If sentiment value is a list, all those values should end up in response
-        mock_highlight_letter_for_sentiment.return_value = [letter, letter]
-        sentiments = [('1', ['0.1234', '0.5678'])]
-
-        request = RequestFactory().get(reverse('letter_sentiment_view', kwargs={'letter_id': '1', 'sentiment_id': '1'}),
-                                       follow=True)
-        response = get_highlighted_letter_sentiment(request, letter, sentiments)
-        content = str(response.content)
-
-        for item in ['0.1234', '0.5678']:
-            self.assertTrue(item in content,
-                            "get_highlighted_letter_sentiment() response content should contain sentiment value".format(item))
-
 
 class HighlightLetterForSentimentTestCase(TestCase):
     """
@@ -537,17 +524,18 @@ class HighlightLetterForSentimentTestCase(TestCase):
         """
         highlight_letter_for_sentiment() should call highlight_for_sentiment()
         for each of a letter's fields and return a copy of the letter with fields highlighted
-
-        It returns a list, for some reason, even though only one sentiment_id is specified
         """
 
         mock_body_as_text.return_value = 'As this is the beginin of a new year I thought as I was a lone to night I ' \
                                          'would write you a few lines to let you know that we are not all ded yet.'
         letter = Letter(heading='Januery the 1st / 62',
                         greeting='Miss Evey',
+                        body='As this is the beginin of a new year...',
                         closing='your friend as every',
                         signature='F.P. Black',
-                        ps='p.s. remember me to enquirin friends')
+                        ps='p.s. remember me to all',
+                        writer=CorrespondentFactory(),
+                        recipient=CorrespondentFactory())
 
         mock_highlight_for_sentiment.side_effect = [[letter.heading], [letter.greeting],
                                                     [mock_body_as_text.return_value], [letter.closing],
@@ -555,6 +543,7 @@ class HighlightLetterForSentimentTestCase(TestCase):
 
         result = highlight_letter_for_sentiment(letter, 1)
 
+        # Check args of each mocked call in the list, which is call_args[0]
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[0][0], (letter.heading, 1),
                          'highlight_letter_for_sentiment() should call highlight_for_sentiment(heading, sentiment_id)')
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[1][0], (letter.greeting, 1),
@@ -568,7 +557,7 @@ class HighlightLetterForSentimentTestCase(TestCase):
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[5][0], (letter.ps, 1),
                          'highlight_letter_for_sentiment() should call highlight_for_sentiment(ps, sentiment_id)')
 
-        self.assertEqual(letter.contents(), result[0].contents(),
+        self.assertEqual(letter.contents(), result.contents(),
                          'highlight_letter_for_sentiment() should return highlighted letter')
 
 
