@@ -50,7 +50,7 @@ def get_filter_values_from_request(request):
         get_or_post = request.POST
     search_text = get_or_post.get('search_text')
     # Ajax request
-    if request.is_ajax():
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         source_ids = get_or_post.getlist('sources[]')
         writer_ids = get_or_post.getlist('writers[]')
         words = get_or_post.getlist('words[]')

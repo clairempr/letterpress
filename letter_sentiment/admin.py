@@ -24,7 +24,7 @@ class FirstLetterFilter(SimpleListFilter):
 
 # Model admin classes
 class TermAdmin(admin.ModelAdmin):
-    list_display = ('text', 'analyzed_text', 'weight')
+    list_display = ('text', 'custom_sentiment', 'analyzed_text', 'weight')
     list_filter = ('custom_sentiment', FirstLetterFilter, 'weight')
     search_fields = ('text',)
     fields = ('id', 'custom_sentiment', 'text', 'analyzed_text', 'weight')
