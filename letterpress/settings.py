@@ -153,11 +153,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'letters/static')
 STATIC_URL = '/static/'
 
 # Configuration for django-tinymce
-# Don't bother with TINYMCE_JS_ROOT and TINYMCE_JS_URL
+# Don't bother with TINYMCE_JS_ROOT
 # Just let it use the defaults and find everything in static/tiny_mce
+TINYMCE_JS_URL = os.path.join(STATIC_URL, 'tinymce/tinymce.min.js')
+TINYMCE_JS_ROOT = os.path.join(STATIC_ROOT, 'tinymce')
 TINYMCE_DEFAULT_CONFIG = {
     'plugins': 'paste,searchreplace',
-    'theme': 'simple',
+    'theme': 'silver',
     'width': '49em',
     'height': '18em',
     'cleanup_on_startup': True,
@@ -166,7 +168,6 @@ TINYMCE_DEFAULT_CONFIG = {
         '*': 'text-decoration',
     },
     'browser_spellcheck': True,
-    'forced_root_block': False,
 }
 
 # Compressor stopped working, maybe when I upgraded some other package or
