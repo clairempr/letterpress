@@ -285,7 +285,8 @@ def get_highlighted_letter_sentiment(request, letter, sentiments):
         else:
             sentiment_values.extend(value)
 
-        highlighted_letters.append(highlighted_letter)
+        # highlight_letter_for_sentiment always returns a list, so use extend
+        highlighted_letters.extend(highlighted_letter)
 
     results = zip(sentiment_values, highlighted_letters)
     return render(request, 'letter_sentiment.html',
@@ -294,26 +295,32 @@ def get_highlighted_letter_sentiment(request, letter, sentiments):
 
 
 def highlight_letter_for_sentiment(letter, sentiment_id):
-    # highlight_for_sentiment() returns a list, for the case of multiple different positive/negative
-    # sentiments. Just need the first result here
-    heading = highlight_for_sentiment(letter.heading, sentiment_id)[0] if letter.heading else ''
-    greeting = highlight_for_sentiment(letter.greeting, sentiment_id)[0] if letter.greeting else ''
-    body = highlight_for_sentiment(letter.body_as_text(), sentiment_id)[0] if letter.body else ''
-    closing = highlight_for_sentiment(letter.closing, sentiment_id)[0] if letter.closing else ''
-    sig = highlight_for_sentiment(letter.signature, sentiment_id)[0] if letter.signature else ''
-    ps = highlight_for_sentiment(letter.ps, sentiment_id)[0] if letter.ps else ''
+    # highlight_for_sentiment() returns a list,
+    # for the case of multiple different positive/negative sentiments
+    highlighted_letters = []
 
-    # Make a copy of the letter so we can manipulate the content fields
-    highlighted_letter = deepcopy(letter)
-    highlighted_letter.pk = None
-    highlighted_letter.heading = mark_safe(heading)
-    highlighted_letter.greeting = mark_safe(greeting)
-    highlighted_letter.body = mark_safe(body)
-    highlighted_letter.closing = mark_safe(closing)
-    highlighted_letter.signature = mark_safe(sig)
-    highlighted_letter.ps = mark_safe(ps)
+    headings = highlight_for_sentiment(letter.heading, sentiment_id)
+    greetings = highlight_for_sentiment(letter.greeting, sentiment_id)
+    bodies = highlight_for_sentiment(letter.body_as_text(), sentiment_id)
+    closings = highlight_for_sentiment(letter.closing, sentiment_id)
+    sigs = highlight_for_sentiment(letter.signature, sentiment_id)
+    pss = highlight_for_sentiment(letter.ps, sentiment_id)
 
-    return highlighted_letter
+    for idx, heading in enumerate(headings):
+        # Make a copy of the letter so we can manipulate the content fields
+        highlighted_letter = deepcopy(letter)
+        highlighted_letter.pk = None
+        highlighted_letter.heading = mark_safe(heading)
+        highlighted_letter.greeting = mark_safe(greetings[idx])
+        highlighted_letter.body = mark_safe(bodies[idx])
+        highlighted_letter.closing = mark_safe(closings[idx])
+        highlighted_letter.signature = mark_safe(sigs[idx])
+
+        highlighted_letter.ps = mark_safe(pss[idx])
+
+        highlighted_letters.append(highlighted_letter)
+
+    return highlighted_letters
 
 
 class TextSentimentView(TemplateView):

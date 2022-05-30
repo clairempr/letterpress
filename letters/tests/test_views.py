@@ -512,6 +512,19 @@ class GetHighlightedLetterSentimentTestCase(TestCase):
             self.assertTrue(item in content,
                             "get_highlighted_letter_sentiment() response content should contain sentiment value".format(item))
 
+        # If sentiment value is a list, all those values should end up in response
+        mock_highlight_letter_for_sentiment.return_value = [letter, letter]
+        sentiments = [('1', ['0.1234', '0.5678'])]
+
+        request = RequestFactory().get(reverse('letter_sentiment_view', kwargs={'letter_id': '1', 'sentiment_id': '1'}),
+                                       follow=True)
+        response = get_highlighted_letter_sentiment(request, letter, sentiments)
+        content = str(response.content)
+
+        for item in ['0.1234', '0.5678']:
+            self.assertTrue(item in content,
+                            "get_highlighted_letter_sentiment() response content should contain sentiment value".format(item))
+
 
 class HighlightLetterForSentimentTestCase(TestCase):
     """
@@ -524,6 +537,8 @@ class HighlightLetterForSentimentTestCase(TestCase):
         """
         highlight_letter_for_sentiment() should call highlight_for_sentiment()
         for each of a letter's fields and return a copy of the letter with fields highlighted
+
+        It returns a list because multiple sentiments get highlighted for positive/negative
         """
 
         mock_body_as_text.return_value = 'As this is the beginin of a new year I thought as I was a lone to night I ' \
@@ -557,7 +572,7 @@ class HighlightLetterForSentimentTestCase(TestCase):
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[5][0], (letter.ps, 1),
                          'highlight_letter_for_sentiment() should call highlight_for_sentiment(ps, sentiment_id)')
 
-        self.assertEqual(letter.contents(), result.contents(),
+        self.assertEqual(letter.contents(), result[0].contents(),
                          'highlight_letter_for_sentiment() should return highlighted letter')
 
 
