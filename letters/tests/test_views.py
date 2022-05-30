@@ -1,8 +1,7 @@
 import base64
-import collections
+from collections import namedtuple
 import json
 
-from collections import namedtuple
 from matplotlib.colors import LinearSegmentedColormap
 from unittest.mock import MagicMock, patch
 from wordcloud import WordCloud
@@ -14,7 +13,7 @@ from django.urls import reverse
 
 from letterpress.exceptions import ElasticsearchException
 from letters.models import Correspondent, Letter
-from letters.tests.factories import LetterFactory, PlaceFactory
+from letters.tests.factories import CorrespondentFactory, LetterFactory, PlaceFactory
 from letters.views import export_csv, export_text, get_elasticsearch_error_response, get_highlighted_letter_sentiment, \
     get_letter_export_text, GetStatsView, GetTextSentimentView, GetWordCloudView, highlight_for_sentiment, \
     highlight_letter_for_sentiment, LetterSentimentView, LettersView, PlaceSearchView, RandomLetterView, SearchView, \
@@ -60,7 +59,7 @@ class LettersViewTestCase(TestCase):
 
         letter = LetterFactory()
 
-        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        ES_Result = namedtuple('ES_Result', ['search_results', 'total', 'pages'])
         search_results = [(letter, 'highlight', [('1', 'sentiment')], 'score')]
         es_result = ES_Result(search_results=search_results, total=42, pages=4)
 
@@ -359,7 +358,7 @@ class GetWordCloudViewTestCase(TestCase):
                     "GetWordCloudView should return '' in response content['wc'] if no letters found by Elasticsearch")
 
         # If something returned by Elasticsearch, decoded WordCloud image should get returned in response content['wc']
-        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        ES_Result = namedtuple('ES_Result', ['search_results', 'total', 'pages'])
         search_results = [(LetterFactory(), 'highlight', 'sentiment', 'score')]
         es_result = ES_Result(search_results=search_results, total=42, pages=4)
 
@@ -539,16 +538,19 @@ class HighlightLetterForSentimentTestCase(TestCase):
         highlight_letter_for_sentiment() should call highlight_for_sentiment()
         for each of a letter's fields and return a copy of the letter with fields highlighted
 
-        It returns a list, for some reason, even though only one sentiment_id is specified
+        It returns a list because multiple sentiments get highlighted for positive/negative
         """
 
         mock_body_as_text.return_value = 'As this is the beginin of a new year I thought as I was a lone to night I ' \
                                          'would write you a few lines to let you know that we are not all ded yet.'
         letter = Letter(heading='Januery the 1st / 62',
                         greeting='Miss Evey',
+                        body='As this is the beginin of a new year...',
                         closing='your friend as every',
                         signature='F.P. Black',
-                        ps='p.s. remember me to enquirin friends')
+                        ps='p.s. remember me to all',
+                        writer=CorrespondentFactory(),
+                        recipient=CorrespondentFactory())
 
         mock_highlight_for_sentiment.side_effect = [[letter.heading], [letter.greeting],
                                                     [mock_body_as_text.return_value], [letter.closing],
@@ -556,6 +558,7 @@ class HighlightLetterForSentimentTestCase(TestCase):
 
         result = highlight_letter_for_sentiment(letter, 1)
 
+        # Check args of each mocked call in the list, which is call_args[0]
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[0][0], (letter.heading, 1),
                          'highlight_letter_for_sentiment() should call highlight_for_sentiment(heading, sentiment_id)')
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[1][0], (letter.greeting, 1),
@@ -717,6 +720,11 @@ class HighlightForSentimentTestCase(SimpleTestCase):
                     "highlight_for_sentiment() shouldn't call mock_highlight_text_for_sentiment() if sentiment_id isn't 0")
         mock_highlight_for_custom_sentiment.reset_mock()
 
+        # If text is empty, highlight_for_custom_sentiment() should not be called
+        highlight_for_sentiment('', 1)
+        self.assertEqual(mock_highlight_for_custom_sentiment.call_count, 0,
+                         'If text is empty, highlight_for_custom_sentiment() should not be called')
+
 
 class SearchViewTestCase(TestCase):
     """
@@ -736,7 +744,7 @@ class SearchViewTestCase(TestCase):
 
         letter = LetterFactory()
 
-        ES_Result = collections.namedtuple('ES_Result', ['search_results', 'total', 'pages'])
+        ES_Result = namedtuple('ES_Result', ['search_results', 'total', 'pages'])
         search_results = [(letter, 'highlight', [('1', 'sentiment')], 'score')]
         es_result = ES_Result(search_results=search_results, total=42, pages=4)
 

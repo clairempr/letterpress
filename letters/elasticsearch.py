@@ -168,8 +168,7 @@ def do_es_termvectors_for_text(index, query):
         raise_exception_from_request_error(exception)
 
 
-def do_es_search(index, query=None, aggs=None, from_offset=None, size=None, highlight=None, source=None,
-                 stored_fields=None, sort=None):
+def do_es_search(index, query):
     """
     Call Elasticsearch search for the given query and return result
 

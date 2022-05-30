@@ -295,14 +295,16 @@ def get_highlighted_letter_sentiment(request, letter, sentiments):
 
 
 def highlight_letter_for_sentiment(letter, sentiment_id):
+    # highlight_for_sentiment() returns a list,
+    # for the case of multiple different positive/negative sentiments
     highlighted_letters = []
 
-    headings = highlight_for_sentiment(letter.heading, sentiment_id) if letter.heading else ['']
-    greetings = highlight_for_sentiment(letter.greeting, sentiment_id) if letter.greeting else['']
+    headings = highlight_for_sentiment(letter.heading, sentiment_id)
+    greetings = highlight_for_sentiment(letter.greeting, sentiment_id)
     bodies = highlight_for_sentiment(letter.body_as_text(), sentiment_id)
-    closings = highlight_for_sentiment(letter.closing, sentiment_id) if letter.closing else ['']
-    sigs = highlight_for_sentiment(letter.signature, sentiment_id) if letter.signature else ['']
-    pss = highlight_for_sentiment(letter.ps, sentiment_id) if letter.ps else ['']
+    closings = highlight_for_sentiment(letter.closing, sentiment_id)
+    sigs = highlight_for_sentiment(letter.signature, sentiment_id)
+    pss = highlight_for_sentiment(letter.ps, sentiment_id)
 
     for idx, heading in enumerate(headings):
         # Make a copy of the letter so we can manipulate the content fields
@@ -313,6 +315,7 @@ def highlight_letter_for_sentiment(letter, sentiment_id):
         highlighted_letter.body = mark_safe(bodies[idx])
         highlighted_letter.closing = mark_safe(closings[idx])
         highlighted_letter.signature = mark_safe(sigs[idx])
+
         highlighted_letter.ps = mark_safe(pss[idx])
 
         highlighted_letters.append(highlighted_letter)
@@ -372,6 +375,9 @@ class GetTextSentimentView(View):
 def highlight_for_sentiment(text, sentiment_id):
     if sentiment_id == 0:
         return [mark_safe(highlight) for highlight in highlight_text_for_sentiment(text)]
+
+    if not text:
+        return ['']
 
     return [mark_safe(highlight_for_custom_sentiment(text, sentiment_id))]
 

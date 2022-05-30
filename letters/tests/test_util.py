@@ -4,31 +4,8 @@ from unittest.mock import patch
 from django.test import SimpleTestCase, TestCase
 
 from letters.models import DocumentImage, Envelope
-from letters.models.util import get_choices, get_envelope_preview, get_image_preview, html_to_text
+from letters.models.util import get_envelope_preview, get_image_preview, html_to_text
 from letters.tests.factories import DocumentImageFactory, EnvelopeFactory, LetterFactory
-
-
-class GetChoicesTestCase(SimpleTestCase):
-    """
-    get_choices(enum) should return list of tuples containing value and title
-    for each choice in enum
-    """
-
-    class Color(Enum):
-        RED = 'R'
-        YELLOW = 'Y'
-        BLUE = 'B'
-
-    def test_get_choices(self):
-        """
-        Test get_choices() with Color enum
-        """
-
-        choices = get_choices(self.Color)
-        expected_choices = [('R', 'Red'), ('Y', 'Yellow'), ('B', 'Blue')]
-        for expected_choice in expected_choices:
-            self.assertIn(expected_choice, choices,
-                          'get_choices(enum) should include tuple (value, title()) for each choice')
 
 
 class GetEnvelopePreviewTestCase(TestCase):

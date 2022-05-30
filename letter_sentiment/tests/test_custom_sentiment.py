@@ -325,6 +325,36 @@ class HighlightForCustomSentimentTestCase(TestCase):
         self.assertEqual(mock_update_tokens_in_termvector.call_count, 0,
             "highlight_for_custom_sentiment() shouldn't call update_tokens_in_termvector() if no tokens in text")
 
+    @patch('letter_sentiment.custom_sentiment.get_custom_sentiment', autospec=True)
+    @patch('letter_sentiment.custom_sentiment.sort_terms_by_number_of_words', autospec=True)
+    @patch('letter_sentiment.custom_sentiment.get_sentiment_termvector_for_text', autospec=True)
+    @patch('letter_sentiment.custom_sentiment.update_tokens_in_termvector', autospec=True)
+    def test_highlight_for_custom_sentiment_overlapping_terms(self, mock_update_tokens_in_termvector,
+                                            mock_get_sentiment_termvector_for_text,
+                                            mock_sort_terms_by_number_of_words,
+                                            mock_get_custom_sentiment):
+        """
+        Test highlight_for_custom_sentiment() for situations where there are overlapping terms found
+        """
+
+        # Text is "tofu artisan pabst"
+        artisan_pabst = TermFactory(text='artisan pabst', analyzed_text='artisan pabst',
+                                    custom_sentiment=self.custom_sentiment)
+
+        mock_get_sentiment_termvector_for_text.return_value = self.termvector
+        mock_sort_terms_by_number_of_words.return_value = [self.tofu_artisan, artisan_pabst, self.pabst, self.locavore]
+        mock_update_tokens_in_termvector.return_value = self.termvector
+
+        highlighted_text = highlight_for_custom_sentiment(self.text, custom_sentiment_id=self.custom_sentiment.id)
+
+        # Highlighted text should be <highlight>tofu</highlight><highlight>artisan</highlight><highlight>pabst</highlight>
+        # because highlights are inserted starting from the end
+        self.assertTrue('tofu' in highlighted_text, 'Overlapping terms should be highlighted separately')
+        self.assertFalse('tofu artisan' in highlighted_text, "Overlapping terms shouldn't be highlighted together")
+        self.assertTrue('artisan' in highlighted_text, 'Overlapping terms should be highlighted separately')
+        self.assertFalse('artisan pabst' in highlighted_text, "Overlapping terms shouldn't be highlighted together")
+        self.assertTrue('pabst' in highlighted_text, 'Overlapping terms should be highlighted separately')
+
 
 class SortTermsByNumberOfWordsTestCase(TestCase):
     """

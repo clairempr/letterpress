@@ -40,6 +40,9 @@ def highlight_for_custom_sentiment(text, custom_sentiment_id):
     termvector = get_sentiment_termvector_for_text(text)
     terms_to_place = {}
 
+    # Look for terms in text's termvector
+    # If an n-gram of the term is inside the token, remove that n-gram's token,
+    # because we're interested in the most complete occurrence of the term
     for term in terms:
         term_text = term.analyzed_text
         if term_text in termvector and 'term_freq' in termvector[term_text]:
@@ -50,11 +53,20 @@ def highlight_for_custom_sentiment(text, custom_sentiment_id):
                     terms_to_place[position] = (start, end, term.weight)
                     termvector = update_tokens_in_termvector(termvector, term, token)
 
-    # offsets will be altered by insertions of highlighting markup,
+    # Offsets will be altered by insertions of highlighting markup,
     # depending on position in text, so start inserting at the end
     sorted_terms_to_place \
         = [terms_to_place[pos] for pos in sorted(terms_to_place.keys(), reverse=True)]
 
+    # If there are overlapping terms in the text, adjust start or end position of one of them
+    prev_start_pos = 0
+    for idx, (start_pos, end_pos, weight) in enumerate(sorted_terms_to_place):
+        if prev_start_pos and end_pos > prev_start_pos:
+            new_end = prev_start_pos - 1
+            sorted_terms_to_place[idx] = (start_pos, new_end, weight)
+        prev_start_pos = start_pos
+
+    # Apply css classes for highlighting
     for start_pos, end_pos, weight in sorted_terms_to_place:
         highlight_class = highlight_normal_class if weight == 1 else highlight_extra_class
         highlighted_text = str.format('{0}<span class="{1}">{2}</span>{3}',

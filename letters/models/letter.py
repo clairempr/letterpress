@@ -48,7 +48,6 @@ class Letter(Document):
     class Meta:
         # elasticsearch index stuff
         es_index_name = 'letterpress'
-        es_type_name = '_doc'
         es_mapping = {
             "properties": {
                 "contents": {"type": "text",
@@ -152,7 +151,7 @@ class Letter(Document):
                 index=self._meta.es_index_name,
                 id=self.pk,
                 refresh=True,
-                body=payload
+                document=payload
             )
         else:
             es.update(

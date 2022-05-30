@@ -212,7 +212,7 @@ class DoEsSearchTestCase(SimpleTestCase):
             self.assertEqual(kwargs['index'], Letter._meta.es_index_name,
                              'do_es_search() should make Elasticsearch request with Elasticsearch.search')
             self.assertEqual(kwargs['body'], query,
-                             'do_es_search() should make Elasticsearch request with query as query')
+                             'do_es_search() should make Elasticsearch request with query as body')
             self.assertTrue('hits' in response,
                              'do_es_search() should return result of Elasticsearch request')
 
