@@ -376,6 +376,9 @@ def highlight_for_sentiment(text, sentiment_id):
     if sentiment_id == 0:
         return [mark_safe(highlight) for highlight in highlight_text_for_sentiment(text)]
 
+    if not text:
+        return ['']
+
     return [mark_safe(highlight_for_custom_sentiment(text, sentiment_id))]
 
 

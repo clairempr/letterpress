@@ -720,6 +720,11 @@ class HighlightForSentimentTestCase(SimpleTestCase):
                     "highlight_for_sentiment() shouldn't call mock_highlight_text_for_sentiment() if sentiment_id isn't 0")
         mock_highlight_for_custom_sentiment.reset_mock()
 
+        # If text is empty, highlight_for_custom_sentiment() should not be called
+        highlight_for_sentiment('', 1)
+        self.assertEqual(mock_highlight_for_custom_sentiment.call_count, 0,
+                         'If text is empty, highlight_for_custom_sentiment() should not be called')
+
 
 class SearchViewTestCase(TestCase):
     """
