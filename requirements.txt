@@ -8,8 +8,8 @@ django-environ==0.8.1
 django-sslserver==0.22
 django-tinymce==3.4.0
 elasticsearch==7.17.3
-factory-boy==3.1.0  # https://github.com/FactoryBoy/factory_boy
-lxml==4.6.5
+factory-boy==3.2.1  # https://github.com/FactoryBoy/factory_boy
+lxml==4.9.0
 MarkupSafe==1.1.1
 matplotlib==3.3.4
 nltk==3.6.7
