@@ -10,11 +10,11 @@ django-tinymce==3.4.0
 elasticsearch==7.17.3
 factory-boy==3.2.1  # https://github.com/FactoryBoy/factory_boy
 lxml==4.9.0
-MarkupSafe==1.1.1
-matplotlib==3.3.4
+MarkupSafe==2.1.1
+matplotlib==3.5.2
 nltk==3.6.7
 numpy==1.22.4
-pandas==1.1.5
+pandas==1.4.2
 Pillow==9.1.0
 requests==2.25.1
 six==1.11.0
