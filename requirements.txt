@@ -12,13 +12,13 @@ factory-boy==3.2.1  # https://github.com/FactoryBoy/factory_boy
 lxml==4.9.0
 MarkupSafe==2.1.1
 matplotlib==3.5.2
-nltk==3.6.7
+nltk==3.7
 numpy==1.22.4
 pandas==1.4.2
-Pillow==9.1.0
+Pillow==9.1.1
 requests==2.25.1
 six==1.11.0
-textblob==0.13.0
+textblob==0.17.1
 urllib3==1.26.5
 vaderSentiment==2.5
 wordcloud==1.8.1
