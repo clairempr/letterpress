@@ -99,7 +99,7 @@ class GetCustomSentimentQuery(SimpleTestCase):
                          'get_custom_sentiment_query() should call get_sentiment_function_score_query()')
 
         # get_custom_sentiment_query() should return the query
-        for key in ['query', 'stored_fields']:
+        for key in ['function_score']:
             self.assertIn(key, query.keys(), 'get_custom_sentiment_query() should return query with key {}'.format(key))
 
 
