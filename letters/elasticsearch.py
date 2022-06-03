@@ -14,12 +14,7 @@ def analyze_term(term, analyzer):
     and return the analyzed text if there are tokens in the result, otherwise it returns an empty string
     """
 
-    query = json.dumps({
-        "analyzer": analyzer,
-        "text": term
-    })
-
-    result = do_es_analyze(index=Letter._meta.es_index_name, query=query)
+    result = do_es_analyze(index=Letter._meta.es_index_name, analyzer=analyzer, text=term)
     if 'tokens' in result:
         analyzed_text = ' '.join(item['token'] for item in result['tokens'])
     else:
@@ -33,18 +28,11 @@ def get_mtermvectors(ids, fields):
     Build an Elasticsearch query, using ids and fields,
     call do_es_mtermvectors(query), and return its return value
     """
-    query = json.dumps({
-        "ids": ids,
-        "parameters": {
-            "fields": fields,
-            "offsets": "false",
-            "positions": "false",
-            "field_statistics": "false"
-        }
-    })
+
 
     return do_es_mtermvectors(index=Letter._meta.es_index_name,
-                              query=query)
+                              field_statistics=False, fields=fields, ids=ids, offsets=False,
+                              positions=False)
 
 
 def get_sentiment_termvector_for_text(text):
@@ -52,35 +40,13 @@ def get_sentiment_termvector_for_text(text):
     Call do_es_termvectors_for_text() and return the result
     """
 
-    query = build_termvector_query(text=text, analyzer='termvector_sentiment_analyzer',
-                                   offsets='true', positions='true')
-    termvector = do_es_termvectors_for_text(index=Letter._meta.es_index_name,
-                                            query=query)
+    termvector = do_es_termvectors_for_text(index=Letter._meta.es_index_name, doc={"contents": text},
+                                            field_statistics=False,
+                                            fields=["contents"],
+                                            offsets=True,
+                                            per_field_analyzer={"contents": "termvector_sentiment_analyzer"},
+                                            positions=True)
     return termvector
-
-
-def build_termvector_query(text, analyzer, offsets, positions):
-    """
-    Build a query with given analyzer, offsets, position,
-    and optionally text
-    """
-    query = {
-        "fields": ["contents"],
-        "per_field_analyzer": {
-            "contents": analyzer
-        },
-        "offsets": offsets,
-        "positions": positions,
-        "field_statistics": "false",
-    }
-
-    # Add optional artificial document to query
-    if text:
-        query['doc'] = {
-            "contents": text
-        }
-
-    return json.dumps(query)
 
 
 def get_termvector_from_result(result):
@@ -109,14 +75,15 @@ def get_stored_fields_for_letter(letter_id, stored_fields):
     return json.loads(response.text)
 
 
-def do_es_analyze(index, query):
+def do_es_analyze(index, analyzer, text):
     """
     Return the results of Elasticsearch analyze for the given query
     """
 
     try:
         response = ES_CLIENT.indices.analyze(index=index,
-                                             body=query)
+                                             analyzer=analyzer,
+                                             text=text)
         if 'tokens' in response:
             return response
 
@@ -128,14 +95,15 @@ def do_es_analyze(index, query):
         raise_exception_from_request_error(exception)
 
 
-def do_es_mtermvectors(index, query):
+def do_es_mtermvectors(index, field_statistics=None, fields=None, ids=None, offsets=None,
+                              positions=None):
     """
     Return the results of Elasticsearch mtermvector request for the given query
     """
 
     try:
-        response = ES_CLIENT.mtermvectors(index=index, body=query)
-
+        response = ES_CLIENT.mtermvectors(index=index, field_statistics=field_statistics, fields=fields,
+                                          ids=ids, offsets=offsets, positions=positions)
         if 'docs' in response:
             return response
 
@@ -147,15 +115,17 @@ def do_es_mtermvectors(index, query):
         raise_exception_from_request_error(exception)
 
 
-def do_es_termvectors_for_text(index, query):
+def do_es_termvectors_for_text(index, doc=None, field_statistics=None, fields=None, offsets=None,
+                               per_field_analyzer=None, positions=None):
     """
     Call Elasticsearch termvectors request for the given query, call get_termvector_from_result()
     with return value, and return result
     """
 
     try:
-        response = ES_CLIENT.termvectors(index=index,
-                                         body=query)
+        response = ES_CLIENT.termvectors(index=index, doc=doc, field_statistics=field_statistics,
+                                         fields=fields, offsets=offsets, per_field_analyzer=per_field_analyzer,
+                                         positions=positions)
 
         if 'term_vectors' in response:
             return get_termvector_from_result(response)
@@ -168,7 +138,8 @@ def do_es_termvectors_for_text(index, query):
         raise_exception_from_request_error(exception)
 
 
-def do_es_search(index, query):
+def do_es_search(index, query=None, aggs=None, from_offset=None, size=None, highlight=None, source=None,
+                 stored_fields=None, sort=None):
     """
     Call Elasticsearch search for the given query and return result
 
@@ -176,7 +147,8 @@ def do_es_search(index, query):
     """
 
     try:
-        response = ES_CLIENT.search(index=index, body=query)
+        response = ES_CLIENT.search(index=index, query=query, aggs=aggs, from_=from_offset, size=size,
+                                    highlight=highlight, source=source, stored_fields=stored_fields, sort=sort)
 
         if 'hits' in response:
             return response
@@ -234,12 +206,12 @@ def raise_exception_from_request_error(request_error):
     Raise a new custom ElasticsearchException
     """
 
+    status = request_error.status_code
     # exception.info contains dict of returned error info from Elasticsearch, where available
-    if request_error.info:
-        error = request_error.info.get('error')
-        status = request_error.info.get('status')
+    if request_error.body:
+        root_cause = request_error.body["error"]["root_cause"][0]
+        error = root_cause.get('reason')
     else:
         error = request_error.error
-        status = request_error.status_code
 
     raise ElasticsearchException(status=status, error=error)

@@ -10,7 +10,10 @@ from letters.models import Letter
 def calculate_custom_sentiment(letter_id, sentiment_id):
     custom_sentiment_es = 0
     query = get_custom_sentiment_query(letter_id, sentiment_id)
-    result = do_es_search(index=[Letter._meta.es_index_name], query=query)
+    stored_fields = get_custom_sentiment_stored_fields()
+
+    result = do_es_search(index=[Letter._meta.es_index_name], query=query,
+                          stored_fields=json.dumps(stored_fields))
     # get the score from the first hit (there should be only one)
     if 'hits' in result and 'hits' in result['hits']:
         custom_sentiment_es = result['hits']['hits'][0]['_score']
@@ -38,10 +41,11 @@ def get_custom_sentiment_query(letter_id, sentiment_id):
         "function_score": get_sentiment_function_score_query(bool_query)
     }
 
-    return {
-        "query": query,
-        "stored_fields": ["contents.word_count"]
-    }
+    return query
+
+
+def get_custom_sentiment_stored_fields():
+    return ["contents.word_count"]
 
 
 def get_sentiment_function_score_query(bool_query):
