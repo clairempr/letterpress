@@ -203,7 +203,7 @@ X_FRAME_OPTIONS = "DENY"
 # Elasticsearch URL: If using Docker, host needs to be the name of the service in the docker-compose file,
 # otherwise it should be localhost if running locally
 if CIRCLECI:
-    ELASTICSEARCH_URL = 'http://localhost:9200/'
+    ELASTICSEARCH_URL = 'https://localhost:9200/'
     ELASTICSEARCH_USER = env('CIRCLECI_ELASTICSEARCH_USER')
     ELASTICSEARCH_PASSWORD = env('CIRCLECI_ELASTICSEARCH_PASSWORD')
 else:
