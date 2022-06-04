@@ -76,20 +76,6 @@ class PushToIndexTestCase(TestCase):
         self.assertEqual(mock_IndicesClient_delete.call_count, 0,
                          "Command.recreate_index() shouldn't call IndicesClient.delete() if index doesn't exist")
 
-    @skip('Skipping because of errors with Elasticsearch indices put_mapping()')
-    # We don't want to be messing with the real Elasticsearch index
-    @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
-    def test_recreate_index_without_mocks(self):
-        """
-        Command.recreate_index() should delete the Elasticsearch index if it exists, create a new one,
-        and set up a mapping
-
-        Integration test: don't mock anything except index name
-        """
-
-        self.command.recreate_index()
-
-
     # We don't want to be messing with the real Elasticsearch index
     @patch('letters.models.Letter._meta.es_index_name', 'letterpress_test')
     def test_push_db_to_index(self):
