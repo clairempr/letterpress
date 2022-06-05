@@ -57,9 +57,10 @@ def make_charts(words, months, proportions, word_freqs, totals, averages, doc_co
 
 def get_frequency_charts(words, months, word_freqs):
     """
-    Return a time series bar chart
+    Return a stacked time series bar chart and a time series line chart
     """
 
+    # Create line chart
     title = 'Frequency of '
     for idx, word in enumerate(words):
         if idx > 0:
@@ -75,17 +76,20 @@ def get_frequency_charts(words, months, word_freqs):
         line_chart.line(x=months, y=freqs, color=PALETTE[idx], line_width=1.75, legend_label=words[idx])
     line_chart.legend.location = 'top_right'
 
-    bar_chart = get_bokeh_figure(months, title)
-    bar_chart.xaxis.axis_label = 'Month'
-    bar_chart.xaxis.major_label_orientation = 0.8
-    bar_chart.yaxis.axis_label = 'Frequency'
+    # Create stacked bar chart
+    vbar_chart = get_bokeh_figure(months, title)
+    vbar_chart.xaxis.axis_label = 'Month'
+    vbar_chart.xaxis.major_label_orientation = 0.8
+    vbar_chart.yaxis.axis_label = 'Frequency'
 
-    for idx, freqs in enumerate(word_freqs):
-        bar_chart.vbar(x=months, top=freqs, width=0.5, bottom=0, line_dash_offset=1, color=PALETTE[idx],
-                       legend_label=words[idx])
-    bar_chart.legend.location = 'top_right'
+    data = {'months': months }
+    for idx, word in enumerate(words):
+        data[word] = word_freqs[idx]
+    colors = PALETTE[0:len(words)]
+    vbar_chart.vbar_stack(words, x='months', width=0.5, color=colors, source=data,
+                          legend_label=words)
 
-    return [bar_chart, line_chart]
+    return [vbar_chart, line_chart]
 
 
 def get_proportions_chart(words, months, proportions):
