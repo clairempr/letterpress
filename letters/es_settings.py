@@ -15,8 +15,7 @@ ES_LETTER_URL = settings.ELASTICSEARCH_URL + 'letterpress/letter/'
 # https://www.elastic.co/guide/en/elasticsearch/client/python-api/current/config.html#tls-and-ssl
 ES_CLIENT = Elasticsearch(
     hosts=[settings.ELASTICSEARCH_URL],
-    http_auth=(settings.ELASTICSEARCH_USER, settings.ELASTICSEARCH_PASSWORD),
-    # basic_auth=(settings.ELASTICSEARCH_USER, settings.ELASTICSEARCH_PASSWORD),
+    basic_auth=(settings.ELASTICSEARCH_USER, settings.ELASTICSEARCH_PASSWORD),
     verify_certs=False,
     ssl_version=ssl.TLSVersion.TLSv1_3
 )

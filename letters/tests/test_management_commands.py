@@ -22,7 +22,7 @@ class PushToIndexTestCase(TestCase):
         if indices_client.exists(index=index_name):
             indices_client.delete(index=index_name)
         indices_client.create(index=index_name,
-                              body={'settings': es_settings.settings})
+                              settings=es_settings.settings)
 
     def setUp(self):
         self.command = Command()
