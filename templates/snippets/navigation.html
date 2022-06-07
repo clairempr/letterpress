@@ -1,67 +1,67 @@
 {% load static %}
 <nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
 
-            <div class="navbar-brand">
+      <div class="navbar-brand">
           <span class="visible-xs">
 
               <img src={% static "images/writing-hand.png" %} alt="logo" height="35">
               <span class="nav-label">Letterpress</span>
           </span>
-                <span class="hidden-xs">
+        <span class="hidden-xs">
               <img src={% static "images/writing-hand.png" %} alt="logo" height="40">
           </span>
-            </div>
-        </div>
+      </div>
+    </div>
 
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav nav-label">
-                <li class="{% if nbar == 'home' %}active{% endif %}"><a href="{% url 'home' %}">Letterpress<span
-                        class="sr-only">(current)</span></a></li>
-                <li class="{% if nbar == 'letters_view' %}active{% endif %}"><a
-                        href="{% url 'letters_view' %}">Letters</a></li>
-                <li class="{% if nbar == 'random_letter' %}active{% endif %}"><a href="{% url 'random_letter' %}">
-                    Random letter</a></li>
-                <li class="{% if nbar == 'places' %}active{% endif %}"><a href="{% url 'place_list' %}">Places</a></li>
-                </li>
-                <li class="dropdown {% if nbar == 'stats' %}active{% endif %}">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">Stats<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{% url 'stats_view' %}">
-                            Stats</a>
-                        </li>
-                        <li><a href="{% url 'wordcloud_view' %}">
-                            Word cloud</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="dropdown {% if nbar == 'sentiment' %}active{% endif %}">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">Sentiment<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{% url 'sentiment_view' %}">
-                            Letters</a>
-                        </li>
-                        <li><a href="{% url 'text_sentiment_view' %}">
-                            Text</a>
-                        </li>
-                    </ul>
-                </li>
-                <li><a href="/admin/">Admin</a></li>
-            </ul>
-        </div><!-- /.navbar-collapse -->
-    </div><!-- /.container-fluid -->
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav nav-label">
+        <li class="{% if nbar == 'home' %}active{% endif %}"><a href="{% url 'home' %}">Letterpress<span
+            class="sr-only">(current)</span></a></li>
+        <li class="{% if nbar == 'letters_view' %}active{% endif %}"><a
+            href="{% url 'letters_view' %}">Letters</a></li>
+        <li class="{% if nbar == 'random_letter' %}active{% endif %}"><a href="{% url 'random_letter' %}">
+          Random letter</a></li>
+        <li class="{% if nbar == 'places' %}active{% endif %}"><a href="{% url 'place_list' %}">Places</a></li>
+        </li>
+        <li class="dropdown {% if nbar == 'stats' %}active{% endif %}">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">Stats<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="{% url 'stats_view' %}">
+              Stats</a>
+            </li>
+            <li><a href="{% url 'wordcloud_view' %}">
+              Word cloud</a>
+            </li>
+          </ul>
+        </li>
+        <li class="dropdown {% if nbar == 'sentiment' %}active{% endif %}">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">Sentiment<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="{% url 'sentiment_view' %}">
+              Letters</a>
+            </li>
+            <li><a href="{% url 'text_sentiment_view' %}">
+              Text</a>
+            </li>
+          </ul>
+        </li>
+        <li><a href="/admin/">Admin</a></li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
 </nav>
 
