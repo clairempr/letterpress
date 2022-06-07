@@ -170,7 +170,7 @@ class NavigationTemplateSnippetTestCase(SimpleTestCase):
 
         self.assertIn('navbar', rendered, "'navbar' should appear in HTML")
         self.assertIn('Toggle navigation', rendered, "'Toggle navigation' should appear in HTML")
-        self.assertIn('Letterpress', rendered, "'Letterpress' should appear in HTML")
+        self.assertIn('Home', rendered, "'Letterpress' should appear in HTML")
         self.assertIn('writing-hand.png', rendered, "'writing-hand.png' should appear in HTML")
 
 

@@ -11,30 +11,39 @@
         <span class="icon-bar"></span>
       </button>
 
-      <div class="navbar-brand">
-          <span class="visible-xs">
-
-              <img src={% static "images/writing-hand.png" %} alt="logo" height="35">
-              <span class="nav-label">Letterpress</span>
-          </span>
+      <span class="navbar-brand">
+        <span class="visible-xs">
+          <img  class="" src={% static "images/writing-hand.png" %} alt="logo" height="35">
+        </span>
         <span class="hidden-xs">
-              <img src={% static "images/writing-hand.png" %} alt="logo" height="40">
-          </span>
-      </div>
-    </div>
+            <img src={% static "images/writing-hand.png" %} alt="logo" height="40">
+        </span>
+      </span>
 
+      <span class="navbar-brand">
+        <span class="visible-xs">
+          <span class="nav-label"><a href="{% url 'home' %}">Home<span class="sr-only">(current)</span></a>
+          </span>
+        </span>
+      </span>
+    </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav nav-label">
-        <li class="{% if nbar == 'home' %}active{% endif %}"><a href="{% url 'home' %}">Letterpress<span
+        <li class="hidden-xs {% if nbar == 'home' %}active{% endif %}"><a href="{% url 'home' %}">Home<span
             class="sr-only">(current)</span></a></li>
-        <li class="{% if nbar == 'letters_view' %}active{% endif %}"><a
-            href="{% url 'letters_view' %}">Letters</a></li>
-        <li class="{% if nbar == 'random_letter' %}active{% endif %}"><a href="{% url 'random_letter' %}">
-          Random letter</a></li>
-        <li class="{% if nbar == 'places' %}active{% endif %}"><a href="{% url 'place_list' %}">Places</a></li>
+        <li class="dropdown {% if nbar == 'stats' %}active{% endif %}">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+             aria-expanded="false">Letters<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li class="{% if nbar == 'letters_view' %}active{% endif %}"><a
+                href="{% url 'letters_view' %}">Search</a></li>
+            <li class="{% if nbar == 'random_letter' %}active{% endif %}"><a href="{% url 'random_letter' %}">
+              Random letter</a></li>
+          </ul>
         </li>
+        <li class="{% if nbar == 'places' %}active{% endif %}"><a href="{% url 'place_list' %}">Places</a></li>
         <li class="dropdown {% if nbar == 'stats' %}active{% endif %}">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
              aria-expanded="false">Stats<span class="caret"></span></a>
