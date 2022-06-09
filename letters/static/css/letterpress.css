@@ -13,6 +13,8 @@ body {
 
 blockquote {
     font-size: 1em;
+    border-left: 5px solid #0d6efd;
+    padding: 1.3em;
 }
 
 em {
@@ -23,8 +25,16 @@ em {
     padding-top: 35px;
 }
 
-.dropdown-menu {
-    width: 300px;
+.dropdown-item {
+    font-size: 1.3em;
+    color: #0d6efd;
+
+}
+
+.dropdown-item:hover {
+    font-size: 1.3em;
+    color: #0d6efd;
+
 }
 
 .footer {
@@ -55,7 +65,33 @@ em {
 
 .nav-label {
     font-family: 'Amita', cursive;
-    font-size: 1.3em;
+    font-size: 1.1em;
+}
+
+.navbar-brand {
+    font-family: 'Amita', cursive;
+    font-size: 1.4em;
+    color: #0d6efd;
+}
+
+.navbar-light .navbar-brand {
+    color: #0d6efd;
+}
+
+.navbar-light .navbar-brand:focus, .navbar-light .navbar-brand:hover {
+    color: #0d6efd;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: #0d6efd;
+}
+
+.navbar-light .navbar-nav .nav-link.active.nav-link {
+    color: #0d6efd;
+}
+
+.navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
+    color: #0d6efd;
 }
 
 .page-label {

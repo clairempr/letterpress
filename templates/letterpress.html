@@ -3,21 +3,18 @@
 {% load static %}
 {% block content %}
 
-  <div class="row letterpress-display vertical-center">
-    <div class="col-5 col-lg-4">
-      <span class="visible-xs">
-        <img src={% static "images/copy-press.png" %} alt="letterpress" height="120"/>
-      </span>
-      <span class="visible-sm">
+  <div class="row letterpress-display text-center vertical-center">
+    <div class="col col-md-6 col-lg-5">
+      <span class="d-block d-lg-none">
         <img src={% static "images/copy-press.png" %} alt="letterpress" height="225"/>
       </span>
-      <span class="hidden-xs hidden-sm">
+      <span class="d-none d-lg-block">
         <img src={% static "images/copy-press.png" %} alt="letterpress" height="325"/>
       </span>
 
     </div>
-    <div class="col-7 col-lg-6">
-      <blockquote>
+    <div class="col-12 col-md-6 col-lg-6">
+      <blockquote class="blockquote">
         <strong>letterpress copying</strong>
         <p>
           An early form of document copying by transfer of ink from a freshly written document to a moistened
