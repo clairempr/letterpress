@@ -2,7 +2,7 @@
   <div class="form-group col">
     <label for="sources" class="form-label text-nowrap">Source</label>
     <div class="dropdown">
-      <button class="btn btn-outline-secondary dropdown-toggle px-4" type="button" id="sourcesDropdownMenuButton" data-toggle="dropdown"
+      <button class="btn btn-outline-secondary dropdown-button dropdown-toggle px-4" type="button" id="sourcesDropdownMenuButton" data-toggle="dropdown"
               data-bs-toggle="dropdown" aria-expanded="true">Sources</button>
       <ul class="dropdown-menu" aria-labelledby="sourcesDropdownMenuButton">
         {% for source in filter_values.sources %}
@@ -23,7 +23,7 @@
   <div class="form-group col">
     <label for="writers" class="form-label text-nowrap">Writer</label>
     <div class="dropdown">
-      <button class="btn btn-outline-secondary dropdown-toggle px-4" type="button" id="writersDropdownMenuButton" data-toggle="dropdown"
+      <button class="btn btn-outline-secondary dropdown-button dropdown-toggle px-4" type="button" id="writersDropdownMenuButton" data-toggle="dropdown"
               data-bs-toggle="dropdown" aria-expanded="true">Writers</button>
       <ul class="dropdown-menu" aria-labelledby="writersDropdownMenuButton">
         {% for writer in filter_values.writers %}
@@ -83,14 +83,14 @@
 <div class="row mt-4 mb-5">
   <div class="form-group">
     <span class="col">
-      <input class="btn btn-primary" id="search_button" type="button" value="Search"/>
+      <input class="btn btn-primary submit-button" id="search_button" type="button" value="Search"/>
     </span>
       {% if show_export_button %}
         <span class="col">
-          <input class="btn btn-primary" id="export_text" name="export_text" type="submit" value="Export text"/>
+          <input class="btn btn-primary submit-button" id="export_text" name="export_text" type="submit" value="Export text"/>
         </span>
         <span>
-          <input class="btn btn-primary" id="export_csv" name="export_csv" type="submit" value="Export CSV"/>
+          <input class="btn btn-primary submit-button" id="export_csv" name="export_csv" type="submit" value="Export CSV"/>
         </span>
       {% endif %}
     </div>
