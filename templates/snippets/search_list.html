@@ -16,8 +16,9 @@
       <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.place }}</a></td>
     </tr>
     {% if sentiments %}
-      <tr>
-        <td colspan="4">
+      <tr class="letter-row">
+        <td></td>
+        <td colspan="3">
           {% for sentiment_id, sentiment in sentiments %}
             <a href="{% url 'letter_sentiment_view' letter.id sentiment_id %}">{{ sentiment }}</a>
             {% if not forloop.last %}
