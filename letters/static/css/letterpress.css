@@ -105,6 +105,11 @@ em {
     color: #1956b1;
 }
 
+.page-item.active .page-link {
+    background-color: #3a89fd;
+    border-color: #3a89fd;
+}
+
 .page-label {
     font-family: 'Amita', cursive;
     font-size: 1.5em;
