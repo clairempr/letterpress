@@ -12,6 +12,10 @@ jQuery(document).ready(function ($) {
     }, false);
 
     $("#search_button").click(function () {
+        // If there's an open popup, it needs to be hidden before search
+        var popup_element = document.getElementById('popup');
+        $(popup_element).popover('dispose');
+        
         do_place_search();
     });
 });

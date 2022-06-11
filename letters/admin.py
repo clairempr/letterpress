@@ -120,7 +120,7 @@ class PlaceAdmin(gisAdmin.OSMGeoAdmin):
     default_zoom = 5
     ordering = ('name', 'state', 'country',)
     list_filter = ['country', 'state']
-    openlayers_url = 'https://openlayers.org/en/v4.6.5/build/ol.js'
+    openlayers_url = 'https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js'
     map_template = 'admin/place_admin_map.html'
 
 

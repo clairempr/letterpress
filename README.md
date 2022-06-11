@@ -23,7 +23,7 @@ The name comes from an early office technology which people used to duplicate do
  - Full-text searching with Elasticsearch
  ![Fuzzy text search](screenshots/text_search.png)
  - SQLite database
- - Place mapping with OpenStreetMap and OpenLayers 4
+ - Place mapping with OpenStreetMap and OpenLayers 5
  ![Map](screenshots/map_with_popup.png)
  - Export to text files
  - Word frequency statistics by month, with Bokeh charts

@@ -1,4 +1,4 @@
-/* JavaScript for generating OpenStreetMap and features using OpenLayers 4  */
+/* JavaScript for generating OpenStreetMap and features using OpenLayers 5  */
 
 var map = {};
 var EPSG3857Extent = ol.proj.get('EPSG:3857').getExtent();
@@ -69,7 +69,7 @@ function map_init(features, marker_image, plain_marker_image, popups) {
   }
 }
 
-let popup = {
+var popup = {
 
   init() {
     var popup_element = document.getElementById('popup');
@@ -97,25 +97,24 @@ let popup = {
       }
 
       // Only show popup for unclustered feature
+      $(popup_element).popover('dispose');
       var cfeatures = feature.get('features');
       if (cfeatures.length == 1) {
         feature = cfeatures[0];
         var name = feature.get('name');
         $(popup_element).popover({
+          'title': name,
           'placement': 'top',
           'html': true
         });
         // Make sure content gets updated each time a new feature is clicked
-        $(popup_element).attr('data-content', name);
+        $(popup_element).attr('data-title', name);
         var coordinates = feature.getGeometry().getCoordinates();
         popup.setPosition(coordinates);
-        $(popup_element).popover('show');
-      } else {
-        $(popup_element).popover('hide');
       }
+      $(popup_element).popover('toggle');
     });
   }
-
 }
 
 function create_feature(point, name) {
@@ -137,7 +136,7 @@ function create_point(x, y) {
   return ol.extent.containsExtent(EPSG3857Extent, point.getExtent()) ? point : 0
 }
 
-let icon_style = {
+var icon_style = {
 
   create(image_file, text) {
     var style = new ol.style.Style({
