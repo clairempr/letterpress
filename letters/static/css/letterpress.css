@@ -64,6 +64,14 @@ em {
     font-size: .9em;
 }
 
+.letter-row {
+    font-size: 0.85em;
+}
+
+.letter-row a{
+    text-decoration: none;
+}
+
 .letterpress-display {
     padding-top: 40px;
     background-color: transparent !important;
