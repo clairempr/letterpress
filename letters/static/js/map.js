@@ -1,4 +1,4 @@
-/* JavaScript for generating OpenStreetMap and features using OpenLayers 5  */
+/* JavaScript for generating OpenStreetMap and features using OpenLayers 6  */
 
 var map = {};
 var EPSG3857Extent = ol.proj.get('EPSG:3857').getExtent();

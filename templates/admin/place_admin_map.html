@@ -1,8 +1,7 @@
 {% load static %}
 {% block extrastyle %}
 {% load i18n static %}{% get_current_language_bidi as LANGUAGE_BIDI %}
-    <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/css/ol.css" type="text/css">
-<style type="text/css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.14.1/css/ol.css"><style type="text/css">
   #{{ id }}_map { width: {{ map_width }}px; height: {{ map_height }}px; }
   #{{ id }}_map .aligned label { float:inherit; }
   #{{ id }}_admin_map { position: relative; vertical-align: top; float: {{ LANGUAGE_BIDI|yesno:"right,left" }}; }
