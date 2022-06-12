@@ -53,9 +53,10 @@ let search_results = {
 
     show(result, page_number) {
         $('#letters').html(result.letters);
-        if (result.pagination) {
-            pagination.set(result.pagination);
-            last_page = result.pages;
+        pagination.set(result.pagination);
+        last_page = result.pages;
+
+        if (page_number === 0) {
             active_page.set(1);
         } else {
             active_page.set(page_number);
