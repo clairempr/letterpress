@@ -217,12 +217,9 @@ QUnit.module("letter_search", function (hooks) {
     assert.ok(history.replaceState.called, "history.replaceState() has been called");
     assert.ok(active_page.set.called, "active_page.set() has been called");
 
-    // If result.pagination isn't filled, pagination.set() shouldn't get called
-    assert.notOk(pagination.set.called, "pagination.set() hasn't been called");
-
     sinon.restore();
 
-    // If result.pagination is filled, pagination.set() should get called
+    // pagination.set() should get called
     this.result.pagination = "This is the pagination";
 
     fake_set_pagination = sinon.replace(pagination, "set", sinon.fake());
