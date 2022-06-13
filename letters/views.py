@@ -407,7 +407,9 @@ class SearchView(View):
         paginator = Paginator(object_list=['x' for _ in range(es_result.total)], per_page=size)
         # Page number might be 0, if it's the first time the search is carried out
         page = paginator.page(max(page_number, 1))
-        pagination_html = render_to_string('snippets/pagination.html', {'paginator': paginator, 'page_obj': page})
+        pagination_html = render_to_string('snippets/pagination.html',
+                                           {'is_paginated': True if paginator.num_pages > 1 else False,
+                                            'paginator': paginator, 'page_obj': page})
 
         # This was Ajax
         return HttpResponse(json.dumps({

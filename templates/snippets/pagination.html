@@ -1,6 +1,6 @@
 {% load utils_tags %}
 
-{% if paginator.num_pages > 1 %}
+{% if is_paginated %}
   <div class="m-3">
     <nav aria-label="Search results pages">
       <ul id="pages" class="pagination justify-content-center">
@@ -45,3 +45,5 @@
     </nav>
   </div>
 {% endif %}
+
+<label class="label">{{ paginator.count }} results found</label>
