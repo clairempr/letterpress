@@ -12,10 +12,11 @@ body {
 }
 
 a {
-    color: #4a74a8;
+    color: #47739e;
 }
 
 blockquote {
+    text-align: left;
     font-size: 1em;
     border-left: 5px solid #618cb8;
     padding: 1.3em;
@@ -26,13 +27,19 @@ em {
 }
 
 .body-content {
-    padding-top: 35px;
+    padding-top: 50px;
+}
+
+.btn-check:focus+.btn-primary, .btn-primary:focus {
+    background-color: #4a74a8;
+    border-color: #4a74a8;
+    box-shadow: 0 0 0 .25rem rgba(132, 166, 200,.5)
 }
 
 .dropdown-button {
     font-size: 0.8em;
-    color: #618cb8;
-    border-color: #618cb8;
+    color: #47739e;
+    border-color: #47739e;
 }
 
 .dropdown-button:hover {
@@ -42,20 +49,17 @@ em {
 }
 
 .dropdown-item {
-    font-size: 1.3em;
-    color: #618cb8;
-    font-weight: bold;
-}
-
-.dropdown-item.active, .dropdown-item:active {
-    color: #fff;
-    text-decoration: none;
-    background-color: #4a74a8;
+    font-size: 1.5em;
+    color: #47739e;
 }
 
 .dropdown-item:hover {
     color: #4a74a8;
+}
 
+.dropdown-item.active, .dropdown-item:active, .dropdown-item:hover{
+    color: white;
+    background-color: #47739e;
 }
 
 .footer {
@@ -68,12 +72,12 @@ em {
 
 .form-select {
     font-size: 0.8em;
-    color: #618cb8;
-    border-color: #618cb8;
+    color: #4a74a8;
+    border-color: #4a74a8;
 }
 
 .form-select option {
-    color: #618cb8;
+    color: #47739e;
 }
 
 .image-credit {
@@ -100,38 +104,45 @@ em {
 .map-container {
     padding: 5px;
     border-style: groove;
+    min-height: 425px;
+    max-height: 85vh;
+    min-width: 425px;
 }
 
 .nav-label {
     font-family: 'Amita', cursive;
     font-size: 1.3em;
-    font-weight: bold;
+    font-weight: normal;
+}
+
+.navbar {
+    box-shadow: 0 0 0 .1em rgba(132, 166, 200,.18);
 }
 
 .navbar-brand {
     font-family: 'Amita', cursive;
     font-size: 1.5em;
-    font-weight: bold;
+    font-weight: normal;
 }
 
 .navbar-light .navbar-brand {
-    color: #618cb8;
+    color: #47739e;
 }
 
 .navbar-light .navbar-brand:focus, .navbar-light .navbar-brand:hover {
-    color: #47739e;
+    color: #37597b;
 }
 
 .navbar-light .navbar-nav .nav-link {
-    color: #618cb8;
+    color: #47739e;
 }
 
 .navbar-light .navbar-nav .nav-link.active.nav-link {
-    color: #47739e;
+    color: #37597b;
 }
 
 .navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover {
-    color: #47739e;
+    color: #37597b;
 }
 
 .page-item.active .page-link {
@@ -143,6 +154,14 @@ em {
     font-family: 'Amita', cursive;
     font-size: 1.5em;
     padding-top: 30px;
+}
+
+.page-link {
+    color: #47739e;
+}
+
+.page-link:hover {
+    color: #37597b;
 }
 
 .popover-content {
