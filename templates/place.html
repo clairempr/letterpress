@@ -4,72 +4,68 @@
 {% block doctype %}{% endblock %}
 
 {% block content %}
-    <div class="container">
+  <div class="container">
+    <h4>{{ place.name }}{% if place.state %}, {{ place.state }}{% endif %}</h4>
+    {% if place.notes %}<p>{{ place.notes }}</p>{% endif %}
+    <h6>Letters written here ({{ letters|length }})</h6>
 
-        <h4>{{ place.name }}{% if place.state %}, {{ place.state }}{% endif %}</h4>
-        {% if place.notes %}<p>{{ place.notes }}</p>{% endif %}
-        <div class="row">
-
-            <div class="col-xs-6">
-                {% if letters %}
-                    <h6>Letters written here ({{ letters|length }})</h6>
-                    <table id="letters_table" class="table table-condensed table-striped">
-                        <thead>
-                        <tr>
-                            <th class="letters-table-heading col-xs-2">Date</th>
-                            <th class="letters-table-heading col-xs-4">Writer</th>
-                            <th class="letters-table-heading col-xs-6">Recipient</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for letter in letters %}
-                            <tr>
-                                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.list_date }}</a></td>
-                                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.writer }}</a></td>
-                                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.recipient }}</a></td>
-                            </tr>
-
-                        {% endfor %}
-                        </tbody>
-                    </table>
-
-                {% endif %}
-
-            </div>
-            <div class="col-xs-6">
-                {% if place.point %}
-                    <h6>Coordinates: {{ place.point.x }}, {{ place.point.y }}</h6>
-                    <div class="map-container" id="mapdiv"></div>
-                {% endif %}
-            </div>
-        </div>
+    <div class="row">
+      <div class="col">
+        {% if letters %}
+          <table id="letters_table" class="table table-condensed table-striped">
+            <thead>
+            <tr>
+              <th class="letters-table-heading col-xs-2">Date</th>
+              <th class="letters-table-heading col-xs-4">Writer</th>
+              <th class="letters-table-heading col-xs-6">Recipient</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for letter in letters %}
+              <tr>
+                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.list_date }}</a></td>
+                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.writer }}</a></td>
+                <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.recipient }}</a></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+      <div class="col">
+        {% if place.point %}
+          <h6>Coordinates: {{ place.point.x }}, {{ place.point.y }}</h6>
+          <div class="map-container" id="mapdiv"></div>
+        {% endif %}
+      </div>
     </div>
+  </div>
 
 {% endblock %}
 {% block footer %}
-    <div class="image-credit">Map markers from <a href="https://mapicons.mapsmarker.com">Map Icons Collection</a></div>
+  <div class="image-credit">Map markers from <a href="https://mapicons.mapsmarker.com">Map Icons Collection</a></div>
 {% endblock %}
 {% block scripts %}
-    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
-    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
-    <script src="https://openlayers.org/en/v4.6.5/build/ol.js" type="text/javascript"></script>
-    <script src={% static "js/map.js" %} type="text/javascript"></script>
+  <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.14.1/css/ol.css">
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.14.1/build/ol.js"></script>
+  <script src={% static "js/map.js" %} type="text/javascript"></script>
 
-    <script type="text/javascript">
-        var features = [];
+  <script type="text/javascript">
+    var features = [];
 
-        // Define markers as "features" of the vector layer:
-        var point = create_point({{ place.point.x }}, {{ place.point.y }});
-        var name = '<a href ="{% url 'place_detail' place.pk %}">{{ place }}</a>';
+    // Define markers as "features" of the vector layer:
+    var point = create_point({{ place.point.x }}, {{ place.point.y }});
+    var name = '<a href ="{% url 'place_detail' place.pk %}">{{ place }}</a>';
 
-        features.push(create_feature(point, name));
+    features.push(create_feature(point, name));
 
-        var marker_image = '{% static "images/pen_marker.png" %}';
-        var plain_marker_image = '';
-        var popups = false;
+    var marker_image = '{% static "images/pen_marker.png" %}';
+    var plain_marker_image = '';
+    var popups = false;
 
-        map_init(features, marker_image, plain_marker_image, popups);
-    </script>
+    map_init(features, marker_image, plain_marker_image, popups);
+  </script>
 
 {% endblock %}
 

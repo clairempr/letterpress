@@ -1,21 +1,22 @@
 <div class="form-group">
-    <label for="sentiments">Sentiment</label>
-    <div class="dropdown">
-        <button class="btn btn-default dropdown-toggle" type="button" id="sentiments_button" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="true">
-            Sentiments
-            <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-            {% for sentiment in filter_values.sentiments %}
-                <div id="sentiments" class="checkbox">
-                    <label>
-                        <input type="checkbox" name="sentiment" id="sentiment{{ sentiment.id }}"
-                               value="{{ sentiment.id }}">
-                        {{ sentiment.name }}
-                    </label>
-                </div>
-            {% endfor %}
-        </ul>
-    </div>
+  <label for="sentiments" class="form-label text-nowrap">Sentiment</label>
+  <div class="dropdown">
+    <button class="btn btn-outline-secondary dropdown-button dropdown-toggle px-4" type="button" id="sentimentsDropdownMenuButton"
+            data-toggle="dropdown"
+            data-bs-toggle="dropdown" aria-expanded="true">Sentiments
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="sentimentsDropdownMenuButton">
+      {% for sentiment in filter_values.sentiments %}
+        <li>
+          <div id="sentiments" class="checkbox dropdown-item">
+            <label>
+              <input type="checkbox" name="sentiment" id="sentiment{{ sentiment.id }}"
+                     value="{{ sentiment.id }}">
+              {{ sentiment.name }}
+            </label>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
 </div>

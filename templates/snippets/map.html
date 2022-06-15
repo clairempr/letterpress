@@ -1,47 +1,46 @@
 {% load static %}
 <div id="alert-message"></div>
-<div id="popup"></div>
+<div id="popup" title="" data-bs-toggle="popover"></div>
 
 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
-<link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
-<script src="https://openlayers.org/en/v4.6.5/build/ol.js" type="text/javascript"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.14.1/css/ol.css">
+<script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.14.1/build/ol.js"></script>
 <!-- Use ol3-geocoder to search for place names in the map -->
 <link href="https://unpkg.com/ol3-geocoder/build/ol3-geocoder.min.css" rel="stylesheet">
 <script src="https://unpkg.com/ol3-geocoder/build/ol3-geocoder.js"></script>
 <script src={% static "js/map.js" %} type="text/javascript"></script>
 
 <script type="text/javascript">
-    var alertStart = '<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a> \
+  var alertStart = '<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a> \
                      <strong>Error!</strong>&nbsp;'
-    var alertEnd = '</div>'
-    var alertMessageDiv = document.getElementById("alert-message");
-    var features = [];
+  var alertEnd = '</div>'
+  var alertMessageDiv = document.getElementById("alert-message");
+  var features = [];
 
-    {% for place in places %}
+  {% for place in places %}
 
-        // Define markers as "features" of the vector layer:
-        var point = create_point({{ place.point.x }}, {{ place.point.y }});
+    // Define markers as "features" of the vector layer:
+    var point = create_point({{ place.point.x }}, {{ place.point.y }});
 
-        if (!point) {
-            // There was something wrong with the coordinates. Don't add to the map.
-            show_place_alert("{{ place }}", {{ place.point.x }}, {{ place.point.y }});
-        }
-        else {
-            var name = '<a href ="{% url 'place_detail' place.pk %}">{{ place }}</a>';
-            features.push(create_feature(point, name));
-        }
-
-    {% endfor %}
-
-    var marker_image = '{% static "images/pen_marker.png" %}';
-    var plain_marker_image = '{% static "images/plain_marker.png" %}';
-    var popups = true;
-
-    map_init(features, marker_image, plain_marker_image, popups);
-    enable_place_search();
-
-    function show_place_alert(place, x, y) {
-        var message = 'Invalid coordinates for ' + place + ' (' + x + ', ' + y + ').'
-        alertMessageDiv.innerHTML = alertStart + message + alertEnd;
+    if (!point) {
+      // There was something wrong with the coordinates. Don't add to the map.
+      show_place_alert("{{ place }}", {{ place.point.x }}, {{ place.point.y }});
+    } else {
+      var name = '<a href ="{% url 'place_detail' place.pk %}">{{ place }}</a>';
+      features.push(create_feature(point, name));
     }
+
+  {% endfor %}
+
+  var marker_image = '{% static "images/pen_marker.png" %}';
+  var plain_marker_image = '{% static "images/plain_marker.png" %}';
+  var popups = true;
+
+  map_init(features, marker_image, plain_marker_image, popups);
+  enable_place_search();
+
+  function show_place_alert(place, x, y) {
+    var message = 'Invalid coordinates for ' + place + ' (' + x + ', ' + y + ').'
+    alertMessageDiv.innerHTML = alertStart + message + alertEnd;
+  }
 </script>

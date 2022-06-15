@@ -13,6 +13,7 @@ from letterpress import settings
 from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
+from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -401,16 +402,15 @@ class SearchView(View):
             return get_elasticsearch_error_response(exception=ex, json_response=True)
 
         result_html = render_to_string('snippets/search_list.html', {'search_results': es_result.search_results})
-        # First request, no pagination yet
-        if page_number == 0:
-            # There is no built-in way to do something N times in a django template,
-            # so generate a string of length <es_result.pages> and use that in the template
-            # Yes, it's silly, but it's simpler than adding another template filter
-            pages_string = 'x' * es_result.pages
-            pagination_html = render_to_string('snippets/pagination.html',
-                                               {'pages': pages_string, 'total': es_result.total})
-        else:
-            pagination_html = ''
+
+        # Manually set Django's paginator to use with Elasticsearch results pages
+        paginator = Paginator(object_list=['x' for _ in range(es_result.total)], per_page=size)
+        # Page number might be 0, if it's the first time the search is carried out
+        page = paginator.page(max(page_number, 1))
+        pagination_html = render_to_string('snippets/pagination.html',
+                                           {'is_paginated': True if paginator.num_pages > 1 else False,
+                                            'paginator': paginator, 'page_obj': page})
+
         # This was Ajax
         return HttpResponse(json.dumps({
             'letters': result_html, 'pagination': pagination_html, 'pages': es_result.pages}),

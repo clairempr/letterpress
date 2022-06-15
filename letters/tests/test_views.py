@@ -781,9 +781,9 @@ class SearchViewTestCase(TestCase):
         self.assertTrue(str(letter.writer) in content['letters'],
                         "SearchView response content['letters'] should contain letter found by do_letter_search()")
 
-        # If page_number isn't 0, response content['pagination'] should be empty string
-        self.assertEqual(content['pagination'], '',
-                        "SearchView response content['pagination'] should be empty string if page_number isn't 0")
+        # If page_number isn't 0, response content['pagination'] shouldn't be empty string
+        self.assertNotEqual(content['pagination'], '',
+                        "SearchView response content['pagination'] shouldn't be empty string if page_number isn't 0")
 
         # If page_number is 0, response content['pagination'] shouldn't be empty string
         request.POST = {'page_number': '0'}

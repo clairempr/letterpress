@@ -1,106 +1,98 @@
-<div class="row">
-    <div class="form-group col-sm-2">
-        <label for="sources">Source</label>
-        <div class="dropdown">
-            <button class="btn btn-default dropdown-toggle" type="button" id="sources" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="true">
-                Sources
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                {% for source in filter_values.sources %}
-                    <div id="sources" class="checkbox">
-                        <label>
-                            <input type="checkbox" name="source" id="source{{ source.id }}"
-                                   value="{{ source.id }}">
-                            {{ source }}
-                        </label>
-                    </div>
-                {% endfor %}
-            </ul>
-        </div>
+<div class="row mb-4">
+  <div class="form-group col">
+    <label for="sources" class="form-label text-nowrap">Source</label>
+    <div class="dropdown">
+      <button class="btn btn-outline dropdown-button dropdown-toggle px-4" type="button" id="sourcesDropdownMenuButton" data-toggle="dropdown"
+              data-bs-toggle="dropdown" aria-expanded="true">Sources</button>
+      <ul class="dropdown-menu" aria-labelledby="sourcesDropdownMenuButton">
+        {% for source in filter_values.sources %}
+          <li>
+            <div id="sources" class="checkbox dropdown-item">
+              <label>
+                <input type="checkbox" name="source" id="source{{ source.id }}"
+                       value="{{ source.id }}">
+                {{ source }}
+              </label>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
     </div>
+  </div>
 
-    <div class="form-group col-sm-2">
-        <label for="writers">Writer</label>
-        <div class="dropdown">
-            <button class="btn btn-default dropdown-toggle" type="button" id="writers" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="true">
-                Writers
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                {% for writer in filter_values.writers %}
-                    <div id="writers" class="checkbox">
-                        <label>
-                            <input type="checkbox" name="writer" id="writer{{ writer.id }}" value="{{ writer.id }}">
-                            {{ writer }}
-                        </label>
-                    </div>
-                {% endfor %}
-            </ul>
-        </div>
+  <div class="form-group col">
+    <label for="writers" class="form-label text-nowrap">Writer</label>
+    <div class="dropdown">
+      <button class="btn btn-outline dropdown-button dropdown-toggle px-4" type="button" id="writersDropdownMenuButton" data-toggle="dropdown"
+              data-bs-toggle="dropdown" aria-expanded="true">Writers</button>
+      <ul class="dropdown-menu" aria-labelledby="writersDropdownMenuButton">
+        {% for writer in filter_values.writers %}
+          <li>
+            <div id="writers" class="checkbox dropdown-item">
+              <label>
+                <input type="checkbox" name="writer" id="writer{{ writer.id }}" value="{{ writer.id }}">
+                {{ writer }}
+              </label>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
     </div>
+  </div>
 
+  <div class="form-group col-xs-5 col-md">
+    <label for="start_date" class="form-label text-nowrap">Start date</label>
+    <input type="text" class="form-control" id="start_date" name="start_date"
+           value="{{ filter_values.start_date }}">
+  </div>
 
-    <div class="form-group col-sm-2">
-        <label for="start_date">Start date</label>
-        <input type="text" class="form-control" id="start_date" name="start_date"
-               value="{{ filter_values.start_date }}">
+  <div class="form-group col-xs-5 col-md">
+    <label for="end_date" class="form-label text-nowrap">End date</label>
+    <input type="text" class="form-control" id="end_date" name="end_date" value="{{ filter_values.end_date }}">
+  </div>
+
+  {% if show_search_text %}
+    <div class="form-group col-xs-12 col-lg-6">
+      <label for="search_text" class="form-label text-nowrap">Search text</label>
+      <input type="text" class="form-control" id="search_text" name="search_text">
     </div>
-
-    <div class="form-group col-sm-2">
-        <label for="end_date">End date</label>
-        <input type="text" class="form-control" id="end_date" name="end_date" value="{{ filter_values.end_date }}">
+  {% elif show_words %}
+    <div class="form-group col-xs-5 col-md">
+      <label for="word1" class="form-label text-nowrap">Word 1</label>
+      <input type="text" class="form-control" id="word1" name="word1" value="{{ filter_values.words.0 }}">
     </div>
-
-
-    {% if show_search_text %}
-        <div class="form-group col-sm-4">
-            <label for="search_text">Search text</label>
-            <input type="text" class="form-control" id="search_text" name="search_text">
-        </div>
-    {% elif show_words %}
-        <div class="form-group col-sm-2">
-            <label for="word1">Word 1</label>
-            <input type="text" class="form-control" id="word1" name="word1" value="{{ filter_values.words.0 }}">
-        </div>
-        <div class="form-group col-sm-2">
-            <label for="word2">Word 2</label>
-            <input type="text" class="form-control" id="word2" name="word2" value="{{ filter_values.words.1 }}">
-        </div>
-    {% else %}
-        <div class="form-group col-sm-4 hidden"></div>
-    {% endif %}
-
+    <div class="form-group col-xs-5 col-md">
+      <label for="word2" class="form-label text-nowrap">Word 2</label>
+      <input type="text" class="form-control" id="word2" name="word2" value="{{ filter_values.words.1 }}">
+    </div>
+  {% endif %}
 
 </div>
 
 {% if show_sentiment or sort_by %}
-    <div class="row">
-        {% if show_sentiment %}
-            <div class="form-group col-sm-2">{% include "./sentiment_dropdown.html" %}</div>
-        {% endif %}
-        {% if sort_by %}
-            <div class="form-group col-sm-2">{% include "./sort_by_dropdown.html" %}</div>
-        {% endif %}
-    </div>
+  <div class="row">
+    {% if show_sentiment %}
+      <div class="form-group col-6 col-md-3">{% include "./sentiment_dropdown.html" %}</div>
+    {% endif %}
+    {% if sort_by %}
+      <div class="form-group col-6 col-md-3">{% include "./sort_by_dropdown.html" %}</div>
+    {% endif %}
+  </div>
 {% endif %}
 
-<div class="row">
-    <div class="form-group col-sm-12">
-        <input class="btn btn-info" id="search_button" type="button" value="Search"/>
-        {% if show_export_button %}
-        <input class="btn btn-info" id="export_text" name="export_text" type="submit" value="Export text"/>
-        <input class="btn btn-info" id="export_csv" name="export_csv" type="submit" value="Export CSV"/>
-        {% endif %}
+<div class="row my-4">
+  <div class="form-group">
+    <span class="col">
+      <input class="btn btn-primary submit-button" id="search_button" type="button" value="Search"/>
+    </span>
+      {% if show_export_button %}
+        <span class="col">
+          <input class="btn btn-primary submit-button" id="export_text" name="export_text" type="submit" value="Export text"/>
+        </span>
+        <span>
+          <input class="btn btn-primary submit-button" id="export_csv" name="export_csv" type="submit" value="Export CSV"/>
+        </span>
+      {% endif %}
     </div>
+  </div>
 </div>
-
-
-
-
-
-
-
-

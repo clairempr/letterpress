@@ -1,26 +1,49 @@
-{% if pages|length > 1 %}
-    <nav aria-label="Page navigation">
-        <ul id="pages" class="pagination">
-            <li>
-                <a href="#" aria-label="Previous" onclick="return search_page.prev();">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
+{% load utils_tags %}
+
+{% if is_paginated %}
+  <div class="m-3">
+    <nav aria-label="Search results pages">
+      <ul id="pages" class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="#" aria-label="Previous" onclick="return search_page.prev();">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+        {% endif %}
+
+        {% get_proper_elided_page_range paginator page_obj.number as page_range %}
+        {% for i in page_range %}
+          {% if page_obj.number == i %}
+            <li class="active page-item">
+              <span class="page-link">{{ i }} <span class="visually-hidden-focusable">(current)</span></span>
             </li>
-            {% for page in pages %}
-                <li name="page{{ forloop.counter }}">
-                    <a href="#" onclick="return letter_search.do_search({{ forloop.counter }});">{{ forloop.counter }}</a>
-                </li>
-            {% endfor %}
-            <li>
-                <a href="#" aria-label="Next" onclick="return search_page.next();">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        </ul>
+          {% else %}
+            {% if i == page_obj.paginator.ELLIPSIS %}
+              <li class="page-item"><span class="page-link">{{ i }}</span></li>
+            {% else %}
+              <li class="page-item">
+                <a class="page-link" href="#" onclick="return letter_search.do_search({{ i }});">
+                  {{ i }}</a>
+              </li>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="#" aria-label="Next" onclick="return search_page.next();">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+      </ul>
     </nav>
+  </div>
 {% endif %}
 
-
-<label>{{ total }} results found</label>
-
-
+<label class="label">{{ paginator.count }} results found</label>

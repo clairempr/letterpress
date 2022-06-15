@@ -1,11 +1,10 @@
 <div class="form-group">
-    <label for="sort_by">Sort by</label>
-    <select class="form-control" id="sort_by">
-        {% for id, name in sort_by %}
-            <option name="sort_by" id="sort_by{{ id }}"
-                    value="{{ id }}">
-                {{ name }}
-            </option>
-        {% endfor %}
-    </select>
+  <label for="sort_by" class="form-label text-nowrap">Sort by</label>
+  <select class="form-select" id="sort_by" aria-label="Select sort criteria">
+    {% for id, name in sort_by %}
+      <option name="sort_by" id="sort_by{{ id }}"  value="{{ id }}">
+        {{ name }}
+      </option>
+    {% endfor %}
+  </select>
 </div>

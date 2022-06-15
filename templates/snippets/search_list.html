@@ -1,41 +1,41 @@
-<table id = "letters_table" class="table table-condensed table-striped">
-    <thead>
-    <tr>
-        <th class="letters-table-heading col-xs-2">Date</th>
-        <th class="letters-table-heading col-xs-3">Writer</th>
-        <th class="letters-table-heading col-xs-4">Recipient</th>
-        <th class="letters-table-heading col-xs-3">Place</th>
+<table id="letters_table" class="table table-striped mt-3 mb-4">
+  <thead>
+  <tr>
+    <th class="letters-table-heading col-xs-2">Date</th>
+    <th class="letters-table-heading col-xs-3">Writer</th>
+    <th class="letters-table-heading col-xs-4">Recipient</th>
+    <th class="letters-table-heading col-xs-3">Place</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for letter, highlight, sentiments, score in search_results %}
+    <tr class="letter-row">
+      <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.list_date }}</a></td>
+      <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.writer }}</a></td>
+      <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.recipient }}</a></td>
+      <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.place }}</a></td>
     </tr>
-    </thead>
-    <tbody>
-    {% for letter, highlight, sentiments, score in search_results %}
-        <tr>
-            <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.list_date }}</a></td>
-            <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.writer }}</a></td>
-            <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.recipient }}</a></td>
-            <td><a href="{% url 'letter_detail' letter.pk %}">{{ letter.place }}</a></td>
-        </tr>
-        {% if sentiments %}
-        <tr>
-            <td colspan="4">
-                {% for sentiment_id, sentiment in sentiments %}
-                    <a href ="{% url 'letter_sentiment_view' letter.id sentiment_id %}">{{ sentiment }}</a>
-                    {% if not forloop.last %}
-                    ,&nbsp;&nbsp;
-                    {% endif %}
-                {% endfor %}
-            </td>
-        </tr>
-        {% endif %}
-        {% if highlight %}
-        <tr>
-            <td colspan="4" class="letter-highlight">
-               <!-- <b>Elasticsearch score: {{ score }}</b><br> -->
-                {{ highlight|safe }}</td>
-        </tr>
-        {% endif %}
+    {% if sentiments %}
+      <tr class="letter-row">
+        <td></td>
+        <td colspan="3">
+          {% for sentiment_id, sentiment in sentiments %}
+            <a href="{% url 'letter_sentiment_view' letter.id sentiment_id %}">{{ sentiment }}</a>
+            {% if not forloop.last %}
+              ,&nbsp;&nbsp;
+            {% endif %}
+          {% endfor %}
+        </td>
+      </tr>
+    {% endif %}
+    {% if highlight %}
+      <tr>
+        <td colspan="4" class="letter-highlight">
+          <!-- <b>Elasticsearch score: {{ score }}</b><br> -->
+          {{ highlight|safe }}</td>
+      </tr>
+    {% endif %}
 
-
-    {% endfor %}
-    </tbody>
+  {% endfor %}
+  </tbody>
 </table>

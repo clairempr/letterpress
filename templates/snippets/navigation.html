@@ -1,67 +1,59 @@
 {% load static %}
-<nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top px-4 pt-3 pb-2">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <span class="d-block d-md-none">
+      <a class="navbar-brand" href="{% url 'home' %}"><img src={% static "images/writing-hand.png" %} alt="Home" height="45"></a>
+      <a class="navbar-brand active" aria-current="page" href="{% url 'home' %}">Letterpress</a>
+   </span>
+    <span class="d-none d-md-block">
+      <a class="navbar-brand" href="{% url 'home' %}"><img src={% static "images/writing-hand.png" %} alt="Home" height="55"></a>
+      <a class="navbar-brand active" aria-current="page" href="{% url 'home' %}">Letterpress</a>
+    </span>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-            <div class="navbar-brand">
-          <span class="visible-xs">
-
-              <img src={% static "images/writing-hand.png" %} alt="logo" height="35">
-              <span class="nav-label">Letterpress</span>
-          </span>
-                <span class="hidden-xs">
-              <img src={% static "images/writing-hand.png" %} alt="logo" height="40">
-          </span>
-            </div>
-        </div>
-
-
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav nav-label">
-                <li class="{% if nbar == 'home' %}active{% endif %}"><a href="{% url 'home' %}">Letterpress<span
-                        class="sr-only">(current)</span></a></li>
-                <li class="{% if nbar == 'letters_view' %}active{% endif %}"><a
-                        href="{% url 'letters_view' %}">Letters</a></li>
-                <li class="{% if nbar == 'random_letter' %}active{% endif %}"><a href="{% url 'random_letter' %}">
-                    Random letter</a></li>
-                <li class="{% if nbar == 'places' %}active{% endif %}"><a href="{% url 'place_list' %}">Places</a></li>
-                </li>
-                <li class="dropdown {% if nbar == 'stats' %}active{% endif %}">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">Stats<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{% url 'stats_view' %}">
-                            Stats</a>
-                        </li>
-                        <li><a href="{% url 'wordcloud_view' %}">
-                            Word cloud</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="dropdown {% if nbar == 'sentiment' %}active{% endif %}">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">Sentiment<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{% url 'sentiment_view' %}">
-                            Letters</a>
-                        </li>
-                        <li><a href="{% url 'text_sentiment_view' %}">
-                            Text</a>
-                        </li>
-                    </ul>
-                </li>
-                <li><a href="/admin/">Admin</a></li>
-            </ul>
-        </div><!-- /.navbar-collapse -->
-    </div><!-- /.container-fluid -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav nav-label">
+        <li class="nav-item dropdown {% if nbar == 'stats' %}active{% endif %}">
+          <a class="nav-link dropdown-toggle" href="#" id="lettersDropdownMenuLink" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">Letters<span class="caret"></span></a>
+          <ul class="dropdown-menu" aria-labelledby="lettersDropdownMenuLink">
+            <li class="{% if nbar == 'letters_view' %}active{% endif %}">
+              <a class="dropdown-item" href="{% url 'letters_view' %}">Search</a></li>
+            <li class=" {% if nbar == 'random_letter' %}active{% endif %}">
+              <a class="dropdown-item"href="{% url 'random_letter' %}">Random letter</a></li>
+          </ul>
+        </li>
+        <li class="{% if nbar == 'places' %}active{% endif %}">
+          <a class="nav-link" href="{% url 'place_list' %}">Places</a></li>
+        <li class="nav-item dropdown {% if nbar == 'stats' %}active{% endif %}">
+          <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-haspopup="true"
+              id="statsDropdownMenuLink"  aria-expanded="false">Stats<span class="caret"></span></a>
+          <ul class="dropdown-menu" aria-labelledby="statsDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'stats_view' %}">
+              Stats</a>
+            </li>
+            <li><a class="dropdown-item" href="{% url 'wordcloud_view' %}">
+              Word cloud</a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown {% if nbar == 'sentiment' %}active{% endif %}">
+          <a href="#" class="nav-link dropdown-toggle" id="sentimentDropdownMenuLink" role="button"
+             data-bs-toggle="dropdown" aria-haspopup="true"
+             aria-expanded="false">Sentiment<span class="caret"></span></a>
+          <ul class="dropdown-menu" aria-labelledby="sentimentDropdownMenuLink">
+            <li><a class="dropdown-item" href="{% url 'sentiment_view' %}">Letters</a>
+            </li>
+            <li><a class="dropdown-item" href="{% url 'text_sentiment_view' %}">Text</a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="/admin/">Admin</a></li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
 </nav>
 

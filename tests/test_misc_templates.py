@@ -158,9 +158,9 @@ class PlaceTemplateTestCase(TestCase):
         self.assertIn(str(place.point.x), rendered, "If place has coordinates, x-coordinate should appear in HTML")
         self.assertIn(str(place.point.y), rendered, "If place has coordinates, y-coordinate should appear in HTML")
 
-        # If no letters in context, "Letters written here" shouldn't appear in HTML
-        self.assertFalse('Letters written here' in rendered,
-                         "If no letters in context, 'Letters written here' shouldn't appear in HTML")
+        # If no letters in context, "Letters written here" should still appear in HTML
+        self.assertTrue('Letters written here' in rendered,
+                         "If no letters in context, 'Letters written here' should still appear in HTML")
 
         rendered = render_to_string(template, context={'place': place, 'letters': [letter]})
 

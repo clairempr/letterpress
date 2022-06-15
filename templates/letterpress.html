@@ -3,38 +3,31 @@
 {% load static %}
 {% block content %}
 
-    <div class="row letterpress-display vertical-center">
-        <div class="col-xs-5 col-lg-4">
-            <span class="visible-xs">
-                <!--<img src={% static "images/letter-press-med.png" %} alt="letterpress" height="175"/>-->
-                <img src={% static "images/copy-press.png" %} alt="letterpress" height="125"/>
-            </span>
-            <span class="visible-sm">
-                <!--<img src={% static "images/letter-press-med.png" %} alt="letterpress" height="250"/>-->
-                <img src={% static "images/copy-press.png" %} alt="letterpress" height="225"/>
-            </span>
-            <span class="hidden-xs hidden-sm">
-                <!--<img src={% static "images/letter-press-med.png" %} alt="letterpress" height="350"/>-->
-                <img src={% static "images/copy-press.png" %} alt="letterpress" height="325"/>
-            </span>
+  <div class="row letterpress-display text-center vertical-center">
+    <div class="col col-md-6 col-lg-5">
+      <span class="d-block d-lg-none">
+        <img src={% static "images/copy-press.png" %} alt="letterpress" height="225"/>
+      </span>
+      <span class="d-none d-lg-block">
+        <img src={% static "images/copy-press.png" %} alt="letterpress" height="325"/>
+      </span>
 
-        </div>
-        <div class="col-xs-7 col-lg-6">
-            <blockquote>
-
-                <strong>letterpress copying</strong>
-                <p>
-                    An early form of document copying by transfer of ink from a freshly written document to a moistened
-                    sheet of copying paper, using direct contact and pressure
-                </p>
-            </blockquote>
-        </div>
     </div>
+    <div class="col-12 col-md-6 col-lg-6">
+      <blockquote class="blockquote">
+        <strong>letterpress copying</strong>
+        <p>
+          An early form of document copying by transfer of ink from a freshly written document to a moistened
+          sheet of copying paper, using direct contact and pressure
+        </p>
+      </blockquote>
+    </div>
+  </div>
 {% endblock %}
 
 {% block footer %}
-    <div class="image-credit">Copy press image from <a href="https://letterpresscommons.com/">Letterpress Commons</a>
-    </div>
+  <div class="image-credit">Copy press image from <a href="https://letterpresscommons.com/">Letterpress Commons</a>
+  </div>
 {% endblock %}
 
 {% block scripts %}
