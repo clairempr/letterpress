@@ -4,7 +4,7 @@ jobs:
     working_directory: ~/letterpress
     docker:
       - image: circleci/python:3.10.1-bullseye # Need to use older CircleCI image because newer images (cimg) don't work with GeoDjango
-      - image: docker.elastic.co/elasticsearch/elasticsearch:8.0.1
+      - image: docker.elastic.co/elasticsearch/elasticsearch:8.2.3
         environment:
           discovery.type: single-node
           xpack.security.enabled: false
