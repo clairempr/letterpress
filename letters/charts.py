@@ -5,13 +5,7 @@ from bokeh.plotting import figure
 from django.template.loader import render_to_string
 
 # Colors for Bokeh palette
-# royal blue: #4582ec
-# light blue: #aed5f9
-# gray: #a6a6a6
-# medium turquoise: #5bc0de
-# cornflower blue: #6699ef
-
-PALETTE = ['#4582ec', '#a6a6a6', '#aed5f9', '#5bc0de', '#6699ef']
+PALETTE = ['#47739e', '#b3bdcc']
 
 
 def make_charts(words, months, proportions, word_freqs, totals, averages, doc_counts):
@@ -73,7 +67,7 @@ def get_frequency_charts(words, months, word_freqs):
     line_chart.yaxis.axis_label = 'Frequency'
 
     for idx, freqs in enumerate(word_freqs):
-        line_chart.line(x=months, y=freqs, color=PALETTE[idx], line_width=1.75, legend_label=words[idx])
+        line_chart.line(x=months, y=freqs, color=PALETTE[idx], line_width=2.75, legend_label=words[idx])
     line_chart.legend.location = 'top_right'
 
     # Create stacked bar chart
@@ -86,7 +80,7 @@ def get_frequency_charts(words, months, word_freqs):
     for idx, word in enumerate(words):
         data[word] = word_freqs[idx]
     colors = PALETTE[0:len(words)]
-    vbar_chart.vbar_stack(words, x='months', width=0.5, color=colors, source=data,
+    vbar_chart.vbar_stack(words, x='months', width=0.6, color=colors, source=data,
                           legend_label=words)
 
     return [vbar_chart, line_chart]
@@ -102,7 +96,7 @@ def get_proportions_chart(words, months, proportions):
     chart.xaxis.axis_label = 'Month'
     chart.xaxis.major_label_orientation = 0.8
     chart.yaxis.axis_label = 'Proportion'
-    chart.line(months, proportions, line_color=PALETTE[0], line_width=1.75)
+    chart.line(months, proportions, line_color=PALETTE[0], line_width=2.75)
 
     return chart
 
@@ -113,7 +107,7 @@ def get_per_month_chart(months, values, title, label):
     chart.xaxis.major_label_orientation = 0.8
     chart.yaxis.axis_label = label
     # Can't refer to 2nd column by name because it's variable
-    chart.line(months, values, line_color=PALETTE[0], line_width=1.75)
+    chart.line(months, values, line_color=PALETTE[0], line_width=2.75)
 
     return chart
 
