@@ -1,6 +1,5 @@
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-from django.conf import settings
 from django.test import SimpleTestCase
 
 from letterpress.firstrun import create_settings_secret, import_settings_secret, main
@@ -46,12 +45,16 @@ class FirstRunCase(SimpleTestCase):
         # create_settings_secret() should not be called
         mock_import_settings_secret.side_effect = None
         main()
-        self.assertEqual(mock_create_settings_secret.call_count, 0,
-                "If there's no ImportError from import_settings_secret(), create_settings_secret() shouldn't be called")
+        self.assertEqual(
+            mock_create_settings_secret.call_count, 0,
+            "If there's no ImportError from import_settings_secret(), create_settings_secret() shouldn't be called"
+        )
 
         # If there's an ImportError when calling import_settings_secret(),
         # create_settings_secret() should be called
         mock_import_settings_secret.side_effect = ImportError
         main()
-        self.assertEqual(mock_create_settings_secret.call_count, 1,
-                "If there's an ImportError from import_settings_secret(), create_settings_secret() should be called")
+        self.assertEqual(
+            mock_create_settings_secret.call_count, 1,
+            "If there's an ImportError from import_settings_secret(), create_settings_secret() should be called"
+        )

@@ -3,7 +3,6 @@ import os
 
 from unittest.mock import patch
 
-from django.conf import settings
 from django.test import SimpleTestCase
 
 # Normally Django settings should be imported as "from django.conf import settings"
@@ -34,8 +33,10 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
                 importlib.reload(letterpress.settings)
 
                 # SECRET_KEY should NOT be 'super-duper-secret-key-for-circleci'
-                self.assertNotEqual(letterpress.settings.SECRET_KEY, 'super-duper-secret-key-for-circleci',
-                            "When setting CIRCLECI isn't True, SECRET_KEY shouldn't be 'super-duper-secret-key-for-circleci'")
+                self.assertNotEqual(
+                    letterpress.settings.SECRET_KEY, 'super-duper-secret-key-for-circleci',
+                    "When setting CIRCLECI isn't True, SECRET_KEY shouldn't be 'super-duper-secret-key-for-circleci'"
+                )
                 # ALLOWED_HOSTS should NOT be []
                 self.assertNotEqual(letterpress.settings.ALLOWED_HOSTS, [],
                                     "When setting CIRCLECI isn't True, ALLOWED_HOSTS shouldn't be []")
@@ -49,8 +50,10 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
             importlib.reload(letterpress.settings)
 
             # SECRET_KEY should be 'super-duper-secret-key-for-circleci'
-            self.assertEqual(letterpress.settings.SECRET_KEY, 'super-duper-secret-key-for-circleci',
-                            "When setting CIRCLECI is True, SECRET_KEY should be 'super-duper-secret-key-for-circleci'")
+            self.assertEqual(
+                letterpress.settings.SECRET_KEY, 'super-duper-secret-key-for-circleci',
+                "When setting CIRCLECI is True, SECRET_KEY should be 'super-duper-secret-key-for-circleci'"
+            )
             # ALLOWED_HOSTS should be []
             self.assertEqual(letterpress.settings.ALLOWED_HOSTS, [],
                              'When setting CIRCLECI is True, ALLOWED_HOSTS should be []')
@@ -100,5 +103,5 @@ class TestGeoDjangoSettingsTestCase(SimpleTestCase):
         self.assertFalse(letterpress.settings.SPATIALITE_LIBRARY_PATH.endswith('.so'),
                          "On Windows, SPATIALITE_LIBRARY_PATH should not end with '.so'")
 
-        self.assertFalse(letterpress.settings.GDAL_LIBRARY_PATH == None,
+        self.assertFalse(letterpress.settings.GDAL_LIBRARY_PATH is None,
                          'On Windows, GDAL_LIBRARY_PATH should be set')

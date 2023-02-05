@@ -78,8 +78,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates'),
-                 'django/forms/templates']
-        ,
+                 'django/forms/templates'],
         'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
@@ -93,7 +92,7 @@ TEMPLATES = [
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
             ],
-        'debug': True,
+            'debug': True,
         },
     },
 ]
@@ -107,7 +106,7 @@ if platform.system() == 'Windows':
     SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
     # For Windows, set the location of the GDAL DLL and add the GDAL directory to your PATH for the other DLLs
     # Under Linux it doesn't seem to be necessary
-    GDAL_LIBRARY_PATH = 'C:\Program Files\GDAL\gdal201.dll'
+    GDAL_LIBRARY_PATH = 'C:\Program Files\GDAL\gdal201.dll'  # noqa
     # A Fallback
     DB_DIR = BASE_DIR
 else:

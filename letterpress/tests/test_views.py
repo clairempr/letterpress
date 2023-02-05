@@ -47,4 +47,3 @@ class ElasticsearchErrorViewTestCase(SimpleTestCase):
         response = self.client.get(reverse('elasticsearch_error',
                                            kwargs={'error': 'Something went wrong', 'status': 406}), follow=True)
         self.assertTemplateUsed(response, 'elasticsearch_error.html')
-
