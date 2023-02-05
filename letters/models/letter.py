@@ -66,7 +66,7 @@ class Letter(Document):
                                      "term_vector": "with_positions_offsets"
                                  }
                              }
-                        },
+                             },
                 "date": {
                     "type": "date",
                     # yyyy-MM-dd or yyyy-MM or yyyy

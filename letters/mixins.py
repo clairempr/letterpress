@@ -19,4 +19,3 @@ class ObjectNotFoundMixin(SingleObjectMixin):
 def object_not_found(request, pk, object_type):
     return render(request, 'obj_not_found.html',
                   {'title': object_type + ' not found', 'object_id': pk, 'object_type': object_type})
-

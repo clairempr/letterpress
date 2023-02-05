@@ -40,4 +40,4 @@ class Correspondent(models.Model):
         return get_image_preview(self)
 
     class Meta:
-        ordering = ['last_name','first_names']
+        ordering = ['last_name', 'first_names']

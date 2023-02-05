@@ -71,9 +71,10 @@ def get_filter_values_from_request(request):
     sentiment_ids = [int(id) for id in sentiment_ids]
     sort_by = get_or_post.get('sort_by')
 
-    FilterValues = namedtuple('FilterValues',
-        ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date', 'words',
-         'sentiment_ids', 'sort_by'])
+    FilterValues = namedtuple(
+        'FilterValues',
+        ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date', 'words', 'sentiment_ids', 'sort_by']
+    )
     filter_values = FilterValues(
         search_text=search_text,
         source_ids=source_ids,

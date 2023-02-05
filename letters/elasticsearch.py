@@ -29,7 +29,6 @@ def get_mtermvectors(ids, fields):
     call do_es_mtermvectors(query), and return its return value
     """
 
-
     return do_es_mtermvectors(index=Letter._meta.es_index_name,
                               field_statistics=False, fields=fields, ids=ids, offsets=False,
                               positions=False)
@@ -95,8 +94,7 @@ def do_es_analyze(index, analyzer, text):
         raise_exception_from_request_error(exception)
 
 
-def do_es_mtermvectors(index, field_statistics=None, fields=None, ids=None, offsets=None,
-                              positions=None):
+def do_es_mtermvectors(index, field_statistics=None, fields=None, ids=None, offsets=None, positions=None):
     """
     Return the results of Elasticsearch mtermvector request for the given query
     """

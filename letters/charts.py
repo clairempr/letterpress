@@ -45,8 +45,7 @@ def make_charts(words, months, proportions, word_freqs, totals, averages, doc_co
     script, divs = components(charts)
 
     # Feed them to the Django template.
-    return render_to_string('snippets/chart.html',
-                              {'script': script, 'divs': divs})
+    return render_to_string('snippets/chart.html', {'script': script, 'divs': divs})
 
 
 def get_frequency_charts(words, months, word_freqs):
@@ -76,7 +75,7 @@ def get_frequency_charts(words, months, word_freqs):
     vbar_chart.xaxis.major_label_orientation = 0.8
     vbar_chart.yaxis.axis_label = 'Frequency'
 
-    data = {'months': months }
+    data = {'months': months}
     for idx, word in enumerate(words):
         data[word] = word_freqs[idx]
     colors = PALETTE[0:len(words)]

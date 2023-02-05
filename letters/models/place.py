@@ -21,4 +21,4 @@ class Place(models.Model):
         return desc
 
     class Meta:
-        ordering = ['name','state']
+        ordering = ['name', 'state']

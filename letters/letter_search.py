@@ -1,6 +1,5 @@
 """ (elastic)search stuff that's specific to letters and related models """
 from collections import namedtuple
-import json
 
 from letters import filter as letters_filter
 from letters.elasticsearch import do_es_search, get_mtermvectors, get_stored_fields_for_letter
@@ -52,15 +51,6 @@ def do_letter_search(request, size, page_number):
         query = {
             'bool': bool_query
         }
-
-    query_json = {
-        'query': query,
-        'from': results_from,
-        'size': size,
-        'highlight': get_highlight_options(filter_values),
-        'stored_fields': ['contents.word_count'],
-        'sort': [get_sort_conditions(filter_values.sort_by)]
-    }
 
     results = do_es_search(index=[Letter._meta.es_index_name],
                            query=query, from_offset=results_from,
@@ -266,8 +256,7 @@ def get_letter_match_query(filter_values):
     if search_text:
         # If search_text contains quotes, an entire phrase needs to be matched
         if '"' in search_text:
-            contents_query = {'match_phrase': {'contents':
-                                                   {'query': search_text, 'analyzer': 'standard'}}}
+            contents_query = {'match_phrase': {'contents': {'query': search_text, 'analyzer': 'standard'}}}
         else:
             contents_query = {'match': {'contents': {'query': search_text, 'fuzziness': 'AUTO'}}}
 

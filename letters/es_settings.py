@@ -6,8 +6,6 @@ from elasticsearch.client import IndicesClient
 
 from django.conf import settings
 
-from letterpress import settings_secret
-
 ES_LETTER_URL = settings.ELASTICSEARCH_URL + 'letterpress/letter/'
 
 # If no options are given and the certifi package is installed then certifi’s CA

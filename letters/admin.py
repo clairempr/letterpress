@@ -11,7 +11,7 @@ from letters.admin_filters import CorrespondentSourceFilter, ImageSourceFilter, 
 # needed in all my model admin classes
 class MyModelAdmin(admin.ModelAdmin):
     # show Save and Delete buttons at the top of the page as well as at the bottom
-    save_on_top=True
+    save_on_top = True
     fields = ('id',)
     readonly_fields = ('id',)
 
@@ -28,8 +28,10 @@ class DocumentAdmin(MyModelAdmin):
 
 
 class CorrespondentAdmin(MyModelAdmin):
-    fields = MyModelAdmin.fields + ('last_name', 'married_name', 'first_names', 'suffix', 'aliases',
-              'description', 'images', 'image_preview',)
+    fields = MyModelAdmin.fields + (
+        'last_name', 'married_name', 'first_names', 'suffix', 'aliases',
+        'description', 'images', 'image_preview',
+    )
     ordering = ('last_name', 'first_names', 'suffix')
     readonly_fields = MyModelAdmin.readonly_fields + ('image_preview',)
     filter_horizontal = ('images',)
@@ -52,10 +54,12 @@ class EnvelopeAdmin(DocumentAdmin):
 
 
 class LetterAdmin(DocumentAdmin):
-    fields = DocumentAdmin.fields + ('place', 'writer', 'recipient', 'heading',
-              'greeting', 'body', 'closing', 'signature', 'ps', 'language',
-              'complete_transcription', 'notes', 'images', 'image_preview',
-             'envelopes', 'envelope_preview')
+    fields = DocumentAdmin.fields + (
+        'place', 'writer', 'recipient', 'heading',
+        'greeting', 'body', 'closing', 'signature', 'ps', 'language',
+        'complete_transcription', 'notes', 'images', 'image_preview',
+        'envelopes', 'envelope_preview'
+    )
     ordering = DocumentAdmin.ordering + ('writer__last_name', 'writer__first_names',
                                          'writer__suffix')
     list_display = DocumentAdmin.list_display + ('writer', 'recipient', 'place')
@@ -70,7 +74,6 @@ class LetterAdmin(DocumentAdmin):
         form = super(LetterAdmin, self).get_form(request, obj, **kwargs)
         form.base_fields['heading'].widget.attrs['style'] = 'height: 5em;'
         form.base_fields['greeting'].widget.attrs['style'] = 'height: 3em;'
-        #form.base_fields['body'].widget.attrs['style'] = 'height: 18em;width: 49em;'
         form.base_fields['closing'].widget.attrs['style'] = 'height: 3em;'
         form.base_fields['signature'].widget.attrs['style'] = 'height: 3em;'
         form.base_fields['ps'].widget.attrs['style'] = 'height: 3em;'
