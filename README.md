@@ -3,7 +3,6 @@ Letterpress
 
 [![CircleCI](https://circleci.com/gh/clairempr/letterpress/tree/main.svg?style=svg)](https://circleci.com/gh/clairempr/letterpress/tree/main)
 [![Coverage Status](https://coveralls.io/repos/github/clairempr/letterpress/badge.svg)](https://coveralls.io/github/clairempr/letterpress)
-[![Updates](https://pyup.io/repos/github/clairempr/letterpress/shield.svg)](https://pyup.io/repos/github/clairempr/letterpress/)
 ![Screenshot](screenshots/home.png) 
 *Claire Pritchard*  
 *April 2017 - Present*   
