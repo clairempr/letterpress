@@ -7,7 +7,6 @@ from letter_sentiment.custom_sentiment import get_analyzed_custom_sentiment_term
     get_custom_sentiment_for_letter, get_custom_sentiment_for_text, get_custom_sentiment_name, get_custom_sentiments, \
     get_token_offsets, highlight_for_custom_sentiment, sort_terms_by_number_of_words, update_tokens_in_termvector
 from letter_sentiment.tests.factories import CustomSentimentFactory, TermFactory
-from letters.elasticsearch import get_sentiment_termvector_for_text
 
 
 class GetAnalyzedCustomSentimentTermsTestCase(TestCase):
@@ -32,13 +31,13 @@ class GetAnalyzedCustomSentimentTermsTestCase(TestCase):
         mock_get_custom_sentiment.return_value = custom_sentiment
         expected_list = ['hot chicken letterpress', 'banjo kitsch', 'gentrify taxidermy']
         self.assertEqual(set(get_analyzed_custom_sentiment_terms(1)), set(expected_list),
-                        "get_analyzed_custom_sentiment_terms() should return list of CustomSentiment's analyzed text")
+                         "get_analyzed_custom_sentiment_terms() should return list of CustomSentiment's analyzed text")
 
         # If no CustomSentiment found with that Id, get_analyzed_custom_sentiment_terms()
         # should return empty list
         mock_get_custom_sentiment.return_value = None
         self.assertEqual(get_analyzed_custom_sentiment_terms(1), [],
-                        "get_analyzed_custom_sentiment_terms() should return empty list if CustomSentiment not found")
+                         "get_analyzed_custom_sentiment_terms() should return empty list if CustomSentiment not found")
 
 
 class GetCustomSentimentTestCase(TestCase):
@@ -75,8 +74,10 @@ class GetCustomSentimentForLetterTestCase(TestCase):
         # get_custom_sentiment_for_letter() should return 0
         mock_get_custom_sentiment.return_value = None
 
-        self.assertEqual(get_custom_sentiment_for_letter(letter_id=letter_id, custom_sentiment_id=1), 0,
-            'get_custom_sentiment_for_letter() should return 0 if no CustomSentiment found with custom_sentiment_id')
+        self.assertEqual(
+            get_custom_sentiment_for_letter(letter_id=letter_id, custom_sentiment_id=1), 0,
+            'get_custom_sentiment_for_letter() should return 0 if no CustomSentiment found with custom_sentiment_id'
+        )
 
         # If CustomSentiment has no terms, get_custom_sentiment_for_letter() should return 0
         custom_sentiment = CustomSentimentFactory(name=custom_sentiment_name)
@@ -91,15 +92,19 @@ class GetCustomSentimentForLetterTestCase(TestCase):
         mock_get_custom_sentiment.return_value = custom_sentiment
 
         custom_sentiment_for_letter = get_custom_sentiment_for_letter(letter_id=letter_id,
-                                                                  custom_sentiment_id=custom_sentiment.id)
+                                                                      custom_sentiment_id=custom_sentiment.id)
         args, kwargs = mock_calculate_custom_sentiment.call_args
-        self.assertEqual(args, (letter_id, custom_sentiment.id),
-            'get_custom_sentiment_for_letter() should call calculate_custom_sentiment(letter_id, custom_sentiment_id)')
+        self.assertEqual(
+            args, (letter_id, custom_sentiment.id),
+            'get_custom_sentiment_for_letter() should call calculate_custom_sentiment(letter_id, custom_sentiment_id)'
+        )
 
         # format_sentiment(custom_sentiment.name, sentiment) should be called
         args, kwargs = mock_format_sentiment.call_args
-        self.assertEqual(args, (custom_sentiment_name, mock_calculate_custom_sentiment.return_value),
-                    'get_custom_sentiment_for_letter() should call format_sentiment(custom_sentiment.name, sentiment)')
+        self.assertEqual(
+            args, (custom_sentiment_name, mock_calculate_custom_sentiment.return_value),
+            'get_custom_sentiment_for_letter() should call format_sentiment(custom_sentiment.name, sentiment)'
+        )
 
         # get_custom_sentiment_for_letter() should return the value of format_sentiment()
         self.assertEqual(custom_sentiment_for_letter, mock_format_sentiment.return_value,
@@ -141,8 +146,10 @@ class GetCustomSentimentForTextTestCase(SimpleTestCase):
 
         # get_custom_sentiment_for_text() should return the sentiment that was returned
         # from get_custom_sentiment_for_letter()
-        self.assertEqual(sentiment, mock_get_custom_sentiment_for_letter.return_value,
-                    'get_custom_sentiment_for_text() should return sentiment from get_custom_sentiment_for_letter()')
+        self.assertEqual(
+            sentiment, mock_get_custom_sentiment_for_letter.return_value,
+            'get_custom_sentiment_for_text() should return sentiment from get_custom_sentiment_for_letter()'
+        )
 
 
 class GetCustomSentimentNameTestCase(TestCase):
@@ -225,7 +232,9 @@ class HighlightForCustomSentimentTestCase(TestCase):
         self.custom_sentiment = CustomSentimentFactory(name=self.custom_sentiment_name)
         self.locavore = TermFactory(text='locavore', analyzed_text='locavore', custom_sentiment=self.custom_sentiment)
         self.pabst = TermFactory(text='pabst', analyzed_text='pabst', custom_sentiment=self.custom_sentiment)
-        self.tofu_artisan = TermFactory(text='tofu artisan', analyzed_text='tofu artisan', custom_sentiment=self.custom_sentiment)
+        self.tofu_artisan = TermFactory(
+            text='tofu artisan', analyzed_text='tofu artisan', custom_sentiment=self.custom_sentiment
+        )
         self.text = 'tofu artisan pabst'
         self.termvector = {'pabst': {'term_freq': 1, 'tokens': [{'start_offset': 13, 'end_offset': 18, 'position': 2}]},
                            'tofu artisan': {'term_freq': 1,
@@ -248,15 +257,19 @@ class HighlightForCustomSentimentTestCase(TestCase):
         # highlight_for_custom_sentiment() should return text
         mock_get_custom_sentiment.return_value = None
 
-        self.assertEqual(highlight_for_custom_sentiment(self.text, custom_sentiment_id=1), self.text,
-                'highlight_for_custom_sentiment() should return text if no CustomSentiment found with custom_sentiment_id')
+        self.assertEqual(
+            highlight_for_custom_sentiment(self.text, custom_sentiment_id=1), self.text,
+            'highlight_for_custom_sentiment() should return text if no CustomSentiment found with custom_sentiment_id'
+        )
 
         # If CustomSentiment has no terms, highlight_for_custom_sentiment() should return text
         custom_sentiment = CustomSentimentFactory(name=self.custom_sentiment_name)
         mock_get_custom_sentiment.return_value = custom_sentiment
 
-        self.assertEqual(highlight_for_custom_sentiment(self.text, custom_sentiment_id=custom_sentiment.id),
-                         self.text, 'highlight_for_custom_sentiment() should return text if CustomSentiment has no terms')
+        self.assertEqual(
+            highlight_for_custom_sentiment(self.text, custom_sentiment_id=custom_sentiment.id),
+            self.text, 'highlight_for_custom_sentiment() should return text if CustomSentiment has no terms'
+        )
 
     @patch('letter_sentiment.custom_sentiment.get_custom_sentiment', autospec=True)
     @patch('letter_sentiment.custom_sentiment.sort_terms_by_number_of_words', autospec=True)
@@ -264,10 +277,10 @@ class HighlightForCustomSentimentTestCase(TestCase):
     @patch('letter_sentiment.custom_sentiment.get_token_offsets', autospec=True)
     @patch('letter_sentiment.custom_sentiment.update_tokens_in_termvector', autospec=True)
     def test_highlight_for_custom_sentiment_terms(self, mock_update_tokens_in_termvector,
-                                            mock_get_token_offsets,
-                                            mock_get_sentiment_termvector_for_text,
-                                            mock_sort_terms_by_number_of_words,
-                                            mock_get_custom_sentiment):
+                                                  mock_get_token_offsets,
+                                                  mock_get_sentiment_termvector_for_text,
+                                                  mock_sort_terms_by_number_of_words,
+                                                  mock_get_custom_sentiment):
         """
         Test highlight_for_custom_sentiment() for situations where there are terms found
         """
@@ -300,10 +313,10 @@ class HighlightForCustomSentimentTestCase(TestCase):
     @patch('letter_sentiment.custom_sentiment.get_token_offsets', autospec=True)
     @patch('letter_sentiment.custom_sentiment.update_tokens_in_termvector', autospec=True)
     def test_highlight_for_custom_sentiment_termvector_no_tokens(self, mock_update_tokens_in_termvector,
-                                            mock_get_token_offsets,
-                                            mock_get_sentiment_termvector_for_text,
-                                            mock_sort_terms_by_number_of_words,
-                                            mock_get_custom_sentiment):
+                                                                 mock_get_token_offsets,
+                                                                 mock_get_sentiment_termvector_for_text,
+                                                                 mock_sort_terms_by_number_of_words,
+                                                                 mock_get_custom_sentiment):
         """
         Test highlight_for_custom_sentiment() for situations where there are terms found but no tokens
         (shouldn't be possible, but need to test all conditions)
@@ -312,7 +325,7 @@ class HighlightForCustomSentimentTestCase(TestCase):
         mock_get_custom_sentiment.return_value = self.custom_sentiment
         mock_sort_terms_by_number_of_words.return_value = [self.tofu_artisan, self.pabst, self.locavore]
         mock_get_sentiment_termvector_for_text.return_value = {
-            'pabst': {'term_freq': 1,},
+            'pabst': {'term_freq': 1, },
             }
 
         highlight_for_custom_sentiment(self.text, custom_sentiment_id=self.custom_sentiment.id)
@@ -322,17 +335,19 @@ class HighlightForCustomSentimentTestCase(TestCase):
                          "highlight_for_custom_sentiment() shouldn't call get_token_offsets() if no tokens in text")
 
         # update_tokens_in_termvector() should not be called
-        self.assertEqual(mock_update_tokens_in_termvector.call_count, 0,
-            "highlight_for_custom_sentiment() shouldn't call update_tokens_in_termvector() if no tokens in text")
+        self.assertEqual(
+            mock_update_tokens_in_termvector.call_count, 0,
+            "highlight_for_custom_sentiment() shouldn't call update_tokens_in_termvector() if no tokens in text"
+        )
 
     @patch('letter_sentiment.custom_sentiment.get_custom_sentiment', autospec=True)
     @patch('letter_sentiment.custom_sentiment.sort_terms_by_number_of_words', autospec=True)
     @patch('letter_sentiment.custom_sentiment.get_sentiment_termvector_for_text', autospec=True)
     @patch('letter_sentiment.custom_sentiment.update_tokens_in_termvector', autospec=True)
     def test_highlight_for_custom_sentiment_overlapping_terms(self, mock_update_tokens_in_termvector,
-                                            mock_get_sentiment_termvector_for_text,
-                                            mock_sort_terms_by_number_of_words,
-                                            mock_get_custom_sentiment):
+                                                              mock_get_sentiment_termvector_for_text,
+                                                              mock_sort_terms_by_number_of_words,
+                                                              mock_get_custom_sentiment):
         """
         Test highlight_for_custom_sentiment() for situations where there are overlapping terms found
         """
@@ -347,7 +362,8 @@ class HighlightForCustomSentimentTestCase(TestCase):
 
         highlighted_text = highlight_for_custom_sentiment(self.text, custom_sentiment_id=self.custom_sentiment.id)
 
-        # Highlighted text should be <highlight>tofu</highlight><highlight>artisan</highlight><highlight>pabst</highlight>
+        # Highlighted text should be
+        # <highlight>tofu</highlight><highlight>artisan</highlight><highlight>pabst</highlight>
         # because highlights are inserted starting from the end
         self.assertTrue('tofu' in highlighted_text, 'Overlapping terms should be highlighted separately')
         self.assertFalse('tofu artisan' in highlighted_text, "Overlapping terms shouldn't be highlighted together")
@@ -369,7 +385,7 @@ class SortTermsByNumberOfWordsTestCase(TestCase):
         two_word_term = TermFactory(text='disrupt gastropub', analyzed_text='disrupt gastropub',
                                     custom_sentiment=custom_sentiment)
         another_two_word_term = TermFactory(text='kinfolk distillery', analyzed_text='kinfolk distillery',
-                                    custom_sentiment=custom_sentiment)
+                                            custom_sentiment=custom_sentiment)
         three_word_term = TermFactory(text='sustainable 8-bit kombucha', analyzed_text='sustainable 8-bit kombucha',
                                       custom_sentiment=custom_sentiment)
 
@@ -463,11 +479,12 @@ class UpdateTokensInTermvectorTestCase(TestCase):
         # If the term's tokens aren't inside the token that's passed in,
         # get_token_offsets() should be called twice, but termvector should not be updated
         updated_termvector = update_tokens_in_termvector(termvector, term, token)
-        self.assertGreaterEqual(mock_get_token_offsets.call_count, 2,
-                "If term's tokens aren't inside the token, get_token_offsets() should still be called at least twice")
+        self.assertGreaterEqual(
+            mock_get_token_offsets.call_count, 2,
+            "If term's tokens aren't inside the token, get_token_offsets() should still be called at least twice"
+        )
         self.assertEqual(self.original_termvector_double_pounce_box, updated_termvector,
                          "If an n-gram of the term is not inside the token, the termvector shouldn't get updated")
-
 
     @patch('letter_sentiment.custom_sentiment.get_token_offsets', autospec=True)
     def test_update_tokens_in_termvector_multiple_search_tokens(self, mock_get_token_offsets):
@@ -484,7 +501,9 @@ class UpdateTokensInTermvectorTestCase(TestCase):
         # If the term's tokens are found multiple times inside the token that's passed in,
         # get_token_offsets() should be called at least twice, and termvector should be updated
         updated_termvector = update_tokens_in_termvector(termvector, term, token)
-        self.assertGreaterEqual(mock_get_token_offsets.call_count, 2,
-                "If term's tokens are inside token multiple times, get_token_offsets() should be called at least twice")
+        self.assertGreaterEqual(
+            mock_get_token_offsets.call_count, 2,
+            "If term's tokens are inside token multiple times, get_token_offsets() should be called at least twice"
+        )
         self.assertNotEqual(self.original_termvector_double_pounce_box, updated_termvector,
-                         "If an n-gram of term is inside the token multiple times, termvector should get updated")
+                            "If an n-gram of term is inside the token multiple times, termvector should get updated")

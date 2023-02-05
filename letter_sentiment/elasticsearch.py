@@ -50,10 +50,9 @@ def get_custom_sentiment_stored_fields():
 
 def get_sentiment_function_score_query(bool_query):
     return {
-        "query":
-            {
-                "bool": bool_query
-            },
+        "query": {
+            "bool": bool_query
+        },
         "script_score": {
             "script": {
                 "lang": "painless",
@@ -62,7 +61,7 @@ def get_sentiment_function_score_query(bool_query):
                           "long word_count = doc['contents.word_count'].value; "
                           "double factor = (Math.log1p(word_count * 0.5) / Math.log1p(2)) * 20; "
                           "if (factor == 0) { return 0; }"
-                           "return _score / factor;"
+                          "return _score / factor;"
             }
         }
     }
@@ -81,13 +80,11 @@ def get_sentiment_match_query(sentiment_id):
         terms = my_custom_sentiment.get_terms()
         for term in terms:
             boost = term.weight * term.number_of_words() / max_weight
-            term_match_query = {'match_phrase':
-                                    {'contents.custom_sentiment':
-                                         {'query': term.text,
-                                          'boost': boost,
-                                         }
-                                    }
-                               }
+            term_match_query = {
+                'match_phrase': {
+                    'contents.custom_sentiment': {'query': term.text, 'boost': boost, }
+                }
+            }
 
             sentiment_match_query.append(term_match_query)
 

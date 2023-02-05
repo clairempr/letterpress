@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from factory import post_generation, SubFactory
+from factory import SubFactory
 from factory.django import DjangoModelFactory
 
 from letter_sentiment.models import CustomSentiment, Term

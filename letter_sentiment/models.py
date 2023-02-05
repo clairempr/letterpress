@@ -42,7 +42,7 @@ class Term(models.Model):
 
         if (self.text != self.__original_text) or not self.analyzed_text:
             self.analyzed_text = analyze_text(self.text)
-        super(Term, self).save(*args, **kwargs);
+        super(Term, self).save(*args, **kwargs)
         self.__original_text = self.text
 
     class Meta:

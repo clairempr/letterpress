@@ -54,5 +54,3 @@ class CustomSentimentAdmin(admin.ModelAdmin):
 
 admin.site.register(CustomSentiment, CustomSentimentAdmin)
 admin.site.register(Term, TermAdmin)
-
-

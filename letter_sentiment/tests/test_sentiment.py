@@ -1,5 +1,4 @@
-from textblob import TextBlob
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as vaderSentiment
 
 from django.test import SimpleTestCase
@@ -23,8 +22,10 @@ class DoSentimentHighlight(SimpleTestCase):
         text = 'goth paleo coloring book'
 
         # polarity < -0.5 should be 'sentiment-highlight-neg'
-        self.assertTrue(negative_class in do_sentiment_highlight(text, -0.55),
-            "do_sentiment_highlight() should return span with class '{}' when polarity is -0.55".format(negative_class))
+        self.assertTrue(
+            negative_class in do_sentiment_highlight(text, -0.55),
+            "do_sentiment_highlight() should return span with class '{}' when polarity is -0.55".format(negative_class)
+        )
 
         # polarity >= -0.5 and < -0.2 should be 'sentiment-highlight-sorta-neg'
         for polarity in [-0.5, -0.3]:
@@ -33,8 +34,10 @@ class DoSentimentHighlight(SimpleTestCase):
                                 slightly_negative_class, polarity))
         # polarity >= -0.2 and < 0.2 shouldn't be wrapped in a span
         for polarity in [-0.2, 0]:
-            self.assertFalse('<span>' in do_sentiment_highlight(text, polarity),
-                        "do_sentiment_highlight() shouldn't wrap text in a <span> when polarity is {}".format(polarity))        # polarity >= 0.2 and < 0.5 should be 'sentiment-highlight-sorta-pos'
+            self.assertFalse(
+                '<span>' in do_sentiment_highlight(text, polarity),
+                "do_sentiment_highlight() shouldn't wrap text in a <span> when polarity is {}".format(polarity)
+            )
         for polarity in [0.2, 0.3]:
             self.assertTrue(slightly_positive_class in do_sentiment_highlight(text, polarity),
                             "do_sentiment_highlight() should return span with class '{}' when polarity is {}".format(
@@ -94,7 +97,8 @@ class GetSentimentTestCase(SimpleTestCase):
         self.assertEqual(mock_format_sentiment.call_count, 2, 'get_sentiment() should call format_sentiment() twice')
 
         # sentiment_to_string() should be called twice
-        self.assertEqual(mock_sentiment_to_string.call_count, 2, 'get_sentiment() should call sentiment_to_string() twice')
+        self.assertEqual(mock_sentiment_to_string.call_count, 2,
+                         'get_sentiment() should call sentiment_to_string() twice')
 
         # return value should contain 'TextBlob' and 'Vader'
         text_blob, vader = result
@@ -113,8 +117,7 @@ class GetTextblobPolarityTestCase(SimpleTestCase):
         so just test for expected values based on text
         """
         result = get_textblob_polarity('This is terrific')
-        self.assertGreaterEqual(result, 0,
-                         "get_textblob_polarity() should return polarity > 0 for 'This is terrific'")
+        self.assertGreaterEqual(result, 0, "get_textblob_polarity() should return polarity > 0 for 'This is terrific'")
 
         result = get_textblob_polarity('This is neutral')
         self.assertEqual(result, 0,
@@ -122,7 +125,7 @@ class GetTextblobPolarityTestCase(SimpleTestCase):
 
         result = get_textblob_polarity('This is awful')
         self.assertLessEqual(result, 0,
-                         "get_textblob_polarity() should return polarity <>> 0 for 'This is awful'")
+                             "get_textblob_polarity() should return polarity <>> 0 for 'This is awful'")
 
 
 class GetVadersentimentPolarityTestCase(SimpleTestCase):

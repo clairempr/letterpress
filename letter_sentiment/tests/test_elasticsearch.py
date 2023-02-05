@@ -1,5 +1,3 @@
-import json
-
 from django_date_extensions.fields import ApproximateDate
 from unittest.mock import patch
 
@@ -9,7 +7,7 @@ from letters import es_settings
 from letters.models import Letter
 from letters.tests.factories import LetterFactory
 from letter_sentiment.elasticsearch import calculate_custom_sentiment, get_custom_sentiment_query, \
-    get_sentiment_function_score_query, get_sentiment_function_score_query, get_sentiment_match_query
+    get_sentiment_function_score_query, get_sentiment_match_query
 from letter_sentiment.tests.factories import CustomSentimentFactory, TermFactory
 
 
@@ -33,8 +31,10 @@ class CalculateCustomSentimentTestCase(TestCase):
 
         # get_custom_sentiment_query() should get called
         args, kwargs = mock_get_custom_sentiment_query.call_args
-        self.assertEqual(args, (1, 2),
-                'calculate_custom_sentiment() should call get_custom_sentiment_query(letter_id, sentiment_id)')
+        self.assertEqual(
+            args, (1, 2),
+            'calculate_custom_sentiment() should call get_custom_sentiment_query(letter_id, sentiment_id)'
+        )
 
         # do_es_search() should get called
         args, kwargs = mock_do_es_search.call_args
@@ -139,5 +139,7 @@ class GetSentimentMatchQuery(TestCase):
 
         sentiment_match_query = get_sentiment_match_query(sentiment.id)
         for query in sentiment_match_query:
-            self.assertIn('match_phrase', query,
-                "get_sentiment_match_query() should return dict list with key 'match_phrase' if CustomSentiment found")
+            self.assertIn(
+                'match_phrase', query,
+                "get_sentiment_match_query() should return dict list with key 'match_phrase' if CustomSentiment found"
+            )

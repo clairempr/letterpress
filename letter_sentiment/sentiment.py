@@ -83,4 +83,3 @@ def do_sentiment_highlight(text, polarity):
     else:
         return str.format('{0} <b>({1:.3f})</b> ',
                           text, polarity)
-

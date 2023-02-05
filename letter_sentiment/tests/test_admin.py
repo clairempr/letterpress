@@ -1,7 +1,6 @@
 from string import ascii_uppercase
 
 from django.contrib.admin import site
-from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 
