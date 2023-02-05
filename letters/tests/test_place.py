@@ -30,4 +30,4 @@ class PlaceTestCase(TestCase):
         # Place.__str__() shouldn't contain country if it's DEFAULT_COUNTRY ("US")
         place.country = 'US'
         self.assertNotIn(place.country, str(place),
-                      "Place.__str__() shouldn't contain country if it's DEFAULT_COUNTRY")
+                         "Place.__str__() shouldn't contain country if it's DEFAULT_COUNTRY")

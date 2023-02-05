@@ -3,7 +3,6 @@ from unittest.mock import patch
 from django.http.request import QueryDict
 from django.test import RequestFactory, SimpleTestCase, TestCase
 
-from letter_sentiment.models import CustomSentiment
 from letter_sentiment.tests.factories import CustomSentimentFactory
 from letters.filter import DEFAULT_STATS_SEARCH_WORDS, get_end_date_from_request, get_filter_values_from_request, \
     get_initial_filter_values, get_sentiment_list, get_start_date_from_request
@@ -30,8 +29,10 @@ class GetEndDateFromRequestTestCase(SimpleTestCase):
         # If there's no end date, '9999-12-31' should be returned
         request = request_factory.get('search', data={})
         result = get_end_date_from_request(request)
-        self.assertEqual(result, '9999-12-31',
-                "get_end_date_from_request() should return '9999-12-31' from GET request if none in GET parameters")
+        self.assertEqual(
+            result, '9999-12-31',
+            "get_end_date_from_request() should return '9999-12-31' from GET request if none in GET parameters"
+        )
 
         # POST request
         # If there's an end date, it should be returned
@@ -42,8 +43,10 @@ class GetEndDateFromRequestTestCase(SimpleTestCase):
         # If there's no end date, '9999-12-31' should be returned
         request = request_factory.post('search', data={})
         result = get_end_date_from_request(request)
-        self.assertEqual(result, '9999-12-31',
-                "get_end_date_from_request() should return '9999-12-31' from POST request if none in GET parameters")
+        self.assertEqual(
+            result, '9999-12-31',
+            "get_end_date_from_request() should return '9999-12-31' from POST request if none in GET parameters"
+        )
 
 
 class GetFilterValuesFromRequestTestCase(SimpleTestCase):
@@ -61,11 +64,12 @@ class GetFilterValuesFromRequestTestCase(SimpleTestCase):
         self.get = None
         self.ajax = None
 
-
     @patch.object(QueryDict, 'getlist', autospec=True)
     @patch('letters.filter.get_start_date_from_request', autospec=True)
     @patch('letters.filter.get_end_date_from_request', autospec=True)
-    def get_filter_values_from_request(self, mock_get_end_date_from_request, mock_get_start_date_from_request, mock_getlist):
+    def get_filter_values_from_request(
+            self, mock_get_end_date_from_request, mock_get_start_date_from_request, mock_getlist
+    ):
         """
         Test get_filter_values_from_request() with Ajax = True/False and GET = True/False
         """
@@ -78,14 +82,18 @@ class GetFilterValuesFromRequestTestCase(SimpleTestCase):
         if self.get:
             if self.ajax:
                 # GET and Ajax
-                request = self.request_factory.get('search', data=self.search_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+                request = self.request_factory.get(
+                    'search', data=self.search_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+                )
             else:
                 # GET and non-Ajax
                 request = self.request_factory.get('search', data=self.search_data)
         else:
             # POST and Ajax
             if self.ajax:
-                request = self.request_factory.post('search', data=self.search_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+                request = self.request_factory.post(
+                    'search', data=self.search_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+                )
             else:
                 # POST and non-Ajax
                 request = self.request_factory.post('search', data=self.search_data)
@@ -99,7 +107,7 @@ class GetFilterValuesFromRequestTestCase(SimpleTestCase):
                              "get_filter_values_from_request() should call getlist() 4 times if it's an Ajax call")
         else:
             self.assertEqual(mock_getlist.call_count, 2,
-                            "get_filter_values_from_request() should call getlist() 2 times if it's a non-Ajax call")
+                             "get_filter_values_from_request() should call getlist() 2 times if it's a non-Ajax call")
         args, kwargs = mock_get_start_date_from_request.call_args
         self.assertEqual(args[0], request,
                          'get_filter_values_from_request() should call get_start_date_from_request(request)')
@@ -127,8 +135,10 @@ class GetFilterValuesFromRequestTestCase(SimpleTestCase):
         else:
             self.assertEqual(result.words, [],
                              'If non-Ajax request, get_filter_values_from_request() should return empty for words')
-            self.assertEqual(result.sentiment_ids, [],
-                    'If non-Ajax request, get_filter_values_from_request() should return empty list for sentiment_ids')
+            self.assertEqual(
+                result.sentiment_ids, [],
+                'If non-Ajax request, get_filter_values_from_request() should return empty list for sentiment_ids'
+            )
 
         self.assertEqual(result.sort_by, 'start_date',
                          'get_filter_values_from_request() should return sort_by')
@@ -211,7 +221,7 @@ class GetSentimentListTestCase(TestCase):
                       "get_sentiment_list() should return a 'Positive/negative' sentiment")
         for sentiment in [hipster_custom_sentiment, pony_custom_sentiment]:
             self.assertIn((sentiment.id, sentiment.name), result,
-                      "get_sentiment_list() should return all custom sentiments")
+                          "get_sentiment_list() should return all custom sentiments")
 
 
 class GetStartDateFromRequestTestCase(SimpleTestCase):
@@ -233,8 +243,10 @@ class GetStartDateFromRequestTestCase(SimpleTestCase):
         # If there's no start date, '0001-01-01' should be returned
         request = request_factory.get('search', data={})
         result = get_start_date_from_request(request)
-        self.assertEqual(result, '0001-01-01',
-                "get_start_date_from_request() should return '0001-01-01' from GET request if none in GET parameters")
+        self.assertEqual(
+            result, '0001-01-01',
+            "get_start_date_from_request() should return '0001-01-01' from GET request if none in GET parameters"
+        )
 
         # POST request
         # If there's a start date, it should be returned
@@ -245,5 +257,7 @@ class GetStartDateFromRequestTestCase(SimpleTestCase):
         # If there's no start date, '0001-01-01' should be returned
         request = request_factory.post('search', data={})
         result = get_start_date_from_request(request)
-        self.assertEqual(result, '0001-01-01',
-                "get_start_date_from_request() should return '0001-01-01' from POST request if none in GET parameters")
+        self.assertEqual(
+            result, '0001-01-01',
+            "get_start_date_from_request() should return '0001-01-01' from POST request if none in GET parameters"
+        )

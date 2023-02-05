@@ -11,7 +11,6 @@ from letters.elasticsearch import analyze_term, delete_temp_document, do_es_anal
     do_es_mtermvectors, do_es_search, do_es_termvectors_for_text, get_mtermvectors, get_sentiment_termvector_for_text, \
     get_stored_fields_for_letter, get_termvector_from_result, index_temp_document, \
     raise_exception_from_response_error, raise_exception_from_request_error
-from letters.es_settings import ES_LETTER_URL
 from letters.models import Letter
 
 
@@ -72,8 +71,9 @@ class DoEsAnalyzeTestCase(SimpleTestCase):
         type(response_mock).status_code = PropertyMock(return_value=200)
 
         # if 'tokens' in response, response should be returned
-        with patch.object(elasticsearch.client.IndicesClient, 'analyze', autospec=True,
-            return_value={'tokens': 'tokens'}) as mock_analyze:
+        with patch.object(
+            elasticsearch.client.IndicesClient, 'analyze', autospec=True, return_value={'tokens': 'tokens'}
+        ) as mock_analyze:
 
             analyzer = {'analyzer'}
             text = {'text'}
@@ -88,22 +88,24 @@ class DoEsAnalyzeTestCase(SimpleTestCase):
                              'do_es_analyze() should return result of Elasticsearch request')
 
         # If there was an error in the response, raise_exception_from_response_error() should be called
-        with patch.object(elasticsearch.client.IndicesClient, 'analyze', autospec=True,
-            return_value=response_mock) as mock_Elasticsearch_analyze:
+        with patch.object(
+            elasticsearch.client.IndicesClient, 'analyze', autospec=True, return_value=response_mock
+        ) as mock_Elasticsearch_analyze:
             response_mock.text = json.dumps({'error': 'Something went wrong'})
 
             do_es_analyze(index=Letter._meta.es_index_name, analyzer=analyzer, text=text)
 
             args, kwargs = mock_raise_exception_from_response_error.call_args
-            self.assertEqual(args[0], response_mock,
-                        'do_es_analyze() should call raise_exception_from_response_error if error in search response')
+            self.assertEqual(
+                args[0], response_mock,
+                'do_es_analyze() should call raise_exception_from_response_error if error in search response'
+            )
 
         # If there was an Elasticsearch client RequestError, raise_exception_from_response_error() should be called
         with patch.object(elasticsearch.client.IndicesClient, 'analyze', autospec=True) as mock_Elasticsearch_analyze:
             mock_Elasticsearch_analyze.side_effect = elasticsearch.exceptions.RequestError('error', '', '')
 
             do_es_analyze(index=Letter._meta.es_index_name, analyzer=analyzer, text=text)
-
 
             self.assertEqual(mock_raise_exception_from_request_error.call_count, 1,
                              'do_es_analyze() should call exception_from_request_error if RequestError from search')
@@ -116,7 +118,9 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
 
     @patch('letters.elasticsearch.raise_exception_from_response_error', autospec=True)
     @patch('letters.elasticsearch.raise_exception_from_request_error', autospec=True)
-    def test_do_es_mtermvectors(self, mock_raise_exception_from_request_error, mock_raise_exception_from_response_error):
+    def test_do_es_mtermvectors(
+            self, mock_raise_exception_from_request_error, mock_raise_exception_from_response_error
+    ):
         response_mock = MagicMock()
         type(response_mock).status_code = PropertyMock(return_value=200)
 
@@ -124,8 +128,9 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
         fields = ['name', 'date']
 
         # if 'docs' in response, response should be returned
-        with patch('elasticsearch.Elasticsearch.mtermvectors', autospec=True,
-            return_value={'docs': 'mterm_vectors'}) as mock_Elasticsearch_mtermvectors:
+        with patch(
+            'elasticsearch.Elasticsearch.mtermvectors', autospec=True, return_value={'docs': 'mterm_vectors'}
+        ) as mock_Elasticsearch_mtermvectors:
             response = do_es_mtermvectors(index=Letter._meta.es_index_name,
                                           ids=ids, fields=fields)
 
@@ -138,16 +143,19 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
                             'do_es_mtermvectors() should return result of Elasticsearch request')
 
         # If there was an error in the response, raise_exception_from_response_error() should be called
-        with patch('elasticsearch.Elasticsearch.mtermvectors', autospec=True,
-            return_value=response_mock) as mock_Elasticsearch_search:
+        with patch(
+            'elasticsearch.Elasticsearch.mtermvectors', autospec=True, return_value=response_mock
+        ) as mock_Elasticsearch_search:
             response_mock.text = json.dumps({'error': 'Something went wrong'})
 
             do_es_mtermvectors(index=Letter._meta.es_index_name,
                                ids=ids, fields=fields)
 
             args, kwargs = mock_raise_exception_from_response_error.call_args
-            self.assertEqual(args[0], response_mock,
-                    'do_es_mtermvectors() should call raise_exception_from_response_error if error in search response')
+            self.assertEqual(
+                args[0], response_mock,
+                'do_es_mtermvectors() should call raise_exception_from_response_error if error in search response'
+            )
 
         # If there was an Elasticsearch client RequestError, raise_exception_from_response_error() should be called
         with patch('elasticsearch.Elasticsearch.mtermvectors', autospec=True) as mock_Elasticsearch_search:
@@ -156,8 +164,10 @@ class DoEsMtermvectorsTestCase(SimpleTestCase):
             do_es_mtermvectors(index=Letter._meta.es_index_name,
                                ids=ids, fields=fields)
 
-            self.assertEqual(mock_raise_exception_from_request_error.call_count, 1,
-                    'do_es_mtermvectors() should call exception_from_request_error if RequestError from search')
+            self.assertEqual(
+                mock_raise_exception_from_request_error.call_count, 1,
+                'do_es_mtermvectors() should call exception_from_request_error if RequestError from search'
+            )
 
 
 class DoEsSearchTestCase(SimpleTestCase):
@@ -182,8 +192,9 @@ class DoEsSearchTestCase(SimpleTestCase):
         }
 
         # If there was no error, search result should be returned
-        with patch('elasticsearch.Elasticsearch.search', autospec=True,
-            return_value={'hits': 'response'}) as mock_Elasticsearch_search:
+        with patch(
+            'elasticsearch.Elasticsearch.search', autospec=True, return_value={'hits': 'response'}
+        ) as mock_Elasticsearch_search:
 
             response = do_es_search(index=Letter._meta.es_index_name, query=query)
 
@@ -193,18 +204,21 @@ class DoEsSearchTestCase(SimpleTestCase):
             self.assertEqual(kwargs['query'], query,
                              'do_es_search() should make Elasticsearch request with query as query')
             self.assertTrue('hits' in response,
-                             'do_es_search() should return result of Elasticsearch request')
+                            'do_es_search() should return result of Elasticsearch request')
 
         # If there was an error in the response, raise_exception_from_response_error() should be called
-        with patch.object(elasticsearch.Elasticsearch, 'search', autospec=True,
-            return_value=response_mock) as mock_Elasticsearch_search:
+        with patch.object(
+            elasticsearch.Elasticsearch, 'search', autospec=True, return_value=response_mock
+        ) as mock_Elasticsearch_search:
             response_mock.text = json.dumps({'error': 'Something went wrong'})
 
             do_es_search(index=Letter._meta.es_index_name, query=query)
 
             args, kwargs = mock_raise_exception_from_response_error.call_args
-            self.assertEqual(args[0], response_mock,
-                        'do_es_search() should call raise_exception_from_response_error if error in search response')
+            self.assertEqual(
+                args[0], response_mock,
+                'do_es_search() should call raise_exception_from_response_error if error in search response'
+            )
 
         # If there was an Elasticsearch client RequestError, raise_exception_from_response_error() should be called
         with patch('elasticsearch.Elasticsearch.search', autospec=True) as mock_Elasticsearch_search:
@@ -212,8 +226,10 @@ class DoEsSearchTestCase(SimpleTestCase):
 
             do_es_search(index=Letter._meta.es_index_name, query=query)
 
-            self.assertEqual(mock_raise_exception_from_request_error.call_count, 1,
-                        'do_es_search() should call exception_from_request_error if RequestError from search')
+            self.assertEqual(
+                mock_raise_exception_from_request_error.call_count, 1,
+                'do_es_search() should call exception_from_request_error if RequestError from search'
+            )
 
 
 class DoEsTermvectorsForTextTestCase(SimpleTestCase):
@@ -234,39 +250,55 @@ class DoEsTermvectorsForTextTestCase(SimpleTestCase):
         doc = {'doc'}
 
         # if 'term_vectors' in response, response should be returned
-        with patch('elasticsearch.Elasticsearch.termvectors', autospec=True,
-            return_value={'term_vectors': 'term_vectors'}) as mock_Elasticsearch_termvectors:
+        with patch(
+            'elasticsearch.Elasticsearch.termvectors', autospec=True, return_value={'term_vectors': 'term_vectors'}
+        ) as mock_Elasticsearch_termvectors:
 
             response = do_es_termvectors_for_text(index=Letter._meta.es_index_name, doc=doc)
 
             args, kwargs = mock_Elasticsearch_termvectors.call_args
-            self.assertEqual(kwargs['doc'], doc,
-                'do_es_termvectors_for_text() should make Elasticsearch request with query as doc')
-            self.assertEqual(mock_get_termvector_from_result.call_count, 1,
-                'do_es_termvectors_for_text() should call get_termvector_from_result() with result from Elasticsearch termvectors request')
-            self.assertEqual(response, mock_get_termvector_from_result.return_value,
-                'do_es_termvectors_for_text() should return result of get_termvector_from_result()')
+            self.assertEqual(
+                kwargs['doc'], doc,
+                'do_es_termvectors_for_text() should make Elasticsearch request with query as doc'
+            )
+            self.assertEqual(
+                mock_get_termvector_from_result.call_count, 1,
+                '''do_es_termvectors_for_text() should call get_termvector_from_result()
+                with result from Elasticsearch termvectors request'''
+            )
+            self.assertEqual(
+                response, mock_get_termvector_from_result.return_value,
+                'do_es_termvectors_for_text() should return result of get_termvector_from_result()'
+            )
 
-        with patch('elasticsearch.Elasticsearch.termvectors', autospec=True,
-            return_value=response_mock) as mock_Elasticsearch_termvectors:
+        with patch(
+            'elasticsearch.Elasticsearch.termvectors', autospec=True, return_value=response_mock
+        ) as mock_Elasticsearch_termvectors:
             # if 'term_vectors not in response, check for error
             response_mock.text = json.dumps({'error': 'Something went wrong'})
 
             do_es_termvectors_for_text(index=Letter._meta.es_index_name, doc=doc)
 
             args, kwargs = mock_Elasticsearch_termvectors.call_args
-            self.assertEqual(kwargs['doc'], doc,
-                'do_es_termvectors_for_text() should make Elasticsearch request with query as doc')
-            self.assertEqual(mock_raise_exception_from_response_error.call_count, 1,
-                'do_es_termvectors_for_text() should call exception_from_response_error() if error in termvectors response')
+            self.assertEqual(
+                kwargs['doc'], doc,
+                'do_es_termvectors_for_text() should make Elasticsearch request with query as doc'
+            )
+            self.assertEqual(
+                mock_raise_exception_from_response_error.call_count, 1,
+                '''do_es_termvectors_for_text() should call exception_from_response_error()
+                if error in termvectors response'''
+            )
 
             # If there was an Elasticsearch client RequestError, raise_exception_from_response_error() should be called
             mock_Elasticsearch_termvectors.side_effect = elasticsearch.exceptions.RequestError('error', '', '')
 
             do_es_termvectors_for_text(index=Letter._meta.es_index_name, doc=doc)
 
-            self.assertEqual(mock_raise_exception_from_request_error.call_count, 1,
-                        'do_es_search() should call exception_from_request_error() if RequestError from search')
+            self.assertEqual(
+                mock_raise_exception_from_request_error.call_count, 1,
+                'do_es_search() should call exception_from_request_error() if RequestError from search'
+            )
 
 
 class GetMtermvectorsTestCase(SimpleTestCase):
@@ -306,10 +338,14 @@ class GetSentimentTermvectorForTextTestCase(SimpleTestCase):
 
         result = get_sentiment_termvector_for_text(text)
         args, kwargs = mock_do_es_termvectors_for_text.call_args
-        self.assertEqual(kwargs['doc'], {"contents": text},
-            'get_sentiment_termvector_for_text() should call do_es_termvectors_for_text() for text')
-        self.assertEqual(result, mock_do_es_termvectors_for_text.return_value,
-                'get_sentiment_termvector_for_text() should return the return value of do_es_termvectors_for_text()')
+        self.assertEqual(
+            kwargs['doc'], {"contents": text},
+            'get_sentiment_termvector_for_text() should call do_es_termvectors_for_text() for text'
+        )
+        self.assertEqual(
+            result, mock_do_es_termvectors_for_text.return_value,
+            'get_sentiment_termvector_for_text() should return the return value of do_es_termvectors_for_text()'
+        )
 
 
 class GetStoredFieldsForLetterTestCase(SimpleTestCase):
@@ -322,8 +358,9 @@ class GetStoredFieldsForLetterTestCase(SimpleTestCase):
 
         response_text = {'stored_fields': 'stored fields'}
 
-        with patch('requests.get', autospec=True,
-            return_value=Mock(text=json.dumps(response_text), status_code=200)) as mock_requests_get:
+        with patch(
+            'requests.get', autospec=True, return_value=Mock(text=json.dumps(response_text), status_code=200)
+        ) as mock_requests_get:
 
             letter_id = 123
             stored_fields = ['name', 'date']

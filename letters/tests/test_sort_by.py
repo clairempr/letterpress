@@ -14,13 +14,17 @@ class GetSelectedSentimentIdTestCase(SimpleTestCase):
 
     def test_get_selected_sentiment_id(self):
         # If filter_value doesn't start with SENTIMENT, get_selected_sentiment_id(filter_value) should return 0
-        self.assertEqual(get_selected_sentiment_id('test'), 0,
-                "If filter_value doesn't start with SENTIMENT, get_selected_sentiment_id(filter_value) should return 0")
+        self.assertEqual(
+            get_selected_sentiment_id('test'), 0,
+            "If filter_value doesn't start with SENTIMENT, get_selected_sentiment_id(filter_value) should return 0"
+        )
 
         # If filter_value starts with SENTIMENT, get_selected_sentiment_id(filter_value) should return sentiment_id
         filter_value = SENTIMENT + '5'
-        self.assertEqual(get_selected_sentiment_id(filter_value), 5,
-            'If filter_value starts with SENTIMENT, get_selected_sentiment_id(filter_value) should return sentiment_id')
+        self.assertEqual(
+            get_selected_sentiment_id(filter_value), 5,
+            'If filter_value starts with SENTIMENT, get_selected_sentiment_id(filter_value) should return sentiment_id'
+        )
 
 
 class GetSentimentsForSortByListTestCase(TestCase):

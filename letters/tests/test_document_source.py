@@ -32,9 +32,9 @@ class DocumentSourceTestCase(TestCase):
 
         self.assertTrue(my_documents < your_documents, '{} should be < {}'.format(my_documents, your_documents))
         self.assertFalse(my_documents < my_other_documents,
-                        "{} shouldn't be be < {}".format(my_documents, my_other_documents))
+                         "{} shouldn't be be < {}".format(my_documents, my_other_documents))
         self.assertFalse(your_documents < my_documents,
-                        "{} shouldn't be be < {}".format(your_documents, my_documents))
+                         "{} shouldn't be be < {}".format(your_documents, my_documents))
 
     def test_to_string(self):
         """

@@ -193,10 +193,14 @@ class LetterTestCase(TestCase):
         Letter._meta.es_mapping['properties']['place'] = {'type': 'object',
                                                           'properties': {'name': 'name'}}
         result = letter.field_es_repr('place')
-        self.assertEqual(result['_id'], place.id,
-                    "If field is an object, Letter.field_es_repr() should return a dictionary with object's attributes")
-        self.assertEqual(result['name'], place.name,
-                    "If field is an object, Letter.field_es_repr() should return a dictionary with object's attributes")
+        self.assertEqual(
+            result['_id'], place.id,
+            "If field is an object, Letter.field_es_repr() should return a dictionary with object's attributes"
+        )
+        self.assertEqual(
+            result['name'], place.name,
+            "If field is an object, Letter.field_es_repr() should return a dictionary with object's attributes"
+        )
 
         # If it's not an object, and there's no special method with special name,
         # field_es_repr() should get an attribute from the model
@@ -288,13 +292,17 @@ class LetterTestCase(TestCase):
                          'Letter.create_or_update_in_elasticsearch() should call Letter.es_repr()')
 
         # When create_or_update_in_elasticsearch() called with is_new = None, ES_CLIENT.create() should get called
-        self.assertEqual(mock_create.call_count, 1,
-            'When create_or_update_in_elasticsearch(is_new=None) called, ES_CLIENT.create() should get called')
+        self.assertEqual(
+            mock_create.call_count, 1,
+            'When create_or_update_in_elasticsearch(is_new=None) called, ES_CLIENT.create() should get called'
+        )
 
         # When create_or_update_in_elasticsearch() called with is_new not None, ES_CLIENT.update() should get called
         letter.create_or_update_in_elasticsearch(is_new=letter.pk)
-        self.assertEqual(mock_update.call_count, 1,
-            'When create_or_update_in_elasticsearch(is_new=not None) called, ES_CLIENT.mock_update() should get called')
+        self.assertEqual(
+            mock_update.call_count, 1,
+            'When create_or_update_in_elasticsearch(is_new=not None) called, ES_CLIENT.mock_update() should get called'
+        )
 
     @patch.object(Letter, 'delete_from_elasticsearch', autospec=True)
     def test_delete(self, mock_delete_from_elasticsearch):

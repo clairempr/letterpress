@@ -6,10 +6,9 @@ from bokeh.plotting import Figure
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
-from django.utils.html import format_html
 
 from letters.charts import get_bokeh_figure, get_frequency_charts, get_per_month_chart, get_proportions_chart, \
-    make_charts, PALETTE
+    make_charts
 
 
 class GetFrequencyChartsTestCase(SimpleTestCase):
@@ -81,7 +80,7 @@ class GetPerMonthChartTestCase(SimpleTestCase):
                           'get_per_month_chart() should create a line with line_width in kwargs')
 
         # get_per_month_chart() should return a Bokeh Figure
-        with patch.object(bokeh.plotting, 'figure') as mock_figure:
+        with patch.object(bokeh.plotting, 'figure'):
             result = get_per_month_chart(months, values, title, label)
             self.assertEqual(type(result), Figure, 'get_per_month_chart() should return a Bokeh Figure')
 
@@ -101,7 +100,7 @@ class GetProportionsChartTestCase(SimpleTestCase):
         get_proportions_chart(words, months, proportions)
 
         # get_proportions_chart() should return a Bokeh Figure
-        with patch.object(bokeh.plotting, 'figure') as mock_figure:
+        with patch.object(bokeh.plotting, 'figure'):
             result = get_proportions_chart(words, months, proportions)
             self.assertEqual(type(result), Figure, 'get_proportions_chart() should return a Bokeh Figure')
 
@@ -158,8 +157,10 @@ class MakeChartsTestCase(SimpleTestCase):
         result = make_charts(words=words, months=months, proportions=proportions, word_freqs=word_freqs, totals=totals,
                              averages=averages, doc_counts=doc_counts)
         args, kwargs = mock_get_frequency_charts.call_args
-        self.assertEqual(args[0], words,
-                         'make_charts() should call get_proportions_chart() with words as 1st arg if # of words searched for == 2')
+        self.assertEqual(
+            args[0], words,
+            'make_charts() should call get_proportions_chart() with words as 1st arg if # of words searched for == 2'
+        )
 
         # get_per_month_chart() should be called 3 times
         self.assertEqual(mock_get_per_month_chart.call_count, 3,
@@ -189,4 +190,4 @@ class GetBokehFigureTestCase(SimpleTestCase):
         title = 'Doohickeys per month'
 
         result = get_bokeh_figure(months, title)
-        self.assertEqual(type(result), Figure,'get_bokeh_figure() should return a Bokeh figure')
+        self.assertEqual(type(result), Figure, 'get_bokeh_figure() should return a Bokeh figure')

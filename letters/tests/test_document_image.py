@@ -108,5 +108,7 @@ class DocumentImageTestCase(TestCase):
             document_image = DocumentImageFactory()
             image_preview_with_link = document_image.image_preview_with_link(100)
             expected = 'No image'
-            self.assertEqual(image_preview_with_link, expected,
-                "If there's no image file, DocumentImage.image_preview_with_link() should return {}".format(expected))
+            self.assertEqual(
+                image_preview_with_link, expected,
+                "If there's no image file, DocumentImage.image_preview_with_link() should return {}".format(expected)
+            )

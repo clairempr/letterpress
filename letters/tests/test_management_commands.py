@@ -1,6 +1,4 @@
 from django_date_extensions.fields import ApproximateDate
-from elasticsearch import Elasticsearch
-from unittest import skip
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -99,4 +97,3 @@ class PushToIndexTestCase(TestCase):
             self.assertIn(key, data, "Data returned from convert_for_bulk() should contain '{}'".format(key))
         self.assertEqual(data.get('_index'), Letter._meta.es_index_name,
                          'Data returned from convert_for_bulk() should contain letter index name')
-

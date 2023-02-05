@@ -1,4 +1,3 @@
-from enum import Enum
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase
@@ -29,7 +28,7 @@ class GetEnvelopePreviewTestCase(TestCase):
         self.assertEqual(mock_image_preview.call_count, number_of_envelopes,
                          'get_envelope_preview() should call Envelope.image_preview() <number_of_envelopes> times')
         self.assertEqual(envelope_preview.count(mock_image_preview.return_value), number_of_envelopes,
-                        'get_envelope_preview() should contain image_preview() for each envelope')
+                         'get_envelope_preview() should contain image_preview() for each envelope')
 
         # Envelope preview should contain number_of_envelopes - 1 '&nbsp;'
         # because the list is &nbsp;-separated
@@ -58,7 +57,7 @@ class GetImagePreviewTestCase(TestCase):
         self.assertEqual(mock_image_tag.call_count, number_of_images,
                          'get_image_preview() should call DocumentImage.image_tag() <number_of_images> times')
         self.assertEqual(image_preview.count(mock_image_tag.return_value), number_of_images,
-                        'get_image_preview() should contain image_tag() for each image')
+                         'get_image_preview() should contain image_tag() for each image')
 
         # Image preview should contain number_of_images - 1 '&nbsp;'
         # because the list is &nbsp;-separated

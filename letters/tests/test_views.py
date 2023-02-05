@@ -2,9 +2,7 @@ import base64
 from collections import namedtuple
 import json
 
-from matplotlib.colors import LinearSegmentedColormap
 from unittest.mock import MagicMock, patch
-from wordcloud import WordCloud
 
 from django.contrib.gis.geos import Point
 from django.http import HttpResponse
@@ -16,7 +14,7 @@ from letters.models import Correspondent, Letter
 from letters.tests.factories import CorrespondentFactory, LetterFactory, PlaceFactory
 from letters.views import export_csv, export_text, get_elasticsearch_error_response, get_highlighted_letter_sentiment, \
     get_letter_export_text, GetStatsView, GetTextSentimentView, GetWordCloudView, highlight_for_sentiment, \
-    highlight_letter_for_sentiment, LetterSentimentView, LettersView, PlaceSearchView, RandomLetterView, SearchView, \
+    highlight_letter_for_sentiment, LetterSentimentView, LettersView, PlaceSearchView, SearchView, \
     show_letter_content
 
 
@@ -44,8 +42,7 @@ class LettersViewTestCase(TestCase):
         for key in expected.keys():
             self.assertEqual(response.context[key], expected[key],
                              "LettersView context '{}' should be '{}' if GET request".format(key, expected[key]))
-        self.assertIn('sort_by', response.context,
-                      "LettersView context should contain 'sort_by' if GET request".format(key))
+        self.assertIn('sort_by', response.context, "LettersView context should contain 'sort_by' if GET request")
 
     @patch('letters.views.letter_search.do_letter_search', autospec=True)
     @patch('letters.views.export_text', autospec=True)
@@ -147,10 +144,11 @@ class GetStatsViewTestCase(SimpleTestCase):
 
     def setUp(self):
         self.request = RequestFactory().post(reverse('letters_view'))
-        self.FilterValues = namedtuple('FilterValues',
-                          ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date',
-                           'words',
-                           'sentiment_ids', 'sort_by'])
+        self.FilterValues = namedtuple(
+            'FilterValues',
+            ['search_text', 'source_ids', 'writer_ids', 'start_date', 'end_date',
+             'words', 'sentiment_ids', 'sort_by']
+        )
         self.filter_values = self.FilterValues(
             search_text='search_text',
             source_ids=[1, 2, 3],
@@ -208,14 +206,18 @@ class GetStatsViewTestCase(SimpleTestCase):
                          'GetStatsView should call make_charts() with months as arg')
 
         # If 2 words in filter_values, make_charts() should be called with proportions != 0 for each month
-        self.assertNotEqual(args[2], [0, 0],
-            'If 2 words in filter_values, GetStatsView should call make_charts() with proportions != 0 for each month')
+        self.assertNotEqual(
+            args[2], [0, 0],
+            'If 2 words in filter_values, GetStatsView should call make_charts() with proportions != 0 for each month'
+        )
 
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['stats'], mock_render_to_string.return_value,
                          "GetStatsView content['stats'] should be return value of render_to_string()")
-        self.assertEqual(content['chart'], mock_make_charts.return_value,
-                         "GetStatsView content['charts'] should be return value of make_charts() if show_charts is true")
+        self.assertEqual(
+            content['chart'], mock_make_charts.return_value,
+            "GetStatsView content['charts'] should be return value of make_charts() if show_charts is true"
+        )
 
         # If 1 word in filter_values, make_charts() should be called with proportions == [0, 0] (0 for each month)
         mock_make_charts.reset_mock()
@@ -235,8 +237,10 @@ class GetStatsViewTestCase(SimpleTestCase):
         GetStatsView().post(self.request)
 
         args, kwargs = mock_make_charts.call_args
-        self.assertEqual(args[2], [0, 0],
-            'If 1 word in filter_values, GetStatsView should call make_charts() with proportions == 0 for each month')
+        self.assertEqual(
+            args[2], [0, 0],
+            'If 1 word in filter_values, GetStatsView should call make_charts() with proportions == 0 for each month'
+        )
 
         # If months not in Elasticsearch word frequencies, 'chart' in response should be empty string
         mock_get_multiple_word_frequencies.return_value = {}
@@ -244,8 +248,10 @@ class GetStatsViewTestCase(SimpleTestCase):
         response = GetStatsView().post(self.request)
         content = json.loads(response.content.decode('utf-8'))
 
-        self.assertEqual(content['chart'], '',
-            "If months not in Elasticsearch word frequencies, 'chart' in GetStatsView response should be empty string")
+        self.assertEqual(
+            content['chart'], '',
+            "If months not in Elasticsearch word frequencies, 'chart' in GetStatsView response should be empty string"
+        )
 
         # If no words in filter values, get_multiple_word_frequencies() shouldn't be called
         mock_get_multiple_word_frequencies.reset_mock()
@@ -273,9 +279,11 @@ class GetStatsViewTestCase(SimpleTestCase):
     @patch('letters.views.render_to_string', autospec=True)
     @patch('letters.views.make_charts', autospec=True)
     @patch('letters.views.get_elasticsearch_error_response', autospec=True)
-    def test_get_stats_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response, mock_make_charts,
-                                                    mock_render_to_string, mock_get_multiple_word_frequencies,
-                                                    mock_get_word_counts_per_month, mock_get_filter_values_from_request):
+    def test_get_stats_view_elasticsearch_exception(
+            self, mock_get_elasticsearch_error_response, mock_make_charts,
+            mock_render_to_string, mock_get_multiple_word_frequencies,
+            mock_get_word_counts_per_month, mock_get_filter_values_from_request
+    ):
         """
         If request.method is POST and there's an Elasticsearch exception,
         get_elasticsearch_error_response() should be called
@@ -340,8 +348,10 @@ class GetWordCloudViewTestCase(TestCase):
     @patch('letters.views.LinearSegmentedColormap', autospec=True)
     @patch('letters.views.WordCloud', autospec=True)
     @patch.object(base64, 'b64encode', autospec=True)
-    def test_get_wordcloud_view(self, mock_b64encode, mock_WordCloud, mock_LinearSegmentedColormap, mock_numpy_array,
-                           mock_contents, mock_do_letter_search):
+    def test_get_wordcloud_view(
+            self, mock_b64encode, mock_WordCloud, mock_LinearSegmentedColormap, mock_numpy_array,
+            mock_contents, mock_do_letter_search
+    ):
         # POST request should return HttpResponseNotAllowed
         # For some reason, it's impossible to request a POST request via the Django test client,
         # so manually create one and call the view directly
@@ -354,8 +364,10 @@ class GetWordCloudViewTestCase(TestCase):
         # If no letters returned by Elasticsearch, response content['wc'] should be empty string
         response = self.client.get(reverse('get_wordcloud'), follow=True)
         content = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(content['wc'], '',
-                    "GetWordCloudView should return '' in response content['wc'] if no letters found by Elasticsearch")
+        self.assertEqual(
+            content['wc'], '',
+            "GetWordCloudView should return '' in response content['wc'] if no letters found by Elasticsearch"
+        )
 
         # If something returned by Elasticsearch, decoded WordCloud image should get returned in response content['wc']
         ES_Result = namedtuple('ES_Result', ['search_results', 'total', 'pages'])
@@ -375,8 +387,9 @@ class GetWordCloudViewTestCase(TestCase):
     @patch('letters.views.letters_filter.get_initial_filter_values', autospec=True)
     @patch('letters.views.letter_search.do_letter_search', autospec=True)
     @patch('letters.views.get_elasticsearch_error_response', autospec=True)
-    def test_get_wordcloud_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response, mock_do_letter_search,
-                                                  mock_get_initial_filter_values):
+    def test_get_wordcloud_view_elasticsearch_exception(
+            self, mock_get_elasticsearch_error_response, mock_do_letter_search, mock_get_initial_filter_values
+    ):
         """
         If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called
         """
@@ -438,8 +451,10 @@ class LetterSentimentViewTestCase(TestCase):
                                            kwargs={'letter_id': '1', 'sentiment_id': '1'}), follow=True)
         expected = {'title': 'Letter not found', 'object_id': '1', 'object_type': 'Letter'}
         for key in expected.keys():
-            self.assertEqual(response.context[key], expected[key],
-                "LetterSentimentView context '{}' should be '{}', if letter not found".format(key, expected[key]))
+            self.assertEqual(
+                response.context[key], expected[key],
+                "LetterSentimentView context '{}' should be '{}', if letter not found".format(key, expected[key])
+            )
 
         # If Letter with letter_id found, LetterSentimentView should return get_highlighted_letter_sentiment()
         response = self.client.get(reverse('letter_sentiment_view',
@@ -448,8 +463,10 @@ class LetterSentimentViewTestCase(TestCase):
 
         expected = {'title': 'Letter Sentiment', 'nbar': 'sentiment'}
         for key in expected.keys():
-            self.assertEqual(response.context[key], expected[key],
-                "LetterSentimentView context '{}' should be '{}', if letter found".format(key, expected[key]))
+            self.assertEqual(
+                response.context[key], expected[key],
+                "LetterSentimentView context '{}' should be '{}', if letter found".format(key, expected[key])
+            )
 
     @patch('letters.views.letter_search.get_letter_sentiments', autospec=True)
     @patch('letters.views.get_highlighted_letter_sentiment', autospec=True)
@@ -464,7 +481,6 @@ class LetterSentimentViewTestCase(TestCase):
         """
 
         mock_get_highlighted_letter_sentiment.side_effect = ElasticsearchException(error='error', status=406)
-
 
         # Mocking get_elasticsearch_error_response() doesn't seem to work when using self.client.get(),
         # so do it this way:
@@ -509,8 +525,9 @@ class GetHighlightedLetterSentimentTestCase(TestCase):
             self.assertTrue(item in content,
                             "get_highlighted_letter_sentiment() response content should contain '{}'".format(item))
         for item in ['0.1234']:
-            self.assertTrue(item in content,
-                            "get_highlighted_letter_sentiment() response content should contain sentiment value".format(item))
+            self.assertTrue(
+                item in content, "get_highlighted_letter_sentiment() response content should contain sentiment value"
+            )
 
         # If sentiment value is a list, all those values should end up in response
         mock_highlight_letter_for_sentiment.return_value = [letter, letter]
@@ -522,8 +539,9 @@ class GetHighlightedLetterSentimentTestCase(TestCase):
         content = str(response.content)
 
         for item in ['0.1234', '0.5678']:
-            self.assertTrue(item in content,
-                            "get_highlighted_letter_sentiment() response content should contain sentiment value".format(item))
+            self.assertTrue(
+                item in content, "get_highlighted_letter_sentiment() response content should contain sentiment value"
+            )
 
 
 class HighlightLetterForSentimentTestCase(TestCase):
@@ -567,8 +585,10 @@ class HighlightLetterForSentimentTestCase(TestCase):
                          'highlight_letter_for_sentiment() should call highlight_for_sentiment(body, sentiment_id)')
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[3][0], (letter.closing, 1),
                          'highlight_letter_for_sentiment() should call highlight_for_sentiment(closing, sentiment_id)')
-        self.assertEqual(mock_highlight_for_sentiment.call_args_list[4][0], (letter.signature, 1),
-                         'highlight_letter_for_sentiment() should call highlight_for_sentiment(signature, sentiment_id)')
+        self.assertEqual(
+            mock_highlight_for_sentiment.call_args_list[4][0], (letter.signature, 1),
+            'highlight_letter_for_sentiment() should call highlight_for_sentiment(signature, sentiment_id)'
+        )
         self.assertEqual(mock_highlight_for_sentiment.call_args_list[5][0], (letter.ps, 1),
                          'highlight_letter_for_sentiment() should call highlight_for_sentiment(ps, sentiment_id)')
 
@@ -686,7 +706,6 @@ class HighlightForSentimentTestCase(SimpleTestCase):
     Test highlight_for_sentiment()
     """
 
-
     @patch('letters.views.highlight_text_for_sentiment')
     @patch('letters.views.highlight_for_custom_sentiment')
     def test_highlight_for_sentiment(self, mock_highlight_for_custom_sentiment, mock_highlight_text_for_sentiment):
@@ -703,10 +722,14 @@ class HighlightForSentimentTestCase(SimpleTestCase):
         highlight_for_sentiment(text, 0)
 
         args, kwargs = mock_highlight_text_for_sentiment.call_args
-        self.assertEqual(args[0], text,
-                    'highlight_for_sentiment() should call highlight_text_for_sentiment() if sentiment_id is 0')
-        self.assertEqual(mock_highlight_for_custom_sentiment.call_count, 0,
-                    "highlight_for_sentiment() shouldn't call highlight_for_custom_sentiment() if sentiment_id is 0")
+        self.assertEqual(
+            args[0], text,
+            'highlight_for_sentiment() should call highlight_text_for_sentiment() if sentiment_id is 0'
+        )
+        self.assertEqual(
+            mock_highlight_for_custom_sentiment.call_count, 0,
+            "highlight_for_sentiment() shouldn't call highlight_for_custom_sentiment() if sentiment_id is 0"
+        )
         mock_highlight_text_for_sentiment.reset_mock()
 
         # highlight_for_sentiment(text, sentiment_id) should return text highlighted with
@@ -714,10 +737,14 @@ class HighlightForSentimentTestCase(SimpleTestCase):
         highlight_for_sentiment(text, 1)
 
         args, kwargs = mock_highlight_for_custom_sentiment.call_args
-        self.assertEqual(args[0], text,
-                    "highlight_for_sentiment() should call highlight_for_custom_sentiment() if sentiment_id isn't 0")
-        self.assertEqual(mock_highlight_text_for_sentiment.call_count, 0,
-                    "highlight_for_sentiment() shouldn't call mock_highlight_text_for_sentiment() if sentiment_id isn't 0")
+        self.assertEqual(
+            args[0], text,
+            "highlight_for_sentiment() should call highlight_for_custom_sentiment() if sentiment_id isn't 0"
+        )
+        self.assertEqual(
+            mock_highlight_text_for_sentiment.call_count, 0,
+            "highlight_for_sentiment() shouldn't call mock_highlight_text_for_sentiment() if sentiment_id isn't 0"
+        )
         mock_highlight_for_custom_sentiment.reset_mock()
 
         # If text is empty, highlight_for_custom_sentiment() should not be called
@@ -769,21 +796,25 @@ class SearchViewTestCase(TestCase):
         response = SearchView().dispatch(request)
 
         args, kwargs = mock_do_letter_search.call_args
-        self.assertEqual(args, (request, 10, 1),
-                         'If search_text not supplied to SearchView, the size passed to do_letter_search() should be 10')
+        self.assertEqual(
+            args, (request, 10, 1),
+            'If search_text not supplied to SearchView, the size passed to do_letter_search() should be 10'
+        )
         mock_do_letter_search.reset_mock()
 
         # response content['pages'] should contain do_letter_search() result.pages
         # and response content['letters'] should contain letter from do_letter_search() result.search_results
         content = json.loads(response.content.decode('utf-8'))
         self.assertEqual(content['pages'], mock_do_letter_search.return_value.pages,
-                        "SearchView response content['pages'] should contain do_letter_search() result.pages")
+                         "SearchView response content['pages'] should contain do_letter_search() result.pages")
         self.assertTrue(str(letter.writer) in content['letters'],
                         "SearchView response content['letters'] should contain letter found by do_letter_search()")
 
         # If page_number isn't 0, response content['pagination'] shouldn't be empty string
-        self.assertNotEqual(content['pagination'], '',
-                        "SearchView response content['pagination'] shouldn't be empty string if page_number isn't 0")
+        self.assertNotEqual(
+            content['pagination'], '',
+            "SearchView response content['pagination'] shouldn't be empty string if page_number isn't 0"
+        )
 
         # If page_number is 0, response content['pagination'] shouldn't be empty string
         request.POST = {'page_number': '0'}
@@ -824,8 +855,10 @@ class LetterDetailViewTestCase(TestCase):
 
         expected = {'title': 'Letter not found', 'object_id': '1', 'object_type': 'Letter'}
         for key in expected.keys():
-            self.assertEqual(response.context[key], expected[key],
-                "LetterDetailView context '{}' should be '{}', if letter not found".format(key, expected[key]))
+            self.assertEqual(
+                response.context[key], expected[key],
+                "LetterDetailView context '{}' should be '{}', if letter not found".format(key, expected[key])
+            )
 
         # If Letter with letter_id found, LetterDetailView should return show_letter_content()
         response = self.client.get(reverse('letter_detail', kwargs={'pk': LetterFactory().pk}), follow=True)
@@ -833,8 +866,10 @@ class LetterDetailViewTestCase(TestCase):
 
         expected = {'title': 'Letter', 'nbar': 'letters_view'}
         for key in expected.keys():
-            self.assertEqual(response.context[key], expected[key],
-                "LetterDetailView context '{}' should be '{}', if letter found".format(key, expected[key]))
+            self.assertEqual(
+                response.context[key], expected[key],
+                "LetterDetailView context '{}' should be '{}', if letter found".format(key, expected[key])
+            )
 
 
 class ShowLetterContentTestCase(TestCase):
@@ -937,7 +972,7 @@ class GetLetterExportTextTestCase(TestCase):
         self.assertTrue(mock_correspondent_to_export_string.return_value in result,
                         'get_letter_export_text() return value should contain writer and recipient')
         self.assertTrue(mock_letter_contents.return_value in result,
-                        'get_letter_export_text() return value should contain letter.contents()')#
+                        'get_letter_export_text() return value should contain letter.contents()')
 
 
 class RandomLetterViewTestCase(TestCase):
@@ -956,14 +991,14 @@ class RandomLetterViewTestCase(TestCase):
 
         self.assertTemplateUsed(response, 'obj_not_found.html')
         self.assertTrue('Letter not found' in str(response.context),
-                         'If no Letters, RandomLetterView should return object not found page')
+                        'If no Letters, RandomLetterView should return object not found page')
 
         # If one letter, random_letter() should return that one
         letter = LetterFactory()
 
         response = self.client.get(reverse('random_letter'), follow=True)
         self.assertIn('Random letter', str(response.content),
-                        "Random letter page should be shown if there's at least one letter in database")
+                      "Random letter page should be shown if there's at least one letter in database")
         self.assertIn(str(letter), str(response.content),
                       'If one Letter, RandomLetterView should return that letter')
 
@@ -1003,7 +1038,7 @@ class PlaceListViewTestCase(TestCase):
         self.assertTrue(barbecue in args[1]['places'],
                         'PlaceListView should call render_to_string() with places that have coordinates in args')
         self.assertFalse(bacon_level in args[1]['places'],
-                        'PlaceListView should call render_to_string() without places that have no coordinates in args')
+                         'PlaceListView should call render_to_string() without places that have no coordinates in args')
 
         content = str(response.content)
         self.assertTrue('<title>Places</title>' in content, "PlaceListView should return page with 'Places' as title")
@@ -1040,7 +1075,9 @@ class PlaceSearchViewTestCase(SimpleTestCase):
 
     @patch('letters.views.letter_search.do_letter_search', autospec=True)
     @patch('letters.views.get_elasticsearch_error_response', autospec=True)
-    def test_place_search_view_elasticsearch_exception(self, mock_get_elasticsearch_error_response, mock_do_letter_search):
+    def test_place_search_view_elasticsearch_exception(
+            self, mock_get_elasticsearch_error_response, mock_do_letter_search
+    ):
         """
         If there's an Elasticsearch exception, get_elasticsearch_error_response() should be called
         """
@@ -1070,9 +1107,10 @@ class PlaceDetailViewTestCase(TestCase):
 
         expected = {'title': 'Place not found', 'object_id': '1', 'object_type': 'Place'}
         for key in expected.keys():
-            self.assertEqual(response.context[key], expected[key],
-                "PlaceDetailView context '{}' should be '{}', if place not found".format(key, expected[key]))
-
+            self.assertEqual(
+                response.context[key], expected[key],
+                "PlaceDetailView context '{}' should be '{}', if place not found".format(key, expected[key])
+            )
 
         # If Place with pk found, PlaceDetailView should return render()
         response = self.client.get(reverse('place_detail', kwargs={'pk': PlaceFactory().pk}), follow=True)
@@ -1080,8 +1118,10 @@ class PlaceDetailViewTestCase(TestCase):
 
         expected = {'title': 'Place', 'nbar': 'places'}
         for key in expected.keys():
-            self.assertEqual(response.context[key], expected[key],
-                "PlaceDetailView context '{}' should be '{}', if letter found".format(key, expected[key]))
+            self.assertEqual(
+                response.context[key], expected[key],
+                "PlaceDetailView context '{}' should be '{}', if letter found".format(key, expected[key])
+            )
 
 
 class GetElasticsearchErrorResponseTestCase(SimpleTestCase):

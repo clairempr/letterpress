@@ -1,5 +1,3 @@
-import json
-
 from collections import namedtuple
 from unittest.mock import patch
 
@@ -57,7 +55,7 @@ class DoLetterSearchTestCase(TestCase):
     @patch('letters.letter_search.format_sentiment', autospec=True)
     def test_do_letter_search_bool_query(self, mock_format_sentiment, mock_get_letter_sentiments,
                                          mock_get_doc_highlights, mock_do_es_search,
-                                         mock_get_sort_conditions,mock_get_highlight_options,
+                                         mock_get_sort_conditions, mock_get_highlight_options,
                                          mock_get_sentiment_function_score_query, mock_get_letter_match_query,
                                          mock_get_filter_conditions_for_query, mock_get_custom_sentiment_name,
                                          mock_get_sentiment_match_query, mock_get_selected_sentiment_id,
@@ -97,8 +95,10 @@ class DoLetterSearchTestCase(TestCase):
         do_letter_search(request, size=1, page_number=0)
 
         args, kwargs = mock_get_sentiment_function_score_query.call_args
-        self.assertEqual(args[0], expected_bool_query,
-                "If get_letter_match_query() returns something, 'must': letter_match_query should be in bool_query")
+        self.assertEqual(
+            args[0], expected_bool_query,
+            "If get_letter_match_query() returns something, 'must': letter_match_query should be in bool_query"
+        )
         mock_get_sentiment_function_score_query.reset_mock()
 
         # If get_letter_match_query() returns nothing, ['must'] = letter_match_query
@@ -112,8 +112,10 @@ class DoLetterSearchTestCase(TestCase):
         do_letter_search(request, size=1, page_number=0)
 
         args, kwargs = mock_get_sentiment_function_score_query.call_args
-        self.assertEqual(args[0], expected_bool_query,
-                "If get_letter_match_query() returns nothing, 'must': letter_match_query shouldn't be in bool_query")
+        self.assertEqual(
+            args[0], expected_bool_query,
+            "If get_letter_match_query() returns nothing, 'must': letter_match_query shouldn't be in bool_query"
+        )
         mock_get_sentiment_function_score_query.reset_mock()
 
     @patch('letters.filter.get_filter_values_from_request', autospec=True)
@@ -130,7 +132,7 @@ class DoLetterSearchTestCase(TestCase):
     @patch('letters.letter_search.get_letter_sentiments', autospec=True)
     @patch('letters.letter_search.format_sentiment', autospec=True)
     def test_do_letter_search_calls(self, mock_format_sentiment, mock_get_letter_sentiments, mock_get_doc_highlights,
-                                    mock_do_es_search, mock_get_sort_conditions,mock_get_highlight_options,
+                                    mock_do_es_search, mock_get_sort_conditions, mock_get_highlight_options,
                                     mock_get_sentiment_function_score_query, mock_get_letter_match_query,
                                     mock_get_filter_conditions_for_query, mock_get_custom_sentiment_name,
                                     mock_get_sentiment_match_query, mock_get_selected_sentiment_id,
@@ -220,20 +222,26 @@ class DoLetterSearchTestCase(TestCase):
         request = self.request_factory.get('search', data={})
         do_letter_search(request, size=1, page_number=0)
 
-        self.assertEqual(mock_get_selected_sentiment_id.call_count, 1,
-            'If filter_values.sort_by is filled and starts with SENTIMENT, get_selected_sentiment_id() should be called')
-        self.assertEqual(mock_get_sentiment_match_query.call_count, 1,
-            'If filter_values.sort_by is filled and starts with SENTIMENT, get_sentiment_match_query() should be called')
-        self.assertEqual(mock_get_custom_sentiment_name.call_count, 1,
-            'If filter_values.sort_by is filled and starts with SENTIMENT, get_custom_sentiment_name() should be called')
+        self.assertEqual(
+            mock_get_selected_sentiment_id.call_count, 1,
+            'If filter_values.sort_by is filled and starts with SENTIMENT, get_selected_sentiment_id() should be called'
+        )
+        self.assertEqual(
+            mock_get_sentiment_match_query.call_count, 1,
+            'If filter_values.sort_by is filled and starts with SENTIMENT, get_sentiment_match_query() should be called'
+        )
+        self.assertEqual(
+            mock_get_custom_sentiment_name.call_count, 1,
+            'If filter_values.sort_by is filled and starts with SENTIMENT, get_custom_sentiment_name() should be called'
+        )
 
         mock_get_selected_sentiment_id.reset_mock()
         mock_get_sentiment_match_query.reset_mock()
         mock_get_custom_sentiment_name.reset_mock()
 
-        # If filter_values.sort_by is filled but doesn't start with with SENTIMENT,
-        # get_selected_sentiment_id(), get_sentiment_match_query(), and get_custom_sentiment_name()
-        # should NOT get called, and sentiment_id, sentiment_match_query, and custom_sentiment_name should not get filled
+        # If filter_values.sort_by is filled but doesn't start with SENTIMENT,
+        # get_selected_sentiment_id(), get_sentiment_match_query(), and get_custom_sentiment_name() should NOT
+        # get called, and sentiment_id, sentiment_match_query, and custom_sentiment_name should not get filled
         filter_values = self.FilterValues(
             search_text='search_text',
             source_ids=[1, 2, 3],
@@ -250,12 +258,18 @@ class DoLetterSearchTestCase(TestCase):
         request = self.request_factory.get('search', data={})
         do_letter_search(request, size=1, page_number=0)
 
-        self.assertEqual(mock_get_selected_sentiment_id.call_count, 0,
-            "If filter_values.sort_by doesn't start with SENTIMENT, get_selected_sentiment_id() shouldn't be called")
-        self.assertEqual(mock_get_sentiment_match_query.call_count, 0,
-            "If filter_values.sort_by doesn't start with SENTIMENT, get_sentiment_match_query() shouldn't be called")
-        self.assertEqual(mock_get_custom_sentiment_name.call_count, 0,
-            "If filter_values.sort_by doesn't start with SENTIMENT, get_custom_sentiment_name() shouldn't be called")
+        self.assertEqual(
+            mock_get_selected_sentiment_id.call_count, 0,
+            "If filter_values.sort_by doesn't start with SENTIMENT, get_selected_sentiment_id() shouldn't be called"
+        )
+        self.assertEqual(
+            mock_get_sentiment_match_query.call_count, 0,
+            "If filter_values.sort_by doesn't start with SENTIMENT, get_sentiment_match_query() shouldn't be called"
+        )
+        self.assertEqual(
+            mock_get_custom_sentiment_name.call_count, 0,
+            "If filter_values.sort_by doesn't start with SENTIMENT, get_custom_sentiment_name() shouldn't be called"
+        )
 
     @patch('letters.filter.get_filter_values_from_request', autospec=True)
     @patch('letters.letter_search.get_selected_sentiment_id', autospec=True)
@@ -271,12 +285,12 @@ class DoLetterSearchTestCase(TestCase):
     @patch('letters.letter_search.get_letter_sentiments', autospec=True)
     @patch('letters.letter_search.format_sentiment', autospec=True)
     def test_do_letter_search_hits(self, mock_format_sentiment, mock_get_letter_sentiments,
-                                            mock_get_doc_highlights,
-                                            mock_do_es_search, mock_get_sort_conditions, mock_get_highlight_options,
-                                            mock_get_sentiment_function_score_query, mock_get_letter_match_query,
-                                            mock_get_filter_conditions_for_query, mock_get_custom_sentiment_name,
-                                            mock_get_sentiment_match_query, mock_get_selected_sentiment_id,
-                                            mock_get_filter_values_from_request):
+                                   mock_get_doc_highlights,
+                                   mock_do_es_search, mock_get_sort_conditions, mock_get_highlight_options,
+                                   mock_get_sentiment_function_score_query, mock_get_letter_match_query,
+                                   mock_get_filter_conditions_for_query, mock_get_custom_sentiment_name,
+                                   mock_get_sentiment_match_query, mock_get_selected_sentiment_id,
+                                   mock_get_filter_values_from_request):
         """
         Test to make sure that if 'hits' in the return value of do_es_search(),
         get_doc_highlights(), get_letter_sentiments(), and format_sentiment() get called
@@ -327,8 +341,10 @@ class DoLetterSearchTestCase(TestCase):
         request = self.request_factory.get('search', data={})
         do_letter_search(request, size=1, page_number=0)
 
-        self.assertEqual(mock_format_sentiment.call_count, 0,
-            "If 'hits' in return value of do_es_search() but no sentiment_id, format_sentiment() shouldn't get called")
+        self.assertEqual(
+            mock_format_sentiment.call_count, 0,
+            "If 'hits' in return value of do_es_search() but no sentiment_id, format_sentiment() shouldn't get called"
+        )
 
         mock_get_doc_highlights.reset_mock()
         mock_get_letter_sentiments.reset_mock()
@@ -343,8 +359,10 @@ class DoLetterSearchTestCase(TestCase):
 
         self.assertEqual(mock_get_doc_highlights.call_count, 0,
                          "If 'hits' not in return value of do_es_search(), get_doc_highlights() shouldn't get called")
-        self.assertEqual(mock_get_letter_sentiments.call_count, 0,
-                         "If 'hits' not in return value of do_es_search(), get_letter_sentiments() shouldn't get called")
+        self.assertEqual(
+            mock_get_letter_sentiments.call_count, 0,
+            "If 'hits' not in return value of do_es_search(), get_letter_sentiments() shouldn't get called"
+        )
         self.assertEqual(mock_format_sentiment.call_count, 0,
                          "If 'hits' not in return value of do_es_search(), format_sentiment() shouldn't get called")
 
@@ -418,12 +436,12 @@ class DoLetterSearchTestCase(TestCase):
     @patch('letters.letter_search.get_letter_sentiments', autospec=True)
     @patch('letters.letter_search.format_sentiment', autospec=True)
     def test_do_letter_result(self, mock_format_sentiment, mock_get_letter_sentiments,
-                                            mock_get_doc_highlights,
-                                            mock_do_es_search, mock_get_sort_conditions, mock_get_highlight_options,
-                                            mock_get_sentiment_function_score_query, mock_get_letter_match_query,
-                                            mock_get_filter_conditions_for_query, mock_get_custom_sentiment_name,
-                                            mock_get_sentiment_match_query, mock_get_selected_sentiment_id,
-                                            mock_get_filter_values_from_request):
+                              mock_get_doc_highlights,
+                              mock_do_es_search, mock_get_sort_conditions, mock_get_highlight_options,
+                              mock_get_sentiment_function_score_query, mock_get_letter_match_query,
+                              mock_get_filter_conditions_for_query, mock_get_custom_sentiment_name,
+                              mock_get_sentiment_match_query, mock_get_selected_sentiment_id,
+                              mock_get_filter_values_from_request):
         """
         The number of pages depends on total and size and should be calculated as follows
             if total % size:
@@ -518,16 +536,20 @@ class GetDocHighlightsTestCase(SimpleTestCase):
         doc = {'highlight': {'contents': contents}}
         result = get_doc_highlights(doc=doc)
         for content in contents:
-            self.assertTrue(content in result,
-                    'get_doc_highlights() should return a highlight containing contents if contents is in highlight')
+            self.assertTrue(
+                content in result,
+                'get_doc_highlights() should return a highlight containing contents if contents is in highlight'
+            )
 
         # ['highlight']['contents.custom_sentiment'] in doc
         custom_sentiments = ['custom_sentiment1', 'custom_sentiment2']
         doc = {'highlight': {'contents.custom_sentiment': custom_sentiments}}
         result = get_doc_highlights(doc=doc)
         for custom_sentiment in custom_sentiments:
-            self.assertTrue(custom_sentiment in result,
-                    'get_doc_highlights() should return a highlight containing contents if contents is in highlight')
+            self.assertTrue(
+                custom_sentiment in result,
+                'get_doc_highlights() should return a highlight containing contents if contents is in highlight'
+            )
 
 
 class GetDocWordCountTestCase(SimpleTestCase):
@@ -544,16 +566,20 @@ class GetDocWordCountTestCase(SimpleTestCase):
         # but 'contents.word_count' not in fields
         doc = {'fields': 'fields'}
         result = get_doc_word_count(doc=doc)
-        self.assertEqual(result, 0,
-                "test_get_doc_word_count() should return 0 if 'fields' in doc but 'contents.word_count' not in fields")
+        self.assertEqual(
+            result, 0,
+            "test_get_doc_word_count() should return 0 if 'fields' in doc but 'contents.word_count' not in fields"
+        )
 
         # If 'fields' in doc and 'contents.word_count' fields, test_get_doc_word_count()
         # should return doc['fields']['contents.word_count']
         word_count = 5
         doc = {'fields': {'contents.word_count': [word_count]}}
         result = get_doc_word_count(doc=doc)
-        self.assertEqual(result, word_count,
-            "test_get_doc_word_count() should return word_count if 'fields' in doc and 'contents.word_count' in fields")
+        self.assertEqual(
+            result, word_count,
+            "test_get_doc_word_count() should return word_count if 'fields' in doc and 'contents.word_count' in fields"
+        )
 
 
 class GetFilterConditionsForQueryTestCase(SimpleTestCase):
@@ -619,10 +645,9 @@ class GetFilterConditionsForQueryTestCase(SimpleTestCase):
         self.assertTrue('writer' in result[condition]['terms'] for condition in result)
 
 
-
 class GetHighlightOptionsTestCase(SimpleTestCase):
     """
-    get_highlight_options() should return something something to do with highlighting
+    get_highlight_options() should return something to do with highlighting
     for an Elasticsearch query, depending on whether it's a custom sentiment
     """
 
@@ -644,8 +669,10 @@ class GetHighlightOptionsTestCase(SimpleTestCase):
         # If it's a custom sentiment, 'pre_tags' and 'post_tags' should be in returned value
         result = get_highlight_options(filter_values)
         for key in ['pre_tags', 'post_tags']:
-            self.assertIn(key, result,
-                "Value returned by get_highlight_options() should include '{}' if it's a custom sentiment".format(key))
+            self.assertIn(
+                key, result,
+                "Value returned by get_highlight_options() should include '{}' if it's a custom sentiment".format(key)
+            )
 
         # If filter_values.sort_by doesn't start with SENTIMENT, it's not a custom sentiment
         filter_values = FilterValues(
@@ -661,8 +688,10 @@ class GetHighlightOptionsTestCase(SimpleTestCase):
 
         # If it's not a custom sentiment, 'fields' should be in returned value
         result = get_highlight_options(filter_values)
-        self.assertIn('fields', result,
-                "Value returned by get_highlight_options() should include 'fields' if it's not a custom sentiment")
+        self.assertIn(
+            'fields', result,
+            "Value returned by get_highlight_options() should include 'fields' if it's not a custom sentiment"
+        )
 
 
 class GetLetterMatchQueryTestCase(SimpleTestCase):
@@ -700,8 +729,10 @@ class GetLetterMatchQueryTestCase(SimpleTestCase):
             sort_by='sort_by'
         )
         result = get_letter_match_query(filter_values)
-        self.assertTrue('match_phrase' in result,
-            "If search_text contains quotes, 'match_phrase' needs to be in the query returned by get_letter_match_query()")
+        self.assertTrue(
+            'match_phrase' in result,
+            "If search_text contains quotes, 'match_phrase' needs to be in query returned by get_letter_match_query()"
+        )
 
         # If search_text doesn't contain quotes, 'match_phrase' shouldn't be in the result
         filter_values = FilterValues(
@@ -715,8 +746,10 @@ class GetLetterMatchQueryTestCase(SimpleTestCase):
             sort_by='sort_by'
         )
         result = get_letter_match_query(filter_values)
-        self.assertFalse('match_phrase' in result,
-            "If search_text doesn't contain quotes, 'match_phrase' shouldn't be in the query returned by get_letter_match_query()")
+        self.assertFalse(
+            'match_phrase' in result,
+            "If no quotes in search_text, 'match_phrase' shouldn't be in query returned by get_letter_match_query()"
+        )
 
 
 class GetLetterSentimentsTestCase(TestCase):
@@ -786,8 +819,10 @@ class GetLetterWordCountTestCase(SimpleTestCase):
         self.assertEqual(args[0], letter_id,
                          'get_letter_word_count() should call get_stored_fields_for_letter() with letter_id as arg')
         args, kwargs = mock_get_doc_word_count.call_args
-        self.assertEqual(args[0], mock_get_stored_fields_for_letter.return_value,
-            'get_letter_word_count() should call get_doc_word_count() with return value of get_stored_fields_for_letter()')
+        self.assertEqual(
+            args[0], mock_get_stored_fields_for_letter.return_value,
+            'get_letter_word_count() should call get_doc_word_count() with value of get_stored_fields_for_letter()'
+        )
 
         # get_letter_word_count() should return the return value of get_doc_word_count()
         self.assertEqual(result, mock_get_doc_word_count.return_value,
@@ -816,16 +851,17 @@ class GetMultipleWordFrequenciesTestCase(SimpleTestCase):
         self.doc1_id = 1
         self.doc2_id = 2
 
-        self.mtermvectors = {'docs':
-                                 [{'_id': self.doc1_id, 'term_vectors':
-                                     {'contents':
-                                          {'terms': {'&': {'term_freq': 2},
-                                                     'and': {'term_freq': 1}}}
-                                      }
-                                   },
-                                  {'_id': self.doc2_id, 'term_vectors':
-                                      {'contents': {'terms': {'&': {'term_freq': 1}}}}}]
-                             }
+        self.mtermvectors = {
+            'docs': [
+                {'_id': self.doc1_id, 'term_vectors':
+                    {'contents':
+                        {'terms': {'&': {'term_freq': 2},
+                                   'and': {'term_freq': 1}}}}
+                 },
+                {'_id': self.doc2_id, 'term_vectors':
+                    {'contents': {'terms': {'&': {'term_freq': 1}}}}}
+            ]
+        }
 
         self.ampersand_total_freq = 3
         self.and_total_freq = 1
@@ -848,7 +884,6 @@ class GetMultipleWordFrequenciesTestCase(SimpleTestCase):
         with self.assertRaises(KeyError):
             get_multiple_word_frequencies(self.filter_values)
 
-
         # If 'hits' in es_result, but 'hits' not in es_result['hits'], there should be an error
         # because matching_docs won't be filled
         mock_do_es_search.return_value = {'hits': 'hits'}
@@ -857,12 +892,12 @@ class GetMultipleWordFrequenciesTestCase(SimpleTestCase):
 
         mock_get_mtermvectors.reset_mock()
 
-        mock_do_es_search.return_value = {'hits':
-                                              {'hits':
-                                                   [{'_id': self.doc1_id, '_source': {'date': 'date'}},
-                                                    {'_id': self.doc2_id, '_source': {'date': 'date'}}]
-                                               }
-                                          }
+        mock_do_es_search.return_value = {
+            'hits':
+                {'hits': [{'_id': self.doc1_id, '_source': {'date': 'date'}},
+                          {'_id': self.doc2_id, '_source': {'date': 'date'}}]
+                 }
+        }
 
         get_multiple_word_frequencies(self.filter_values)
 
@@ -880,12 +915,16 @@ class GetMultipleWordFrequenciesTestCase(SimpleTestCase):
         mock_get_year_month_from_date.reset_mock()
         mock_get_mtermvectors.return_value = []
         result = get_multiple_word_frequencies(self.filter_values)
-        self.assertEqual(mock_get_year_month_from_date.call_count, 0,
-                    "If 'docs' not in result of get_mtermvectors(), get_year_month_from_date() shouldn't be called")
-        self.assertEqual(result, {},
-                    "If 'docs' not in result of get_mtermvectors(), get_multiple_word_frequencies() should return {}")
+        self.assertEqual(
+            mock_get_year_month_from_date.call_count, 0,
+            "If 'docs' not in result of get_mtermvectors(), get_year_month_from_date() shouldn't be called"
+        )
+        self.assertEqual(
+            result, {},
+            "If 'docs' not in result of get_mtermvectors(), get_multiple_word_frequencies() should return {}"
+        )
 
-        # If 'docs' is is return value of get_mtermvectors(),
+        # If 'docs' is in return value of get_mtermvectors(),
         # get_multiple_word_frequencies() should return ???
         mock_get_mtermvectors.return_value = self.mtermvectors
         result = get_multiple_word_frequencies(self.filter_values)
@@ -893,10 +932,6 @@ class GetMultipleWordFrequenciesTestCase(SimpleTestCase):
         self.assertEqual(word_frequencies['&'], self.ampersand_total_freq)
         self.assertEqual(word_frequencies['and'], self.and_total_freq)
         self.assertEqual(word_frequencies['torpedo'], 0)
-
-
-        self.ampersand_total_freq = 3
-        self.and_total_freq = 1
 
 
 class GetSortConditionsTestCase(SimpleTestCase):
@@ -915,10 +950,14 @@ class GetSortConditionsTestCase(SimpleTestCase):
 
         # If sort_by is empty string, sort_field in returned value should be 'date' and sort_order should be 'asc'
         result = get_sort_conditions(sort_by='')
-        self.assertIn('date', result,
-                "If sort_by is empty string, sort_field in value returned by get_sort_conditions() should be 'date'")
-        self.assertEqual(result['date']['order'], 'asc',
-                "If sort_by is empty string, sort_order in value returned by get_sort_conditions() should be 'asc'")
+        self.assertIn(
+            'date', result,
+            "If sort_by is empty string, sort_field in value returned by get_sort_conditions() should be 'date'"
+        )
+        self.assertEqual(
+            result['date']['order'], 'asc',
+            "If sort_by is empty string, sort_order in value returned by get_sort_conditions() should be 'asc'"
+        )
 
         # If sort_by isn't DATE or empty string, get_sort_conditions() should return '_score'
         result = get_sort_conditions(sort_by=SENTIMENT)
@@ -961,28 +1000,33 @@ class GetWordCountsPerMonthTestCase(SimpleTestCase):
         mock_do_es_search.return_value = {}
 
         result = get_word_counts_per_month(self.filter_values)
-        self.assertEqual(result, {},
-                    "get_word_counts_per_month() should return {} if not 'aggregations' in do_es_search() return value")
+        self.assertEqual(
+            result, {},
+            "get_word_counts_per_month() should return {} if not 'aggregations' in do_es_search() return value"
+        )
 
         # If 'words_per_month' not in es_result['aggregations'], get_word_counts_per_month() should return {}
         mock_do_es_search.return_value = {'aggregations': 'aggregations'}
 
         result = get_word_counts_per_month(self.filter_values)
-        self.assertEqual(result, {},
-                    "get_word_counts_per_month() should return {} if not 'aggregations' in do_es_search() return value")
+        self.assertEqual(
+            result, {},
+            "get_word_counts_per_month() should return {} if not 'aggregations' in do_es_search() return value"
+        )
 
         # If 'words_per_month' in es_result['aggregations']
         avg_words = 42
         total_words = 84
         doc_count = 2
-        mock_do_es_search.return_value = {'aggregations':
-                                              {'words_per_month':
-                                                   {'buckets': [{'key_as_string': 'key_as_string',
-                                                                 'avg_words': {'value': avg_words},
-                                                                 'total_words': {'value': total_words},
-                                                                 'doc_count': doc_count}]}
-                                               }
-                                          }
+        mock_do_es_search.return_value = {
+            'aggregations': {
+                'words_per_month':
+                    {'buckets': [{'key_as_string': 'key_as_string',
+                                  'avg_words': {'value': avg_words},
+                                  'total_words': {'value': total_words},
+                                  'doc_count': doc_count}]}
+            }
+        }
         result = get_word_counts_per_month(self.filter_values)
         self.assertEqual(result['key_as_']['avg_words'], avg_words,
                          "get_word_counts_per_month() return value should include ['key_as_']['avg_words']")

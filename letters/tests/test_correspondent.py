@@ -35,9 +35,9 @@ class CorrespondentTestCase(TestCase):
 
         self.assertTrue(francis_black < kate_derenberger, '{} should be < {}'.format(francis_black, kate_derenberger))
         self.assertFalse(francis_black < other_francis_black,
-                        "{} shouldn't be be < {}".format(francis_black, other_francis_black))
+                         "{} shouldn't be be < {}".format(francis_black, other_francis_black))
         self.assertFalse(kate_derenberger < francis_black,
-                        "{} shouldn't be be < {}".format(kate_derenberger, francis_black))
+                         "{} shouldn't be be < {}".format(kate_derenberger, francis_black))
 
     @patch.object(Correspondent, 'get_display_string', autospec=True)
     def test_to_string(self, mock_get_display_string):
@@ -98,12 +98,12 @@ class CorrespondentTestCase(TestCase):
 
         correspondent = CorrespondentFactory(last_name=last_name, first_names=first_names, married_name=married_name)
         self.assertNotIn(correspondent.married_name, correspondent.to_export_string(),
-                      "Correspondent.to_export_string() shouldn't include married_name if filled")
+                         "Correspondent.to_export_string() shouldn't include married_name if filled")
 
         correspondent = CorrespondentFactory(last_name=last_name, first_names=first_names, married_name=married_name,
                                              suffix=suffix)
         self.assertIn(correspondent.suffix, correspondent.to_export_string(),
-                      'Correspondent.to_export_string() should include suffix if filled')#     def to_export_string(self):
+                      'Correspondent.to_export_string() should include suffix if filled')
 
     @patch('letters.models.correspondent.get_image_preview', autospec=True)
     def test_image_preview(self, mock_get_image_preview):
@@ -115,5 +115,3 @@ class CorrespondentTestCase(TestCase):
 
         self.assertEqual(CorrespondentFactory().image_preview(), mock_get_image_preview.return_value,
                          'Correspondent.image_preview() should return value of Correspondent.get_image_preview()')
-
-

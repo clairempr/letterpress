@@ -3,16 +3,19 @@ import calendar
 from unittest.mock import patch
 
 from django.contrib.admin import site
-from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 
 from letters.admin import CorrespondentAdmin, DocumentAdmin, DocumentImageAdmin, DocumentSourceAdmin, LetterAdmin
-from letters.admin_filters import CorrespondentSourceFilter, get_correspondents_of_source, get_objects_with_date, \
-    get_source_lookups, ImageSourceFilter, MonthFilter, RecipientFilter, WriterFilter, YearFilter
-from letters.models import Correspondent, Document, DocumentImage, DocumentSource, Letter
-from letters.tests.factories import CorrespondentFactory, DocumentFactory, DocumentImageFactory, DocumentSourceFactory, \
+from letters.admin_filters import (
+    CorrespondentSourceFilter, get_correspondents_of_source, get_objects_with_date,
+    ImageSourceFilter, MonthFilter, RecipientFilter, WriterFilter, YearFilter
+)
+from letters.models import Correspondent, DocumentImage, DocumentSource, Letter
+from letters.tests.factories import (
+    CorrespondentFactory, DocumentImageFactory, DocumentSourceFactory,
     EnvelopeFactory, LetterFactory, MiscDocumentFactory
+)
 
 
 class CorrespondentSourceFilterTestCase(TestCase):
@@ -63,8 +66,10 @@ class CorrespondentSourceFilterTestCase(TestCase):
         queryset = filter.queryset(self.request, Correspondent.objects.all())
         self.assertEqual(mock_get_correspondents_of_source.call_count, 0,
                          "get_correspondents_of_source() shouldn't be called if no DocumentSource specified")
-        self.assertSetEqual(set(queryset), set(Correspondent.objects.all()),
-                'CorrespondentSourceFilter.queryset() should return all Corresponents if no DocumentSource specified')
+        self.assertSetEqual(
+            set(queryset), set(Correspondent.objects.all()),
+            'CorrespondentSourceFilter.queryset() should return all Corresponents if no DocumentSource specified'
+        )
 
         # When DocumentSource is misc_doc_and_letter_source, misc_doc_writer, letter_writer,
         # and letter_recipient should be returned
@@ -116,15 +121,19 @@ class GetCorrespondentsOfSourceTestCase(TestCase):
 
         # When DocumentSource is misc_doc_and_letter_source, ids for misc_doc_writer, letter_writer,
         # and letter_recipient should be returned
-        self.assertSetEqual(set(get_correspondents_of_source(misc_doc_and_letter_source.id)),
-                            set([misc_doc_writer.id, letter_writer.id, letter_recipient.id]),
-                'get_correspondents_of_source() should return unique set of ids of Corresponents for DocumentSource')
+        self.assertSetEqual(
+            set(get_correspondents_of_source(misc_doc_and_letter_source.id)),
+            set([misc_doc_writer.id, letter_writer.id, letter_recipient.id]),
+            'get_correspondents_of_source() should return unique set of ids of Corresponents for DocumentSource'
+        )
 
         # When DocumentSource is envelope_source, ids for envelope_writer and envelope_recipient
         # should be returned
-        self.assertSetEqual(set(get_correspondents_of_source(envelope_source.id)),
-                            set([envelope_writer.id, envelope_recipient.id]),
-                'get_correspondents_of_source() should return unique set of ids of Corresponents for DocumentSource')
+        self.assertSetEqual(
+            set(get_correspondents_of_source(envelope_source.id)),
+            set([envelope_writer.id, envelope_recipient.id]),
+            'get_correspondents_of_source() should return unique set of ids of Corresponents for DocumentSource'
+        )
 
 
 class GetObjectsWithDateTestCase(TestCase):
@@ -210,8 +219,10 @@ class ImageSourceFilterTestCase(TestCase):
         queryset = filter.queryset(self.request, DocumentImage.objects.all())
         self.assertEqual(mock_get_correspondents_of_source.call_count, 0,
                          "get_correspondents_of_source() shouldn't be called if no DocumentSource specified")
-        self.assertSetEqual(set(queryset), set(DocumentImage.objects.all()),
-                'ImageSourceFilter.queryset() should return all DocumentImages if no DocumentSource specified')
+        self.assertSetEqual(
+            set(queryset), set(DocumentImage.objects.all()),
+            'ImageSourceFilter.queryset() should return all DocumentImages if no DocumentSource specified'
+        )
 
         # When DocumentSource is letter_source, letter_image should be returned
         mock_get_correspondents_of_source.return_value = set([letter_writer.id, letter_recipient.id])
@@ -351,7 +362,7 @@ class RecipientFilterTestCase(TestCase):
 
         # When recipient specified, only Letters with that recipient should be returned
         filter = RecipientFilter(self.request, params={parameter: self.letter_recipient1.id}, model=Letter,
-                             model_admin=self.modeladmin)
+                                 model_admin=self.modeladmin)
         queryset = filter.queryset(self.request, Letter.objects.all())
         self.assertSetEqual(set(queryset), set([self.letter1]),
                             'RecipientFilter.queryset() should return letters with the specified recipient')
@@ -402,7 +413,7 @@ class WriterFilterTestCase(TestCase):
 
         # When writer specified, only Letters with that writer should be returned
         filter = WriterFilter(self.request, params={parameter: self.letter_writer1.id}, model=Letter,
-                             model_admin=self.modeladmin)
+                              model_admin=self.modeladmin)
         queryset = filter.queryset(self.request, Letter.objects.all())
         self.assertSetEqual(set(queryset), set([self.letter1]),
                             'WriterFilter.queryset() should return letters with the specified writer')

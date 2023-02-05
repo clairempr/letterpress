@@ -14,7 +14,7 @@ from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
 from django.core.paginator import Paginator
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -146,9 +146,13 @@ class GetStatsView(View):
             proportions.append(proportion)
             chart_word_freqs.extend(freqs)
 
-        stats_html = render_to_string('snippets/stats_table.html', {'words': words, 'show_proportion': show_proportion, 'results': results})
+        stats_html = render_to_string(
+            'snippets/stats_table.html', {'words': words, 'show_proportion': show_proportion, 'results': results}
+        )
         if show_charts:
-            chart = make_charts(words, months, proportions, chart_word_freqs, chart_totals, chart_averages, chart_doc_counts)
+            chart = make_charts(
+                words, months, proportions, chart_word_freqs, chart_totals, chart_averages, chart_doc_counts
+            )
         else:
             chart = ''
 
@@ -481,9 +485,11 @@ def export_text(letters):
 
 # what gets exported for each letter
 def get_letter_export_text(letter):
-        return str.format('<{0}, {1} to {2}>\n{3}',
-                          letter.index_date(), letter.writer.to_export_string(),
-                          letter.recipient.to_export_string(), letter.contents())
+    return str.format(
+        '<{0}, {1} to {2}>\n{3}',
+        letter.index_date(), letter.writer.to_export_string(),
+        letter.recipient.to_export_string(), letter.contents()
+    )
 
 
 def get_elasticsearch_error_response(exception, json_response=True):

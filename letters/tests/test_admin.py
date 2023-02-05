@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 from django.contrib.admin import site
 from django.contrib.auth import get_user_model
-from django.db.models import Model
 from django.test import RequestFactory, TestCase
 
 from letters.admin import LetterAdmin
@@ -57,4 +56,4 @@ class LetterAdminFormTestCase(TestCase):
         # Make sure form fields have height set
         for field in ['heading', 'greeting', 'closing', 'signature', 'ps']:
             self.assertIn('height', form.base_fields[field].widget.attrs['style'],
-                          "LetterAdmin form should have height set for field'{}'" )
+                          "LetterAdmin form should have height set for field'{}'")
