@@ -74,7 +74,9 @@ class FilterTemplateSnippetTestCase(TestCase):
         self.assertIn(initial_filter_values.get('end_date'), rendered, "End date from filter should be in HTML")
 
         # If show_search_text is True, then 'Search text' should be in HTML and words shouldn't be
-        rendered = render_to_string(template, context={'filter_values': initial_filter_values, 'show_search_text': True})
+        rendered = render_to_string(
+            template, context={'filter_values': initial_filter_values, 'show_search_text': True}
+        )
         self.assertIn('Search text', rendered, "If show_search_text in context, then 'Search text' should be in HTML")
         for word in initial_filter_values.get('words'):
             self.assertNotIn(word, rendered, "If show_search_text in context, then words shouldn't be shown")
@@ -123,13 +125,15 @@ class LetterContentsTemplateSnippetTestCase(TestCase):
 
     def test_template_content(self):
         template = 'snippets/letter_contents.html'
-        letter = LetterFactory(heading='Januery the 1st / 62',
-                               greeting='Miss Evey',
-                               body='As this is the beginin of a new year I thought as I was a lone to night I would write you '
-                                    'a few lines to let you know that we are not all ded yet.',
-                               closing='your friend as every',
-                               signature='F.P. Black',
-                               ps='p.s. remember me to all')
+        letter = LetterFactory(
+            heading='Januery the 1st / 62',
+            greeting='Miss Evey',
+            body='As this is the beginin of a new year I thought as I was a lone to night I would write you '
+                 'a few lines to let you know that we are not all ded yet.',
+            closing='your friend as every',
+            signature='F.P. Black',
+            ps='p.s. remember me to all'
+        )
 
         rendered = render_to_string(template, context={'letter': letter})
 
@@ -194,15 +198,19 @@ class PaginationTemplateTestCase(TestCase):
                    'paginator': paginator,
                    'page_obj': paginator.page(number=1)}
         rendered = render_to_string(self.template, context)
-        self.assertTrue(content_if_paginated in rendered,
-                "If 'is_paginated' is in context, rendered html should contain '{}'".format(content_if_paginated))
+        self.assertTrue(
+            content_if_paginated in rendered,
+            "If 'is_paginated' is in context, rendered html should contain '{}'".format(content_if_paginated)
+        )
 
         context = {'is_paginated': False,
                    'paginator': paginator,
                    'page_obj': paginator.page(number=1)}
         rendered = render_to_string(self.template, context)
-        self.assertFalse(content_if_paginated in rendered,
-                "If 'is_paginated' not in context, rendered html shouldn't contain '{}'".format(content_if_paginated))
+        self.assertFalse(
+            content_if_paginated in rendered,
+            "If 'is_paginated' not in context, rendered html shouldn't contain '{}'".format(content_if_paginated)
+        )
 
     def test_page_obj_has_previous_or_not(self):
         """
@@ -222,7 +230,7 @@ class PaginationTemplateTestCase(TestCase):
         self.assertTrue(previous_page_js in rendered,
                         "If there's a previous page, there should be a link to the previous page")
         self.assertFalse(disabled_previous_page in rendered,
-                          "If there's a previous page, there should be no disabled 'previous page'")
+                         "If there's a previous page, there should be no disabled 'previous page'")
 
         # If there's no previous page, there should be a disabled "previous page"
         paginator = Paginator(object_list=['a'], per_page=1)
@@ -233,7 +241,7 @@ class PaginationTemplateTestCase(TestCase):
         self.assertTrue(disabled_previous_page in rendered,
                         "If there's no previous page, there should be a disabled 'previous page'")
         self.assertFalse(previous_page_js in rendered,
-                          "If there's no previous page, there should be no link to a previous page")
+                         "If there's no previous page, there should be no link to a previous page")
 
     def test_page_obj_has_next_or_not(self):
         """
@@ -255,7 +263,7 @@ class PaginationTemplateTestCase(TestCase):
         rendered = render_to_string(self.template, context)
         self.assertTrue(next_page_js in rendered, "If there's a next page, there should be a link to the next page")
         self.assertFalse(disabled_next_page in rendered,
-                          "If there's a next page, there should be no disabled 'next page'")
+                         "If there's a next page, there should be no disabled 'next page'")
 
         # If there's no next page, there should be a disabled "next page"
         paginator = Paginator(object_list=['a'], per_page=1)
@@ -266,7 +274,7 @@ class PaginationTemplateTestCase(TestCase):
         self.assertTrue(disabled_next_page in rendered,
                         "If there's no next page, there should be a disabled 'next page'")
         self.assertFalse(next_page_js in rendered,
-                          "If there's no next page, there should be no link to a next page")
+                         "If there's no next page, there should be no link to a next page")
 
     def test_paginator_page_range(self):
         """
@@ -289,10 +297,13 @@ class PaginationTemplateTestCase(TestCase):
 
         # First 2 and last 2 page numbers (1-2 and 14-15),
         # and page numbers within 3 pages of current page (5-7 and 9-11) should have a link to them
-        page_link = '<a class="page-link" href="#" onclick="return letter_search.do_search({page_number});">{page_number}</a>'
+        page_link = '''
+        <a class="page-link" href="#" onclick="return letter_search.do_search({page_number});">{page_number}</a>'''
         for page_number in [1, 2, 5, 6, 7, 9, 10, 11, 14, 15]:
-            self.assertInHTML(page_link.format(page_number=page_number), rendered,
-                msg_prefix='1st and last 2, and page numbers within 3 pages of current page should have a link to them')
+            self.assertInHTML(
+                page_link.format(page_number=page_number), rendered,
+                msg_prefix='1st and last 2, and page numbers within 3 pages of current page should have a link to them'
+            )
 
         # Page numbers that are not the first 2 or last 2, or within 3 pages of current page should not have links
         context = {'is_paginated': True,

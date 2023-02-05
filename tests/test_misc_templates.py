@@ -10,16 +10,18 @@ from letters.tests.factories import CorrespondentFactory, LetterFactory, PlaceFa
 
 # These are used in more than one place
 def create_test_letter():
-    letter = LetterFactory(date=ApproximateDate(1862, 1, 1),
-                           writer=CorrespondentFactory(first_names='Francis P.', last_name='Black'),
-                           recipient=CorrespondentFactory(first_names='Eveline', last_name='Johnston'),
-                           heading='Januery the 1st / 62',
-                           greeting='Miss Evey',
-                           body='As this is the beginin of a new year I thought as I was a lone to night I would write you '
-                                'a few lines to let you know that we are not all ded yet.',
-                           closing='your friend as every',
-                           signature='F.P. Black',
-                           ps='p.s. remember me to all')
+    letter = LetterFactory(
+        date=ApproximateDate(1862, 1, 1),
+        writer=CorrespondentFactory(first_names='Francis P.', last_name='Black'),
+        recipient=CorrespondentFactory(first_names='Eveline', last_name='Johnston'),
+        heading='Januery the 1st / 62',
+        greeting='Miss Evey',
+        body='As this is the beginin of a new year I thought as I was a lone to night I would write you '
+             'a few lines to let you know that we are not all ded yet.',
+        closing='your friend as every',
+        signature='F.P. Black',
+        ps='p.s. remember me to all'
+    )
     return letter
 
 
@@ -160,7 +162,7 @@ class PlaceTemplateTestCase(TestCase):
 
         # If no letters in context, "Letters written here" should still appear in HTML
         self.assertTrue('Letters written here' in rendered,
-                         "If no letters in context, 'Letters written here' should still appear in HTML")
+                        "If no letters in context, 'Letters written here' should still appear in HTML")
 
         rendered = render_to_string(template, context={'place': place, 'letters': [letter]})
 

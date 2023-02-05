@@ -9,6 +9,7 @@ django-sslserver==0.22
 django-tinymce==3.4.0
 elasticsearch==8.2.3
 factory-boy==3.2.1
+flake8==6.0.0
 lxml==4.9.2
 MarkupSafe==2.1.1
 matplotlib==3.5.2
