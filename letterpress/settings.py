@@ -6,7 +6,6 @@ For use with Django 10.6 and 1.11
 
 import environ
 import os
-import platform
 
 env = environ.Env(
     # set casting, default value
