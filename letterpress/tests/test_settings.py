@@ -20,7 +20,7 @@ class TestCircleCISettingsTestCase(SimpleTestCase):
 
         # If this is actually running under CircleCI,
         # don't check SECRET_KEY, ALLOWED_HOSTS, and ELASTICSEARCH_URL because there's no settings_secret
-        # Just confirm that reading those settings with CIRCLECI set to False, will cause and AttributeError
+        # Just confirm that reading those settings with CIRCLECI set to False, will cause an AttributeError
         actually_circleci = letterpress.settings.CIRCLECI
 
         with patch.dict(os.environ, {'CIRCLECI': ''}):
