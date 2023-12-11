@@ -31,14 +31,13 @@ MEDIA_URL = '/media/'
 # When not using Docker, root project directory is fine
 DB_DIR = './'
 
-SECRET_KEY = env('SECRET_KEY')
 # Settings stored in settings_secret
 # SECURITY WARNING: keep the secret key used in production secret!
 if CIRCLECI:
-    # SECRET_KEY = 'super-duper-secret-key-for-circleci'
+    SECRET_KEY = 'super-duper-secret-key-for-circleci'
     ALLOWED_HOSTS = []
 else:
-    # SECRET_KEY = settings_secret.SECRET_KEY
+    SECRET_KEY = settings_secret.SECRET_KEY
     ALLOWED_HOSTS = settings_secret.ALLOWED_HOSTS
 
 # Application definition
