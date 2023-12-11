@@ -6,7 +6,6 @@ For use with Django 10.6 and 1.11
 
 import environ
 import os
-import platform
 
 env = environ.Env(
     # set casting, default value
@@ -98,20 +97,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'letterpress.wsgi.application'
-
-# Where to find SpatiaLite and GDAL libraries, necessary to support geodatabase stuff in SQLite
-if platform.system() == 'Windows':
-    # For Windows, use the following setting. Get mod_spatialite from http://www.gaia-gis.it/gaia-sins/
-    # Put all DLLs in the same directory with the Python executable (system and probably also virtualenv)
-    SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
-    # For Windows, set the location of the GDAL DLL and add the GDAL directory to your PATH for the other DLLs
-    # Under Linux it doesn't seem to be necessary
-    GDAL_LIBRARY_PATH = 'C:\Program Files\GDAL\gdal201.dll'  # noqa
-    # A Fallback
-    DB_DIR = BASE_DIR
-else:
-    # For Linux
-    SPATIALITE_LIBRARY_PATH = '/usr/local/lib/mod_spatialite.so'
 
 # Database
 DATABASES = {

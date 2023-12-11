@@ -154,7 +154,7 @@ def do_es_search(index, query=None, aggs=None, from_offset=None, size=None, high
         # Query didn't find anything, probably because there was an error with Elasticsearch
         raise_exception_from_response_error(response)
 
-    except elasticsearch.exceptions.RequestError as exception:
+    except (elasticsearch.exceptions.RequestError, elasticsearch.exceptions.NotFoundError) as exception:
         # Error with Elasticsearch client
         raise_exception_from_request_error(exception)
 

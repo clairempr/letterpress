@@ -40,6 +40,8 @@ jobs:
       - run:
           name: 'Tests'
           command: coverage run manage.py test
+          environment:
+            SECRET_KEY: 'super-duper-secret-key-for-circleci'
       - run:
           name: 'Coveralls'
           command: coveralls

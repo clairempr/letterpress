@@ -5,6 +5,8 @@
 # My stuff #
 ############
 
+.env
+
 # misc scripts
 elasticsearch*.lnk
 letterpress_to_github
