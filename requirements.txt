@@ -1,7 +1,7 @@
 beautifulsoup4==4.11.1
 bokeh==2.4.3
 coverage==6.4.1
-Django==3.2.17
+Django==4.0.10
 django-coverage-plugin==2.0.3
 django-date-extensions==3.1.2
 django-environ==0.9.0
@@ -16,10 +16,10 @@ matplotlib==3.5.2
 nltk==3.7
 numpy==1.22.4
 pandas==1.4.2
-Pillow==9.4.0
-requests==2.28.0
+Pillow==10.0.1
+requests==2.31.0
 six==1.16.0
 textblob==0.17.1
-urllib3==1.26.9
+urllib3==1.26.18
 vaderSentiment==3.3.2
 wordcloud==1.8.1
