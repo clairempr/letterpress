@@ -2,7 +2,6 @@
 import ssl
 
 from elasticsearch import Elasticsearch
-from elasticsearch.client import IndicesClient
 
 from django.conf import settings
 
@@ -17,8 +16,6 @@ ES_CLIENT = Elasticsearch(
     verify_certs=False,
     ssl_version=ssl.TLSVersion.TLSv1_3
 )
-
-ES_INDICES_CLIENT = IndicesClient
 
 # Settings for custom analyzer
 AMPERSAND_REPLACEMENT = 'DHPEOPIJOJOIUYTUXBTEEXFGOPMBFR'
