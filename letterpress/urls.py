@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import include
 from django.urls import path
-from letters.views import GetStatsView, GetTextSentimentView, GetWordCloudView, LetterDetailView, \
+from letters.views import AIView, GetStatsView, GetTextSentimentView, GetWordCloudView, LetterDetailView, \
     LetterSentimentView, LettersView, PlaceDetailView, PlaceListView, PlaceSearchView, RandomLetterView, \
     SearchView, SentimentView, StatsView, TextSentimentView, WordCloudView
 from letterpress.views import ElasticsearchErrorView, HomeView
@@ -25,6 +25,7 @@ urlpatterns = [
                   path('letters/', LettersView.as_view(), name='letters_view'),
                   path('search/', SearchView.as_view(), name='search'),
                   path('random_letter/', RandomLetterView.as_view(), name='random_letter'),
+                  path('ai/', AIView.as_view(), name='ai_view'),
                   path('stats/', StatsView.as_view(), name='stats_view'),
                   path('get_stats/', GetStatsView.as_view(), name='get_stats'),
                   path('sentiment/', SentimentView.as_view(), name='sentiment_view'),

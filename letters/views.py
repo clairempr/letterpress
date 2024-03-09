@@ -10,6 +10,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 from os import path
 from letterpress import settings
+import openai
 from PIL import Image
 from wordcloud import WordCloud, STOPWORDS
 
@@ -33,6 +34,61 @@ from letters.charts import make_charts
 from letters.mixins import ObjectNotFoundMixin, object_not_found
 from letters.models import Letter, Place
 from letters.sort_by import DATE, RELEVANCE, get_sentiments_for_sort_by_list
+
+
+class AIView(TemplateView):
+    """
+    Page for AI-generated text
+    """
+
+    template_name = 'ai.html'
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = 'AI'
+        context['nbar'] = 'ai_view'
+        context['filter_values'] = letters_filter.get_initial_filter_values()
+        context['show_search_text'] = 'true'
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        try:
+            es_result = letter_search.do_letter_search(request, 1, page_number=0)
+        except ElasticsearchException as ex:
+            return get_elasticsearch_error_response(exception=ex, json_response=True)
+
+        letters = [letter for letter, highlight, sentiment, score in es_result.search_results]
+
+        prompt = request.POST.get('prompt')
+        example_text = request.POST.get('example_text')
+
+        if not example_text and letters:
+            example_text = ', '.join(letter.contents() for letter in letters)
+
+        import os
+        from openai import OpenAI
+        from letterpress import settings_secret
+
+        client = OpenAI(api_key=settings_secret.OPENAI_API_KEY)
+        completion = client.chat.completions.create(
+            model='gpt-4',
+            messages=[
+                {'role': 'system',
+                 'content': 'You are a letter writer.'
+                 },
+                {'role': 'user', 'content': f'{prompt}{example_text}'}
+            ]
+        )
+
+        context = self.get_context_data(**kwargs)
+        context['ai_response'] = completion.choices[0].message.content
+        context['actual_letter'] = letters[0] if letters else None
+
+        return render(request, self.template_name, context)
+
 
 
 class LettersView(TemplateView):

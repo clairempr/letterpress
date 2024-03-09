@@ -24,6 +24,7 @@
               <a class="dropdown-item" href="{% url 'letters_view' %}">Search</a></li>
             <li class=" {% if nbar == 'random_letter' %}active{% endif %}">
               <a class="dropdown-item"href="{% url 'random_letter' %}">Random letter</a></li>
+            <li><a class="dropdown-item" href="{% url 'ai_view' %}">AI</a></li>
           </ul>
         </li>
         <li class="{% if nbar == 'places' %}active{% endif %}">
